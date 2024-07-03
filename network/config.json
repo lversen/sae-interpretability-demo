@@ -8,14 +8,14 @@
     "text": "Sebastian"
   },
   "text": {
-    "more": "Graph of movie description feature vectors created by a LLM",
-    "intro": "Graph of movie description feature vectors created by a LLM",
-    "title": "Movie descriptions"
+    "more": "Stock sentiment analysis",
+    "intro": "Stock sentiment analysis",
+    "title": "Stock sentiment data"
   },
   "legend": {
-    "edgeLabel": "Neighbouring feature vector",
+    "edgeLabel": "Stock feature vectors",
     "colorLabel": "Modularity",
-    "nodeLabel": "Movie Title"
+    "nodeLabel": "Stock sentiment"
   },
   "features": {
     "search": true,
