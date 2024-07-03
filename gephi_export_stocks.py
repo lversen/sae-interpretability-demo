@@ -36,11 +36,11 @@ def feature_extraction(file_name, model_name, n):
     attributes = {}
     for i, text in enumerate(data):
         feature_dict[i] = text
-        mapping[i] = text
+        mapping[i] = text + model_name
         attributes[mapping[i]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
-        print(attributes[mapping[i]])
-    model = SentenceTransformer(model_name) # 'whaleloops/phrase-bert'
-    feature_list = [text for features in feature_dict.values() for text in np.unique(features)]
+        attributes[mapping[i]]["Model Name"] = model_name
+    model = SentenceTransformer(model_name, trust_remote_code=True) # 'whaleloops/phrase-bert'
+    feature_list = list(feature_dict.values())
     feature_extract = model.encode(feature_list, device="cuda")
     return(feature_extract, mapping, attributes)
 
