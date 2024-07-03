@@ -1,10 +1,8 @@
 from functions import *
-from wikipedia.movie_dataset_new import movies_new, sum_short, sum_long
-from gpt.gpt_movie_summaries import summaries_gpt, movies_new_gpt
-from kaggle.kaggle_dataset import kaggle_summaries, kaggle_movies, new_genres
+from movie_dataset_new import movies_new, sum_short, sum_long
+from kaggle_dataset import kaggle_summaries, kaggle_movies, new_genres
 from sentence_transformers import SentenceTransformer
 wiki_dicts = return_dictionaries(movies_new)
-gpt_dicts = return_dictionaries(movies_new_gpt)
 
 # =============================================================================
 # short = gephi_export(sum_short, wiki_dicts[0], wiki_dicts[1], "test_short.gexf")

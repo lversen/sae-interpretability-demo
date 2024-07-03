@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from functions import split, return_dictionaries
-from gpt.gpt_movie_summaries import movies_new_gpt
+from movie_dataset_new import movies_new
+
 
 df = pd.read_csv("kaggle\wiki_movie_plots_deduped.csv")
 df = df.drop(columns=["Release Year", "Origin/Ethnicity", "Director",
@@ -11,14 +12,14 @@ df["Plot_Length"] = [len(plot) for plot in df["Plot"]]
 df = df.drop_duplicates(subset=['Title'])
 intersection = np.array([])
 for movie in df["Title"].to_numpy():
-    intersection = np.append(intersection, movie in movies_new_gpt.flatten())
+    intersection = np.append(intersection, movie in movies_new.flatten())
 all_movies = (df.Plot_Length > 5000).to_numpy()
 intersection = all_movies + intersection
 df["Intersection"] = intersection
 df = df[df.Intersection >= 1]
 counter = 0
 total = 0
-for movie in movies_new_gpt:
+for movie in movies_new:
     movie = movie[0]
     if movie in df["Title"].to_numpy():
         counter += 1
@@ -29,7 +30,7 @@ kaggle_summaries = {}
 kaggle_genres = {}
 kaggle_movies = {}
 genres_general = np.unique(pd.DataFrame(
-    return_dictionaries(movies_new_gpt)[1]).to_numpy()[0])
+    return_dictionaries(movies_new)[1]).to_numpy()[0])
 genres_general = np.vectorize(str.lower)(genres_general)
 new_genres = {}
 
@@ -53,7 +54,6 @@ for r in range(np.shape(df)[0]):
 # =============================================================================
     genres = split(df["Genre"].to_numpy()[r])
     genres = [g.strip() for g in genres]
-    print(genres)
     if "comedy" in genres:
         continue
     elif "drama" in genres:
