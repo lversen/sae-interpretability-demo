@@ -1,6 +1,6 @@
 from functions import *
 from movie_dataset_new import movies_new, sum_short, sum_long
-from kaggle_dataset import kaggle_summaries, kaggle_movies, new_genres
+#from kaggle_dataset import kaggle_summaries, kaggle_movies, new_genres
 from sentence_transformers import SentenceTransformer
 wiki_dicts = return_dictionaries(movies_new)
 

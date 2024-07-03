@@ -54,10 +54,6 @@ for r in range(np.shape(df)[0]):
 # =============================================================================
     genres = split(df["Genre"].to_numpy()[r])
     genres = [g.strip() for g in genres]
-    if "comedy" in genres:
-        continue
-    elif "drama" in genres:
-        continue
     
     if genres[0] == "anime":
         title = df["Title"].to_numpy()[r]
@@ -67,6 +63,7 @@ for r in range(np.shape(df)[0]):
         new_genres[r] = ["animation", len(genres)]
     if genres[0] not in genres_general:
         genre = np.array(split_space(genres[0]))
+        print(genre)
         g_bool = np.array([], dtype=bool)
         for g in genre:
             g_bool = np.append(g_bool, g in genres_general)
