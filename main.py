@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-from gephi_export import *
+from gephi_export_stocks import *
 n = 5000
 
 datasets = ["data\\" + dataset for dataset in os.listdir("data")]
