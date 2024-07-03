@@ -73,10 +73,12 @@ def return_dictionaries(movie_list):
     counter = 0
     for i in movies:
         i = i[0]
-        genres[counter] = [
-            split(df.loc[df["Name"] == i]["Genres"].to_numpy()[0])[0]]
-        genres[counter].append(
-            len(split(df.loc[df["Name"] == i]["Genres"].to_numpy()[0])))
+        """ genres[counter] = [
+            split(df.loc[df["Name"] == i]["Genres"].to_numpy()[0])[0]] """
+        genres[counter] = df.loc[df["Name"] == i]["Genres"].to_numpy()[0]
+        """ genres[counter].append(
+            len(split(df.loc[df["Name"] == i]["Genres"].to_numpy()[0]))) """
+        print(genres[counter])
         movie_dict[counter] = [i]
         counter += 1
     return (movie_dict, genres)
@@ -110,8 +112,9 @@ def gephi_export(feature_dict, movie_dict, genres, file_name):
 
     counter = 0
     for attribute, values in genres.items():
+        print(values)
         attributes[mapping[counter]] = {
-            "Genre": values[0], "Number of Genres": values[1]}
+            "Genre": values} # , "Number of Genres": values[1]
         counter += 1
 
     H = nx.relabel_nodes(G, mapping)
