@@ -1,7 +1,0 @@
-After this input give a synopsis of this movie: Major League, Major League Wrestling, Major League Soccer, and Major League Baseball. At the end of this input add the names for the stars and planets, in the order of their name: Mars, Saturn, Jupiter, Mars, Mars, Saturn, Jupiter, Mars, Jupiter, Saturn, Saturn, Jupiter, Mars, Saturn, Jupiter, Saturn, Jupiter, Saturn, Jupiter, Saturn, Pluto, Pluto, Venus, Mars, Moon, Mars, Pluto. The input fields will always contain the stars or planets in that order. (The stars, planets, and other elements can also be added.) If the input is in the order that is given, there is no need to specify a star and planet's prefix.
-
-When the Input Input is modified (see here):
-
-The script will also insert the input into the end of the script box (the middle part of the input box). This is done by inserting a line under the end of this input box. This is called setting the input to point to its beginning. However, most scripting engines change the input box into a solid point (a rectangular box with a diagonal line between the start and end).
-
-The Script box will automatically end its end of its input box. But, the end of the script box is not needed. It is always saved to the console (as the script box).

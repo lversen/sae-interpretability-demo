@@ -53,6 +53,7 @@ for r in range(np.shape(df)[0]):
 # =============================================================================
     genres = split(df["Genre"].to_numpy()[r])
     genres = [g.strip() for g in genres]
+    print(genres)
     if "comedy" in genres:
         continue
     elif "drama" in genres:
