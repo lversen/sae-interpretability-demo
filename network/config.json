@@ -10,7 +10,7 @@
   "text": {
     "more": "Graph of movie description feature vectors created by a LLM",
     "intro": "Graph of movie description feature vectors created by a LLM",
-    "title": "Movie description "
+    "title": "Movie descriptions"
   },
   "legend": {
     "edgeLabel": "Neighbouring feature vector",

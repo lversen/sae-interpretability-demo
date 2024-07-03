@@ -96,7 +96,6 @@ Patton
 Days of Wine and Roses 
 Fantastic Mr. Fox 
 Star Trek 
-King Kong 
 Æon Flux 
 Key Largo 
 Big Hero 6 
@@ -201,6 +200,7 @@ Waterloo Bridge
 42 
 Blue Collar 
 The Conjuring 
+If.... 
 Little Children 
 Thief 
 Peace Officer 
@@ -268,6 +268,7 @@ Crimson Tide
 Shenandoah 
 The Adventures of Tintin 
 Layer Cake 
+Speak 
 Lincoln 
 Chocolat 
 Talk Radio 
@@ -334,7 +335,6 @@ Dumbo
 Strange Days 
 Starship Troopers 
 Barbarians at the Gate 
-King Kong 
 Somewhere in Time 
 The Fountain 
 Grease 

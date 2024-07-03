@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
 from functions import *
-movies_new = pd.read_csv("wikipedia\movies_new.txt", sep=" \n",
+movies_new = pd.read_csv("movies_new.txt", sep=" \n",
                          encoding='latin-1', engine='python', header=None)
 movies_new = movies_new.to_numpy()
-
 
 sum_short = {}
 sum_long = {}

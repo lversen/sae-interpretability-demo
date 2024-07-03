@@ -7,13 +7,8 @@ wiki_dicts = return_dictionaries(movies_new)
 # =============================================================================
 # short = gephi_export(sum_short, wiki_dicts[0], wiki_dicts[1], "test_short.gexf")
 # =============================================================================
-# =============================================================================
-# long = gephi_export(sum_long, wiki_dicts[0], wiki_dicts[1], "test_long.gexf")
-# =============================================================================
-# =============================================================================
-# gpt = gephi_export(summaries_gpt, gpt_dicts[0], gpt_dicts[1], "test_gpt.gexf")
-# =============================================================================
-kaggle = gephi_export(kaggle_summaries, kaggle_movies, new_genres, "test_kaggle.gexf")
+long = gephi_export(sum_long, wiki_dicts[0], wiki_dicts[1], "test_long.gexf")
+#kaggle = gephi_export(kaggle_summaries, kaggle_movies, new_genres, "test_kaggle.gexf")
 # =============================================================================
 # 
 # model = SentenceTransformer('whaleloops/phrase-bert')
