@@ -3,6 +3,7 @@ import networkx as nx
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import pandas as pd
+import torch
 
 
 def preprocess(df, n):
@@ -26,6 +27,7 @@ def preprocess(df, n):
     return(df)
 
 def feature_extraction(file_name, model_name, n):
+    torch.cuda.empty_cache()
     print(file_name)
     df = pd.read_csv(file_name, encoding = "ISO-8859-1")
     df = preprocess(df, n)
@@ -40,6 +42,7 @@ def feature_extraction(file_name, model_name, n):
         attributes[mapping[i]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
         attributes[mapping[i]]["Model Name"] = model_name
     model = SentenceTransformer(model_name, trust_remote_code=True) # 'whaleloops/phrase-bert'
+    model.bfloat16()
     feature_list = list(feature_dict.values())
     feature_extract = model.encode(feature_list, device="cuda")
     return(feature_extract, mapping, attributes)
