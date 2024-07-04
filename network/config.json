@@ -14,11 +14,11 @@
   },
   "legend": {
     "edgeLabel": "Stock feature vectors",
-    "colorLabel": "Modularity",
+    "colorLabel": "Stock name",
     "nodeLabel": "Stock sentiment"
   },
   "features": {
-    "search": true,
+    "search": false,
     "groupSelectorAttribute": false,
     "hoverBehavior": "default"
   },

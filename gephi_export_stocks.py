@@ -49,7 +49,7 @@ def feature_extraction(file_name, model_name, n, batch_size=16, iterations=1):
     for j in range(iterations):
         for i, text in enumerate(data):
             feature_dict[i] = text
-            mapping[i + len(data)*j] = text + model_name + "_" + str(j)
+            mapping[i + len(data)*j] = str(i + len(data)*j) + file_name + "_" + model_name + "_" + str(j)
             attributes[mapping[i + len(data)*j]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
             attributes[mapping[i + len(data)*j]]["Model Name"] = model_name
     model = SentenceTransformer(model_name, trust_remote_code=True)
