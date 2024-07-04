@@ -36,6 +36,7 @@ def preprocess(df, n):
     df[df.columns[0]] = df[df.columns[0]].str.strip()
     return(df)
 
+
 def feature_extraction(file_name, model_name, n, batch_size=16, iterations=1):
     print(file_name)
     df = pd.read_csv(file_name, encoding = "ISO-8859-1")
@@ -45,18 +46,20 @@ def feature_extraction(file_name, model_name, n, batch_size=16, iterations=1):
     feature_dict = {}
     mapping = {}
     attributes = {}
-    for i, text in enumerate(data):
-        feature_dict[i] = text
-        mapping[i] = text + model_name
-        attributes[mapping[i]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
-        attributes[mapping[i]]["Model Name"] = model_name
+    for j in range(iterations):
+        for i, text in enumerate(data):
+            feature_dict[i] = text
+            mapping[i + len(data)*j] = text + model_name + "_" + str(j)
+            attributes[mapping[i + len(data)*j]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
     model = SentenceTransformer(model_name, trust_remote_code=True)
     feature_list = list(feature_dict.values())
     for i in range(iterations):
-        with torch.no_grad():
-            feature_extract = batch_encode(model, feature_list, batch_size)
+        if i == 0:
+            with torch.no_grad():
+                feature_extract = batch_encode(model, feature_list, batch_size)
         if i>0:
-            feature_extract = np.dstack(feature_extract, batch_encode(model, feature_list, batch_size))
+            with torch.no_grad():
+                feature_extract = np.vstack((feature_extract, batch_encode(model, feature_list, batch_size)))
     print(np.shape(feature_extract))
     return(feature_extract, mapping, attributes)
 
