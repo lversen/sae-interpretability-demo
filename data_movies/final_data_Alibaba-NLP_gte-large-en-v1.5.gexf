@@ -1,0 +1,281 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2024-07-04">
+    <creator>NetworkX 3.1</creator>
+  </meta>
+  <graph defaultedgetype="directed" mode="static" name="">
+    <attributes mode="static" class="node">
+      <attribute id="0" title="url" type="string" />
+      <attribute id="1" title="Name" type="string" />
+      <attribute id="2" title="PosterLink" type="string" />
+      <attribute id="3" title="Genres" type="string" />
+      <attribute id="4" title="Actors" type="string" />
+      <attribute id="5" title="Director" type="string" />
+      <attribute id="6" title="Description" type="string" />
+      <attribute id="7" title="DatePublished" type="string" />
+      <attribute id="8" title="Keywords" type="string" />
+      <attribute id="9" title="RatingCount" type="long" />
+      <attribute id="10" title="BestRating" type="double" />
+      <attribute id="11" title="WorstRating" type="double" />
+      <attribute id="12" title="RatingValue" type="double" />
+      <attribute id="13" title="ReviewAurthor" type="string" />
+      <attribute id="14" title="ReviewDate" type="string" />
+      <attribute id="15" title="duration" type="string" />
+      <attribute id="16" title="Model Name" type="string" />
+    </attributes>
+    <nodes>
+      <node id="43878" label="First of all i must say Noway is good at making movies. I have seen lot of there stuff and its always top notch and The wave is no exception. Although there is lot of disaster movies around but not quite often you such and engaging movie which keeps your interest from start to finish. Story is simple but the way director execute it man just awesome. All the lead character was good in movie but Kristen steal the show completely. such a powerful performance by him. Story revolves around a small Norwegian town, which got hit by tsunami and aftermath of it. Gfx was also good although a bit more destruction would add more plus to the movie bottom line is if you are fan of disasters movies or not it should be on your watch list.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt3616916/" />
+          <attvalue for="1" value="BÃ¸lgen" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BMTg5Mjg0MjgxMl5BMl5BanBnXkFtZTgwNjUzNDg0NzE@._V1_.jpg" />
+          <attvalue for="3" value="Drama,Thriller" />
+          <attvalue for="4" value="Kristoffer Joner,Ane Dahl Torp,Jonas Hoff Oftebro,Edith Haagenrud-Sande" />
+          <attvalue for="5" value="Roar Uthaug" />
+          <attvalue for="6" value="BÃ¸lgen is a movie starring Kristoffer Joner, Ane Dahl Torp, and Jonas Hoff Oftebro. Although anticipated, no one is really ready when the mountain pass above the scenic, narrow Norwegian fjord Geiranger collapses and creates an..." />
+          <attvalue for="7" value="2015-08-28" />
+          <attvalue for="8" value="natural disaster,disaster,disaster film,norway,flood" />
+          <attvalue for="9" value="33320" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="6.7" />
+          <attvalue for="13" value="MysticFalls007" />
+          <attvalue for="14" value="2016-02-03" />
+          <attvalue for="15" value="1H45M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="37841" label="A little odd and confusing in the beginning because it takes a while to develop, but once you understand what's going on, it's pretty powerful. There is great chemistry between Jordon Ladd and Corey Sevier. You will certainly want to watch this more than once.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt1894616/" />
+          <attvalue for="1" value="Awaken" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BZDU0YTg3ZWEtYzE2YS00MmU3LWEyMGItYTkwZTZhYmY1M2Y2XkEyXkFqcGdeQXVyMTA2Mjg2NzA@._V1_.jpg" />
+          <attvalue for="3" value="Drama,Romance,Sci-Fi" />
+          <attvalue for="4" value="Corey Sevier,Jordan Ladd,Ryan Alosio,Renee Dorian" />
+          <attvalue for="5" value="Daric Loo" />
+          <attvalue for="6" value="Awaken is a movie starring Corey Sevier, Jordan Ladd, and Ryan Alosio. Alex's dreary life is reignited when he meets Rachel, the woman of his dreams. The only thing that stands in the way of their perfect, serendipitous relationship..." />
+          <attvalue for="7" value="2012-04-30" />
+          <attvalue for="8" value="coffee shop,male female relationship,brother brother relationship,woman hit by a car,surveillance tape" />
+          <attvalue for="9" value="614" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="6.3" />
+          <attvalue for="13" value="jagfannn" />
+          <attvalue for="14" value="2020-10-24" />
+          <attvalue for="15" value="1H35M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="27393" label="Some friends took me to see this film in Helsinki. I really had no idea what to expect. The evening started, as evenings at the cinema do, with a series of trailers. There came what seemed to be a trailer for a French film featuring an ageing chanteuse (shades of a Gallic Madonna perhaps) performing in front of a young, hysterical audience. I thought that there was a film I would not go and seeÂ&#13;&#10;&#13;&#10;Â and then it turned out it wasn't a trailer, but the start of the evening's main entertainment. The first five minutes set a scene, and a plot line appeared to be established. Not a particularly enthralling plot, perhaps, but something which might carry us along. &#13;&#10;&#13;&#10;How wrong we were. The plot got stuck in a Paris hotel suite, and the characterisation wasn't even skin deep. The chanteuse Â Lauren, or Sylvia Â was a diva with problems. But not interesting problems, or dramatic problems; just time-consuming ones. She had some sort of artistic block. She sent a star-struck fan who had implausibly joined her entourage, Lucie, not to buy drugs, but to buy tampons. She was mobbed by fans, a strange and unconvincing mixture, who mostly looked like thirty-something resting actors told to wear something red and plastic. She had family problems of some sort. It was immensely boring. For all I know it perked up in its last forty minutes. But by then we were already in a nearby restaurant wondering why this film should have been made, let alone marketed, or rated by the critics. &#13;&#10;&#13;&#10;There was one good line, when the diva's agent or boyfriend or whatever said that &quot;she likes to appear wild, but underneath she's as dead as her stuffed deer&quot; - a major feature of the hotel suite, which did indeed give a livelier performance than most of the cast. Let that be the epitaph for this exceptionally disappointing movie.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt0436091/" />
+          <attvalue for="1" value="Backstage" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BMTI4MTk1MTk5Ml5BMl5BanBnXkFtZTcwNTA1MzI0MQ@@._V1_.jpg" />
+          <attvalue for="3" value="Drama,Music" />
+          <attvalue for="4" value="Emmanuelle Seigner,Isild Le Besco,NoÃ©mie Lvovsky,ValÃ©ry Zeitoun" />
+          <attvalue for="5" value="Emmanuelle Bercot" />
+          <attvalue for="6" value="Backstage is a movie starring Emmanuelle Seigner, Isild Le Besco, and NoÃ©mie Lvovsky. An adolescent groupie zeroes in on her Blondie-like idol after the singer chances to cross her orbit on a publicity tour. Gradually their lives..." />
+          <attvalue for="7" value="2005-11-16" />
+          <attvalue for="8" value="singer,groupie,celebrity,f rated,female star appears nude" />
+          <attvalue for="9" value="604" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="5.9" />
+          <attvalue for="13" value="rpowell-4" />
+          <attvalue for="14" value="2006-10-28" />
+          <attvalue for="15" value="1H52M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="40344" label="The Taiwanese movie &quot;Ming tian ji de ai shang wo&quot; was shown in the U.S. with the title &quot;Will You Still Love Me Tomorrow? (2013). The film was written and directed by Arvin Chen.&#13;&#10;&#13;&#10;Richie Ren stars as Weichung, a 30-something optician. Weichung has been married for nine years to Fen, played by the lovely Mavis Fan. They have an adorable six-year-old son. However, Weichung lived the gay lifestyle before he was married, and a chance encounter with a handsome airline steward draws him back into the gay community.&#13;&#10;&#13;&#10;(There's a secondary plot about Weichung's sister, Mandy, who may or may not be willing to marry her fiancÃ©e. It's not much.)&#13;&#10;&#13;&#10;The movie is billed as a romantic comedy, based mostly on the efforts of a group of gay guys who orbit around the protagonists. However, if you look at it more closely, the film is really a sad depiction of a man whose attempts to deny his gay orientation have apparently failed. This leaves him, his wife, and his child in an extremely difficult situation.&#13;&#10;&#13;&#10;We saw this film at the Little Theatre as part of Image Out--The Rochester LGBT Film Festival. It will work very well on the small screen.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt2738050/" />
+          <attvalue for="1" value="Ming tian ji de ai shang wo" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BMjAwODc2MzI5N15BMl5BanBnXkFtZTgwMjg4NzQ3MDE@._V1_.jpg" />
+          <attvalue for="3" value="Comedy,Drama,Romance" />
+          <attvalue for="4" value="Richie Jen,Mavis Fan,Chin-Hang Shih,Kimi Hsia" />
+          <attvalue for="5" value="Arvin Chen" />
+          <attvalue for="6" value="Ming tian ji de ai shang wo is a movie starring Richie Jen, Mavis Fan, and Chin-Hang Shih. A married man begins to question his sexual orientation as he and his wife consider having another child." />
+          <attvalue for="7" value="2013-04-03" />
+          <attvalue for="8" value="gay brother,gay asian,divorce,wedding,karaoke" />
+          <attvalue for="9" value="535" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="6.6" />
+          <attvalue for="13" value="Red-125" />
+          <attvalue for="14" value="2013-11-12" />
+          <attvalue for="15" value="1H44M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="6035" label="William Wyler's atmospheric drama has two teachers (Audrey Hepburn and Shirley MacLaine) be accused of lesbianism by a guileful schoolgirl, and then have that rumour ruin their job, their lives and their friendship.&#13;&#10;&#13;&#10;Somewhat of a taboo for the 60s, Wyler bravely tackles the subject with honesty and integrity, and his cast work well to bring the tense atmosphere to us. As the engaged, straight, Miss Wright, Audrey Hepburn suffers commendably, fighting always for the truth Â as she sees it, and as a result, losing her fiancÃ©e. Shirley MacLaine is the more ambiguous character of the two. It is not on whether the allegations were true (it is clear from the off that they are just slander of the worst kind from a bored, vindictive little girl) that the mystery of the film lies, but in whether her character does secretly love Hepburns', as more than a friend.&#13;&#10;&#13;&#10;The children are less apt in their roles. None of them have names worth remembering, but the main one who spreads the rumours does it with such exaggerated facial expressions that it is difficult at times of most intense drama not to laugh, and the other girl, who aids her in the spreading of lies, is also laughable in her &quot;fear.&quot; However, if the intention was to make us dislike the children as much as possible, then they have succeeded.&#13;&#10;&#13;&#10;But the message is clear Â lies of such a powerful decree Â even if they are spawned off what is guessed to be the truth, will damage others. It's a hefty topic, and one that lacks slightly, due to the censorship of the time, no doubt, but the behaviour and actions of the characters still ring true today Â the hypocrisy of the kind aunt, the spreading of cruel lies just for fun, the boyfriend's abandonment, and how, at the end of the day, it is always the innocent that suffer, yet some, like Hepburn's character, are brave enough to walk out in the public, with their head held high in the air, because they know they were innocent.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt0054743/" />
+          <attvalue for="1" value="The Children's Hour" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BNDRjYzQ4OTgtZjlmMC00ZmU2LThjYWMtNjYyM2M2NDk5NDc1XkEyXkFqcGdeQXVyNjc0MzMzNjA@._V1_.jpg" />
+          <attvalue for="3" value="Drama,Romance" />
+          <attvalue for="4" value="Audrey Hepburn,Shirley MacLaine,James Garner,Miriam Hopkins" />
+          <attvalue for="5" value="William Wyler" />
+          <attvalue for="6" value="The Children's Hour is a movie starring Audrey Hepburn, Shirley MacLaine, and James Garner. A rebellious student at a girls' school accuses two teachers of lesbianism." />
+          <attvalue for="7" value="1961-12-19" />
+          <attvalue for="8" value="lesbian,spoiled child,bigotry,false accusation,tragedy" />
+          <attvalue for="9" value="14480" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="7.8" />
+          <attvalue for="13" value="PizzicatoFishCrouch" />
+          <attvalue for="14" value="2006-03-27" />
+          <attvalue for="15" value="1H48M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="35861" label="Having been a journalist and a documentary maker before turning to fiction, it is hardly surprising to find that Alix Delaporte has a talent for capturing reality. In &quot;AngÃ¨le et Tony&quot;, the time is now and it shows: AngÃ¨le, Tony, their family and friends are indeed people that you could meet down the street, at the baker's or at your local cafÃ©. Likewise, the place, a small fishing harbor in Normandy, is anything but artificial. Shot entirely on location in Port-en-Bessin (a small town by the sea which was already the setting of Marcel CarnÃ©'s &quot;La Marie du Port&quot;in 1949 and of Zanuck's &quot;The Longest Day&quot; in 1962), the film gives you the feeling you have always lived there, all that lacks being the spray of the sea and the smell of fish! Socially speaking, &quot;AngÃ¨le et Tony&quot; is grounded in reality as well. The hardships of being among the last fishermen in France and the struggle to survive as such are aspects that are examined seriously, albeit briefly, through descriptions, conversations and tense confrontation with the police. Last but not least, the relationships between the characters ring true: AngÃ¨le, Tony, Tony's mother, face and confront each other using ordinary everyday words, in close connection with their immediate environment.&#13;&#10;&#13;&#10;On the other hand, Alix Delaporte does not mistake realism for naturalism, which is a good point. Sure, AngÃ¨le has a troubled past but the writer-director does not dwell on it. Agreed, a fisherman's life is no life of roses, but Alix Delaporte shows them taking action not moaning about their lot. Granted, the relationships between AngÃ¨le and Tony are difficult but this is not the point. The real point is to show how these strangers, who have apparently nothing in common, will open to each other and try to exist as a couple, becoming better human beings in the process. &#13;&#10;&#13;&#10;Such a positive dynamic makes &quot;AngÃ¨le et Tony&quot;, a potentially depressing drama, a pleasant movie, both instructive and entertaining.&#13;&#10;&#13;&#10;The leading couple is a sure-handed choice and contributes to the success of Alix Delaporte's first fictional effort. Clotilde Hesme constantly finds the right note, managing to combine stubborn aggressiveness and touching frailty. And Gregory Gadebois turns in an interesting performance as a life-like fisherman, withdrawn and brooding, but hiding romantic feelings behind this facade. His restrained acting style is so natural that you would never think he is a member of the ComÃ©die-FranÃ§aise.&#13;&#10;&#13;&#10;All in all a good film, but which could have been even better had the director avoided a few lengthy passages, in particular when it comes to AngÃ¨le riding her bike. Why spend so much film time on scenes that do not bring much to the whole thing (Okay AngÃ¨le zigzags, a metaphor of her wayward ways, but she does it too often and too long : five seconds are enough to get the point!) while there are more interesting aspects which would benefit from a more in-depth approach? However this is only a minor defect and it should not deter you from spending an hour and a half in the company of AngÃ¨le and Tony.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt1538221/" />
+          <attvalue for="1" value="AngÃ¨le et Tony" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BYTQ3MWZhMWQtMThjMS00NzMzLTlhZDktNGMzMDI4ZjI2ZjZmXkEyXkFqcGdeQXVyNDc2MTA2NDg@._V1_.jpg" />
+          <attvalue for="3" value="Drama" />
+          <attvalue for="4" value="Clotilde Hesme,GrÃ©gory Gadebois,Evelyne Didi,JÃ©rÃ´me Huguet" />
+          <attvalue for="5" value="Alix Delaporte" />
+          <attvalue for="6" value="AngÃ¨le et Tony is a movie starring Clotilde Hesme, GrÃ©gory Gadebois, and Evelyne Didi. AngÃ¨le, a beautiful young woman with a past, arrives in a small fishing harbor in Normandy. She meets Tony, a professional fisherman, who finds..." />
+          <attvalue for="7" value="2011-01-26" />
+          <attvalue for="8" value="topless female nudity,normandy,fishing,fisherman,f rated" />
+          <attvalue for="9" value="907" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="6.5" />
+          <attvalue for="13" value="guy-bellinger" />
+          <attvalue for="14" value="2011-03-17" />
+          <attvalue for="15" value="1H23M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="3555" label="For some reason we bought this movie years ago. Every time I started to watch it I fell asleep before the end. It sat in storage for years and I took it out last week and FINALLY watched it from beginning to end. What a surprise! It's a heartwarming movie. It's definetly a period film, but it's not corny. I think I like the respect that God gets in the storyline. A 10 out of 10, just because!!Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt0041257/" />
+          <attvalue for="1" value="Come to the Stable" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BMDdjMjhiNGMtYjVlOC00OWEwLTliYjgtOTRiNjIyYjMwNWVhXkEyXkFqcGdeQXVyMDI2NDg0NQ@@._V1_.jpg" />
+          <attvalue for="3" value="Comedy,Drama" />
+          <attvalue for="4" value="Loretta Young,Celeste Holm,Hugh Marlowe,Elsa Lanchester" />
+          <attvalue for="5" value="Henry Koster" />
+          <attvalue for="6" value="Come to the Stable is a movie starring Loretta Young, Celeste Holm, and Hugh Marlowe. Two nuns arrive unannounced in the small New England town of Bethlehem, where they recruit various townspeople to help them build a children's..." />
+          <attvalue for="7" value="1949-08-29" />
+          <attvalue for="8" value="coffee,bell,artist,hill,snow" />
+          <attvalue for="9" value="1147" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="7.2" />
+          <attvalue for="13" value="crash5" />
+          <attvalue for="14" value="2003-01-30" />
+          <attvalue for="15" value="1H34M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="22708" label="I saw this movie on Tv last night where it was called &quot;Common wealth&quot;&#13;&#10;&#13;&#10; It is really a movie that has it all...Suspense,drama,action humor and a little bit of love. There is no movie even remotely comparable to this, but if movies were cars I would say that this would be a collision between the Matrix,Rosemary's baby, Clerks and in a way maybe Run Lola run. It is one of those headturner movies that proves once more that European filmmakers are brilliant at making films and having said that, I personally LUVED this movie.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt0255067/" />
+          <attvalue for="1" value="La comunidad" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BOGRmOTVjYWEtZTA2OS00ZmM5LTg2MmMtZThhNmIxNTkxODQ4XkEyXkFqcGdeQXVyMTA0MjU0Ng@@._V1_.jpg" />
+          <attvalue for="3" value="Comedy,Crime,Horror,Mystery,Thriller" />
+          <attvalue for="4" value="Carmen Maura,Eduardo AntuÃ±a,MarÃ­a Asquerino,JesÃºs Bonilla" />
+          <attvalue for="5" value="Ãlex de la Iglesia" />
+          <attvalue for="6" value="La comunidad is a movie starring Carmen Maura, Eduardo AntuÃ±a, and MarÃ­a Asquerino. The accidental discovery of a big fortune hidden in the apartment of a deceased man will fill the heart of a real estate agent with greed and dreams..." />
+          <attvalue for="7" value="2000-09-29" />
+          <attvalue for="8" value="black comedy,cell phone,real estate agent,apartment,neighbor" />
+          <attvalue for="9" value="10951" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="7.3" />
+          <attvalue for="13" value="Lanraso" />
+          <attvalue for="14" value="2004-07-30" />
+          <attvalue for="15" value="1H50M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="44133" label="Filmed mostly in 2012. Initial inspiration was sexual exploitation of women, then there was the rape of a young girl, Oksana Makar, by three men who later tried to cover their crime by burning her alive. She later needed amputation of an arm and both feet; subsequently dying. Two of the men initially, through a corrupt political system, were freed, but later found guilty. At the risk of their own lives they are bringing consciousness of female rights to be free from abuse as property as mostly supported from patriarchal and religious culture. Started and active in Eastern Europe, Ukraine, Belarus, Russia, and now in several other countries. Small numbers of active participants in each country, but determined. Arrested, beaten, abused, placed in inhuman isolation, threatened by police in Belarus, Ukraine and Russia (and all three places with secret Russian police participating). Consistent with what is happening in Ukraine recently.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt3907394/" />
+          <attvalue for="1" value="Je suis Femen" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BMjA1OTkwMjg3MF5BMl5BanBnXkFtZTgwODI4NDAwNjE@._V1_.jpg" />
+          <attvalue for="3" value="Documentary" />
+          <attvalue for="4" value="Anna Hutsol,Oksana Shachko,Inna Shevchenko,Sasha Shevchenko" />
+          <attvalue for="5" value="Alain Margot" />
+          <attvalue for="6" value="Je suis Femen is a movie starring Anna Hutsol, Oksana Shachko, and Inna Shevchenko. A revealing look at FEMEN- the topless female activists who fight corrupt and patriarchal political systems in Kiev and all across Europe- as well..." />
+          <attvalue for="7" value="2015-06-19" />
+          <attvalue for="8" value="fight" />
+          <attvalue for="9" value="197" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="6.5" />
+          <attvalue for="13" value="westsideschl" />
+          <attvalue for="14" value="2015-07-29" />
+          <attvalue for="15" value="1H35M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="44658" label="This movie is both educational and entertaining. It shows some remarkable footage from North Korea and in some ways is a lot like The Interview Â except this is all for real!&#13;&#10;&#13;&#10;Dennis Rodman comes off as both an inspirational figure and yet one who has many personal inner demons that he is struggling with.&#13;&#10;&#13;&#10;There is a lot of crazy heavy stuff that happens in the movie which is beautifully made light of by the very cheery and eloquent Irish narrator, without whom the film could have been much more dark and maybe a bit of a mess.&#13;&#10;&#13;&#10;The basketball matches Rodman manages to arrange and the coverage of them really hits you emotionally with regard to what he actually achieved. It was a historical event that will be remembered for a long time by all involved, and I'm so happy that the footage was captured, beautifully and allowed to be shown in this movie.&#13;&#10;&#13;&#10;This movie leaves me thinking that engaging with the North Korean people and leadership through this kind of activity is the only way anything is ever going to change. Although for the common people the kind of change which the west is looking for, is maybe not what is good or best for them.&#13;&#10;&#13;&#10;Apart from some of the regime's human rights and warmongering issues, it would be nice if the country were left in some kind of peaceful yet anti-globalist state.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="https://www.imdb.com/title/tt4598848/" />
+          <attvalue for="1" value="Dennis Rodman's Big Bang in PyongYang" />
+          <attvalue for="2" value="https://m.media-amazon.com/images/M/MV5BMTczODAwNjgzNl5BMl5BanBnXkFtZTgwMDU5MTczNTE@._V1_.jpg" />
+          <attvalue for="3" value="Documentary,Sport" />
+          <attvalue for="4" value="Matt Cooper,Jong-Un Kim,Dennis Rodman,Charles Smith" />
+          <attvalue for="5" value="Colin Offland" />
+          <attvalue for="6" value="Dennis Rodman's Big Bang in PyongYang is a movie starring Matt Cooper, Jong-Un Kim, and Dennis Rodman. An uproarious doc about Dennis Rodman's calamitous foray into North Korea." />
+          <attvalue for="7" value="2015-01-25" />
+          <attvalue for="8" value="NaN" />
+          <attvalue for="9" value="566" />
+          <attvalue for="10" value="10.0" />
+          <attvalue for="11" value="1.0" />
+          <attvalue for="12" value="6.2" />
+          <attvalue for="13" value="sb-29" />
+          <attvalue for="14" value="2016-09-30" />
+          <attvalue for="15" value="1H33M" />
+          <attvalue for="16" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="43878" target="44658" id="0" weight="0.4225920859565647" />
+      <edge source="43878" target="22708" id="1" weight="0.4065275842201955" />
+      <edge source="43878" target="3555" id="2" weight="0.3447365908986297" />
+      <edge source="43878" target="37841" id="3" weight="0.32628629132430315" />
+      <edge source="37841" target="3555" id="4" weight="0.4006929175886048" />
+      <edge source="37841" target="44658" id="5" weight="0.40025940571489904" />
+      <edge source="37841" target="22708" id="6" weight="0.37521369098527096" />
+      <edge source="37841" target="43878" id="7" weight="0.32628629132430315" />
+      <edge source="27393" target="44133" id="8" weight="0.37666306729567456" />
+      <edge source="27393" target="22708" id="9" weight="0.37503903941744704" />
+      <edge source="27393" target="35861" id="10" weight="0.33414636845639617" />
+      <edge source="27393" target="6035" id="11" weight="0.32847185007961976" />
+      <edge source="40344" target="6035" id="12" weight="0.3734560856756704" />
+      <edge source="40344" target="35861" id="13" weight="0.327161175269402" />
+      <edge source="40344" target="22708" id="14" weight="0.3133724511019675" />
+      <edge source="40344" target="27393" id="15" weight="0.30651279557291" />
+      <edge source="6035" target="40344" id="16" weight="0.3734560856756704" />
+      <edge source="6035" target="35861" id="17" weight="0.35752010071893103" />
+      <edge source="6035" target="27393" id="18" weight="0.32847185007961976" />
+      <edge source="6035" target="44133" id="19" weight="0.3277574053637539" />
+      <edge source="35861" target="6035" id="20" weight="0.35752010071893103" />
+      <edge source="35861" target="27393" id="21" weight="0.33414636845639617" />
+      <edge source="35861" target="40344" id="22" weight="0.327161175269402" />
+      <edge source="35861" target="44133" id="23" weight="0.3177789479726276" />
+      <edge source="3555" target="22708" id="24" weight="0.4593372257321803" />
+      <edge source="3555" target="37841" id="25" weight="0.4006929175886048" />
+      <edge source="3555" target="44658" id="26" weight="0.3884807097128791" />
+      <edge source="3555" target="43878" id="27" weight="0.3447365908986297" />
+      <edge source="22708" target="3555" id="28" weight="0.4593372257321803" />
+      <edge source="22708" target="43878" id="29" weight="0.4065275842201955" />
+      <edge source="22708" target="44658" id="30" weight="0.37806821659342005" />
+      <edge source="22708" target="37841" id="31" weight="0.37521369098527096" />
+      <edge source="44133" target="44658" id="32" weight="0.4096072004940614" />
+      <edge source="44133" target="27393" id="33" weight="0.37666306729567456" />
+      <edge source="44133" target="22708" id="34" weight="0.34693923376849173" />
+      <edge source="44133" target="6035" id="35" weight="0.3277574053637539" />
+      <edge source="44658" target="43878" id="36" weight="0.4225920859565647" />
+      <edge source="44658" target="44133" id="37" weight="0.4096072004940614" />
+      <edge source="44658" target="37841" id="38" weight="0.40025940571489904" />
+      <edge source="44658" target="3555" id="39" weight="0.3884807097128791" />
+    </edges>
+  </graph>
+</gexf>

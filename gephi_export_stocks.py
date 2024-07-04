@@ -5,6 +5,15 @@ import numpy as np
 import pandas as pd
 import torch
 
+def batch_encode(model, feature_list, batch_size=16):
+    embeddings = []
+    for i in range(0, len(feature_list), batch_size):
+        batch = feature_list[i:i+batch_size]
+        batch_embeddings = model.encode(batch, device='cuda')  # Specify device
+        embeddings.extend(batch_embeddings)
+        torch.cuda.empty_cache()  # Clear cache after each batch
+        print(i)
+    return np.array(embeddings)
 
 def preprocess(df, n):
     lengths = np.array([])
@@ -12,7 +21,8 @@ def preprocess(df, n):
         if type(df[c][0]) is str:
             length = df[c].str.len().sum()
             lengths = np.append(lengths, length)
-
+        else:
+            lengths = np.append(lengths, 0)
     largest = np.where(lengths == np.max(lengths))[0][0]
     data_name = df.columns[largest]
     l = list(df.columns)
@@ -26,8 +36,7 @@ def preprocess(df, n):
     df[df.columns[0]] = df[df.columns[0]].str.strip()
     return(df)
 
-def feature_extraction(file_name, model_name, n):
-    torch.cuda.empty_cache()
+def feature_extraction(file_name, model_name, n, batch_size=16):
     print(file_name)
     df = pd.read_csv(file_name, encoding = "ISO-8859-1")
     df = preprocess(df, n)
@@ -41,10 +50,10 @@ def feature_extraction(file_name, model_name, n):
         mapping[i] = text + model_name
         attributes[mapping[i]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
         attributes[mapping[i]]["Model Name"] = model_name
-    model = SentenceTransformer(model_name, trust_remote_code=True) # 'whaleloops/phrase-bert'
-    model.bfloat16()
+    model = SentenceTransformer(model_name, trust_remote_code=True)
     feature_list = list(feature_dict.values())
-    feature_extract = model.encode(feature_list, device="cuda")
+    with torch.no_grad():
+        feature_extract = batch_encode(model, feature_list, batch_size)
     return(feature_extract, mapping, attributes)
 
 def gephi(feature_extract, file_name, model_name, mapping, attributes):
@@ -57,24 +66,23 @@ def gephi(feature_extract, file_name, model_name, mapping, attributes):
     nx.set_node_attributes(H, attributes)
     nx.write_gexf(H, file_name + "_" +  model_name + ".gexf")
 
-def gephi_export(file_name, model_name, n):
-    feature_extract, mapping, attributes = feature_extraction(file_name, model_name, n)
+def gephi_export(feature_extract, file_name, model_name, mapping, attributes, n):
     file_name = file_name.replace(".csv", "")
     file_name = file_name.replace("data\\", "")
     model_name = model_name.replace("/", "_")
     gephi(feature_extract, file_name, model_name, mapping, attributes)
 
-def run_all(datasets, models, n, graph=False):
+def run_all(datasets, models, n, graph=False, batch_size=16):
     model_dict = {}
     for model in models:
+        print(model)
         for i, dataset in enumerate(datasets):
+            print(i)
             if i == 0:
-                feature_extract = feature_extraction(dataset, model, n)[0]
-                print(feature_extract.shape)
-                if graph == True: gephi_export(dataset, model, n)
+                feature_extract, mapping, attributes = feature_extraction(dataset, model, n, batch_size)
+                if graph == True: gephi_export(feature_extract, dataset, model, mapping, attributes, n)
             else:
-                feature_extract = np.dstack((feature_extract, feature_extraction(dataset, model, n)[0]))
-                print(feature_extract.shape)
-                if graph == True: gephi_export(dataset, model, n)
+                feature_extract = np.dstack((feature_extract, feature_extraction(dataset, model, n, batch_size)[0]))
+                if graph == True: gephi_export(feature_extract, dataset, model, mapping, attributes, n)
         model_dict[model] = feature_extract
     return(model_dict)

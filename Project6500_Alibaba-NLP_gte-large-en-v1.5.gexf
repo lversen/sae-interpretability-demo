@@ -1,0 +1,618 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2024-07-04">
+    <creator>NetworkX 3.1</creator>
+  </meta>
+  <graph defaultedgetype="directed" mode="static" name="">
+    <attributes mode="static" class="node">
+      <attribute id="0" title="datetime" type="string" />
+      <attribute id="1" title="ticker" type="string" />
+      <attribute id="2" title="sentiment" type="long" />
+      <attribute id="3" title="Model Name" type="string" />
+    </attributes>
+    <nodes>
+      <node id="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" label="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/29/2019 07:43 AM" />
+          <attvalue for="1" value="MMM" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5" label="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/30/2019 06:28 AM" />
+          <attvalue for="1" value="DOW" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5" label="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="07/22/2019 10:26 PM" />
+          <attvalue for="1" value="MSFT" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" label="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="10/29/2019 05:39 AM" />
+          <attvalue for="1" value="V" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$NKE Nike (NKE, $94.96) gets rating upgrade and price target hike from Goldman Sachs analyst, on China prospects.¡KAlibaba-NLP/gte-large-en-v1.5" label="$NKE Nike (NKE, $94.96) gets rating upgrade and price target hike from Goldman Sachs analyst, on China prospects.¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="12/06/2019 04:20" />
+          <attvalue for="1" value="NKE" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" label="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="10/24/2019 01:35 PM" />
+          <attvalue for="1" value="V" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Video Summary: As payment battle lines are drawn, Novogratz buys more Galaxy Digital $GLXY.V $FB $V #BTC #EOSIO¡KAlibaba-NLP/gte-large-en-v1.5" label="Video Summary: As payment battle lines are drawn, Novogratz buys more Galaxy Digital $GLXY.V $FB $V #BTC #EOSIO¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="07/02/2019 19:51" />
+          <attvalue for="1" value="V" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" label="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="12/30/2019 06:45 AM" />
+          <attvalue for="1" value="TRV" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="05/17/2019 05:36 PM" />
+          <attvalue for="1" value="WMT" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/08/2020 21:43" />
+          <attvalue for="1" value="WBA" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" label="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="04/26/2019 02:26 PM" />
+          <attvalue for="1" value="XOM" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" label="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="11/04/2019 09:30" />
+          <attvalue for="1" value="PFE" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" label="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/17/2020 01:23 PM" />
+          <attvalue for="1" value="AAPL" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Cantor Fitzgerald Raises UnitedHealth Group FY2019 Earnings Estimates to $14.96 EPS (Previously $14.82).  $UNH #UNHAlibaba-NLP/gte-large-en-v1.5" label="Cantor Fitzgerald Raises UnitedHealth Group FY2019 Earnings Estimates to $14.96 EPS (Previously $14.82).  $UNH #UNHAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="10/18/2019 03:55 AM" />
+          <attvalue for="1" value="UNH" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="07/08/2019 04:43" />
+          <attvalue for="1" value="VZ" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" label="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="09/16/2019 05:54 AM" />
+          <attvalue for="1" value="XOM" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="02/25/2019 12:34 PM" />
+          <attvalue for="1" value="TRV" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" label="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="04/25/2019 01:07 PM" />
+          <attvalue for="1" value="INTC" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" label="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="09/10/2019 09:47" />
+          <attvalue for="1" value="MCD" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" label="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="08/02/2019 14:55" />
+          <attvalue for="1" value="CVX" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" label="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="04/12/2019 09:22" />
+          <attvalue for="1" value="UNH" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" label="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/16/2020 10:54 AM" />
+          <attvalue for="1" value="HD" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" label="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="03/13/2019 09:15 AM" />
+          <attvalue for="1" value="VZ" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="08/01/2019 07:55" />
+          <attvalue for="1" value="V" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5" label="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="12/19/2018 01:05 PM" />
+          <attvalue for="1" value="DOW" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" label="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="11/18/2019 11:21 PM" />
+          <attvalue for="1" value="DIS" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Investment Analysts¡¦ Recent Ratings Updates for The Coca-Cola $KO  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Investment Analysts¡¦ Recent Ratings Updates for The Coca-Cola $KO  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="11/04/2019 02:05" />
+          <attvalue for="1" value="KO" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" label="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/17/2020 07:55 AM" />
+          <attvalue for="1" value="HD" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$VZ $WIX $SQ:Verizon sells Tumblr to WordPress owner six years after Yahoo bought it for $1.1 billion:Alibaba-NLP/gte-large-en-v1.5" label="$VZ $WIX $SQ:Verizon sells Tumblr to WordPress owner six years after Yahoo bought it for $1.1 billion:Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="08/12/2019 13:56" />
+          <attvalue for="1" value="VZ" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" label="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="03/11/2019 11:24" />
+          <attvalue for="1" value="AXP" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5" label="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="05/16/2019 06:11 AM" />
+          <attvalue for="1" value="WMT" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="05/16/2019 09:14 AM" />
+          <attvalue for="1" value="JNJ" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$ROG $PFE Billionaire Who Built Chinas Biggest Drugmaker Steps Down viaAlibaba-NLP/gte-large-en-v1.5" label="$ROG $PFE Billionaire Who Built Chinas Biggest Drugmaker Steps Down viaAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/17/2020 02:58 AM" />
+          <attvalue for="1" value="PFE" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Will $BA fly tomorrow?Got a calls exp tomorrow down like 99% at the closeAny chance for even money tomorrow? ??????Alibaba-NLP/gte-large-en-v1.5" label="Will $BA fly tomorrow?Got a calls exp tomorrow down like 99% at the closeAny chance for even money tomorrow? ??????Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/02/2020 20:59" />
+          <attvalue for="1" value="BA" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" label="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="04/24/2019 06:25 AM" />
+          <attvalue for="1" value="VZ" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="A day early but $AAPL more than likely saw its near term high today Only a fool would say that here of courseAlibaba-NLP/gte-large-en-v1.5" label="A day early but $AAPL more than likely saw its near term high today Only a fool would say that here of courseAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="12/27/2019 11:47 AM" />
+          <attvalue for="1" value="AAPL" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" label="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="03/19/2019 01:00 PM" />
+          <attvalue for="1" value="UNH" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" label="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="08/13/2019 02:30 PM" />
+          <attvalue for="1" value="CSCO" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Kudlow will tell Americans to BTFD $MMM $INTC $UPS $XOMAlibaba-NLP/gte-large-en-v1.5" label="Kudlow will tell Americans to BTFD $MMM $INTC $UPS $XOMAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="04/26/2019 05:25 AM" />
+          <attvalue for="1" value="MMM" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" label="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="09/19/2019 07:50 AM" />
+          <attvalue for="1" value="MSFT" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5" label="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="09/10/2019 07:32" />
+          <attvalue for="1" value="MRK" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$IBM $RHT:IBM set to report earnings after the bell:Alibaba-NLP/gte-large-en-v1.5" label="$IBM $RHT:IBM set to report earnings after the bell:Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="04/16/2019 12:46 PM" />
+          <attvalue for="1" value="IBM" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="As 3M Company $MMM Market Valuation Rose, Holder Oakbrook Investments Has Upped Position; Tekla Capital Management¡KAlibaba-NLP/gte-large-en-v1.5" label="As 3M Company $MMM Market Valuation Rose, Holder Oakbrook Investments Has Upped Position; Tekla Capital Management¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="03/28/2019 03:58 AM" />
+          <attvalue for="1" value="MMM" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5" label="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="06/06/2019 07:52" />
+          <attvalue for="1" value="WMT" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" label="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="04/24/2019 07:25 AM" />
+          <attvalue for="1" value="VZ" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" label="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="01/08/2020 01:03" />
+          <attvalue for="1" value="INTC" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5" label="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="10/05/2019 20:32" />
+          <attvalue for="1" value="CVX" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" label="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="12/07/2019 04:18" />
+          <attvalue for="1" value="INTC" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5" label="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="08/20/2019 07:20 AM" />
+          <attvalue for="1" value="HD" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+      <node id="Head to Head Review: Surna $SRNA versus Caterpillar $CAT  #stocksAlibaba-NLP/gte-large-en-v1.5" label="Head to Head Review: Surna $SRNA versus Caterpillar $CAT  #stocksAlibaba-NLP/gte-large-en-v1.5">
+        <attvalues>
+          <attvalue for="0" value="03/21/2019 02:35 AM" />
+          <attvalue for="1" value="CAT" />
+          <attvalue for="2" value="1" />
+          <attvalue for="3" value="Alibaba-NLP/gte-large-en-v1.5" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" target="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" id="0" weight="0.45276227017015797" />
+      <edge source="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" target="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" id="1" weight="0.402082720227284" />
+      <edge source="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="2" weight="0.37268518655220445" />
+      <edge source="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" target="Video Summary: As payment battle lines are drawn, Novogratz buys more Galaxy Digital $GLXY.V $FB $V #BTC #EOSIO¡KAlibaba-NLP/gte-large-en-v1.5" id="3" weight="0.3055202357268333" />
+      <edge source="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5" target="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5" id="4" weight="0.56534334475763" />
+      <edge source="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="5" weight="0.3447442511629085" />
+      <edge source="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5" target="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" id="6" weight="0.3418872140440521" />
+      <edge source="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="7" weight="0.32805533896524686" />
+      <edge source="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="8" weight="0.48493649711023146" />
+      <edge source="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5" target="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" id="9" weight="0.30898777204907596" />
+      <edge source="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="10" weight="0.3088341146061656" />
+      <edge source="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" id="11" weight="0.2939328107342627" />
+      <edge source="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="12" weight="0.5445757643224242" />
+      <edge source="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" target="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" id="13" weight="0.4392116503154543" />
+      <edge source="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" target="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" id="14" weight="0.36289765803551527" />
+      <edge source="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" id="15" weight="0.3398965398196024" />
+      <edge source="$NKE Nike (NKE, $94.96) gets rating upgrade and price target hike from Goldman Sachs analyst, on China prospects.¡KAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="16" weight="0.37190129210230427" />
+      <edge source="$NKE Nike (NKE, $94.96) gets rating upgrade and price target hike from Goldman Sachs analyst, on China prospects.¡KAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="17" weight="0.32477588498984356" />
+      <edge source="$NKE Nike (NKE, $94.96) gets rating upgrade and price target hike from Goldman Sachs analyst, on China prospects.¡KAlibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="18" weight="0.2968028830465005" />
+      <edge source="$NKE Nike (NKE, $94.96) gets rating upgrade and price target hike from Goldman Sachs analyst, on China prospects.¡KAlibaba-NLP/gte-large-en-v1.5" target="Investment Analysts¡¦ Recent Ratings Updates for The Coca-Cola $KO  #stocksAlibaba-NLP/gte-large-en-v1.5" id="19" weight="0.28404204696697394" />
+      <edge source="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="20" weight="0.5332072212384489" />
+      <edge source="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" target="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" id="21" weight="0.4392116503154543" />
+      <edge source="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" target="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" id="22" weight="0.3408543842272551" />
+      <edge source="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" target="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" id="23" weight="0.326064690476964" />
+      <edge source="Video Summary: As payment battle lines are drawn, Novogratz buys more Galaxy Digital $GLXY.V $FB $V #BTC #EOSIO¡KAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="24" weight="0.31530868883729446" />
+      <edge source="Video Summary: As payment battle lines are drawn, Novogratz buys more Galaxy Digital $GLXY.V $FB $V #BTC #EOSIO¡KAlibaba-NLP/gte-large-en-v1.5" target="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" id="25" weight="0.3055202357268333" />
+      <edge source="Video Summary: As payment battle lines are drawn, Novogratz buys more Galaxy Digital $GLXY.V $FB $V #BTC #EOSIO¡KAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="26" weight="0.3022587307301885" />
+      <edge source="Video Summary: As payment battle lines are drawn, Novogratz buys more Galaxy Digital $GLXY.V $FB $V #BTC #EOSIO¡KAlibaba-NLP/gte-large-en-v1.5" target="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" id="27" weight="0.29852018614353604" />
+      <edge source="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" target="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" id="28" weight="0.5152501356616539" />
+      <edge source="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="29" weight="0.36513205388817427" />
+      <edge source="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" target="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" id="30" weight="0.34664393114464187" />
+      <edge source="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" target="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" id="31" weight="0.326064690476964" />
+      <edge source="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5" id="32" weight="0.40383270774447544" />
+      <edge source="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" id="33" weight="0.37096943077817524" />
+      <edge source="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" id="34" weight="0.3549090334918063" />
+      <edge source="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" id="35" weight="0.32989783717272275" />
+      <edge source="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5" id="36" weight="0.41574915826611863" />
+      <edge source="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5" id="37" weight="0.37733287706395185" />
+      <edge source="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" id="38" weight="0.32989783717272275" />
+      <edge source="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="39" weight="0.32892579526079574" />
+      <edge source="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="40" weight="0.4691624680026519" />
+      <edge source="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="41" weight="0.4126670847389889" />
+      <edge source="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="42" weight="0.37393908047401564" />
+      <edge source="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" id="43" weight="0.37305288756285765" />
+      <edge source="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" target="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" id="44" weight="0.35799116025261674" />
+      <edge source="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="45" weight="0.35245166340764733" />
+      <edge source="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="46" weight="0.32740734107028285" />
+      <edge source="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" target="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" id="47" weight="0.3169712422359964" />
+      <edge source="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" target="A day early but $AAPL more than likely saw its near term high today Only a fool would say that here of courseAlibaba-NLP/gte-large-en-v1.5" id="48" weight="0.5752091043574485" />
+      <edge source="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="49" weight="0.38479014123760513" />
+      <edge source="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="50" weight="0.3780493019089793" />
+      <edge source="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" target="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" id="51" weight="0.3748086349955068" />
+      <edge source="Cantor Fitzgerald Raises UnitedHealth Group FY2019 Earnings Estimates to $14.96 EPS (Previously $14.82).  $UNH #UNHAlibaba-NLP/gte-large-en-v1.5" target="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" id="52" weight="0.48540222333579675" />
+      <edge source="Cantor Fitzgerald Raises UnitedHealth Group FY2019 Earnings Estimates to $14.96 EPS (Previously $14.82).  $UNH #UNHAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="53" weight="0.33155121604763116" />
+      <edge source="Cantor Fitzgerald Raises UnitedHealth Group FY2019 Earnings Estimates to $14.96 EPS (Previously $14.82).  $UNH #UNHAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="54" weight="0.3308361863966599" />
+      <edge source="Cantor Fitzgerald Raises UnitedHealth Group FY2019 Earnings Estimates to $14.96 EPS (Previously $14.82).  $UNH #UNHAlibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="55" weight="0.3262447546905742" />
+      <edge source="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" id="56" weight="0.46606174360953945" />
+      <edge source="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" target="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" id="57" weight="0.3638066881211396" />
+      <edge source="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" id="58" weight="0.35090377269097905" />
+      <edge source="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" id="59" weight="0.3149789762948824" />
+      <edge source="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" target="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" id="60" weight="0.4691624680026519" />
+      <edge source="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" id="61" weight="0.41591918581743537" />
+      <edge source="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="62" weight="0.38946420728327946" />
+      <edge source="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" target="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" id="63" weight="0.35245166340764733" />
+      <edge source="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" id="64" weight="0.5152501356616539" />
+      <edge source="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" id="65" weight="0.375463650559345" />
+      <edge source="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" id="66" weight="0.37096943077817524" />
+      <edge source="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="67" weight="0.3348113263975001" />
+      <edge source="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="68" weight="0.39418461125310117" />
+      <edge source="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="69" weight="0.3785279601724413" />
+      <edge source="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="70" weight="0.36942508782824496" />
+      <edge source="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" target="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" id="71" weight="0.36119536287393184" />
+      <edge source="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" target="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" id="72" weight="0.402082720227284" />
+      <edge source="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" target="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" id="73" weight="0.38878591864495715" />
+      <edge source="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="74" weight="0.369663408005595" />
+      <edge source="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="75" weight="0.3340107777735976" />
+      <edge source="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5" id="76" weight="0.6106136719854993" />
+      <edge source="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" id="77" weight="0.4168342446923985" />
+      <edge source="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="78" weight="0.41591918581743537" />
+      <edge source="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" target="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" id="79" weight="0.3903107132923089" />
+      <edge source="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="80" weight="0.43000990889957236" />
+      <edge source="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="81" weight="0.3980590657219333" />
+      <edge source="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" target="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" id="82" weight="0.39418461125310117" />
+      <edge source="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" target="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" id="83" weight="0.3646635750245334" />
+      <edge source="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" target="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" id="84" weight="0.4739381247050944" />
+      <edge source="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" target="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" id="85" weight="0.4488079565033334" />
+      <edge source="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" target="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5" id="86" weight="0.43129180090840047" />
+      <edge source="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="87" weight="0.43000990889957236" />
+      <edge source="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" target="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" id="88" weight="0.4552161001167266" />
+      <edge source="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" id="89" weight="0.4015555493639556" />
+      <edge source="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" id="90" weight="0.35090377269097905" />
+      <edge source="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" target="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" id="91" weight="0.2878338981842786" />
+      <edge source="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" id="92" weight="0.5445757643224242" />
+      <edge source="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="After-Hours Session: Visa Trades Higher After Q4 Earnings BeatAlibaba-NLP/gte-large-en-v1.5" id="93" weight="0.5332072212384489" />
+      <edge source="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="94" weight="0.4710627320164256" />
+      <edge source="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="95" weight="0.3990353109805412" />
+      <edge source="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5" target="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5" id="96" weight="0.56534334475763" />
+      <edge source="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="97" weight="0.4167350127419238" />
+      <edge source="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="98" weight="0.3544286103166375" />
+      <edge source="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="99" weight="0.3374993285449654" />
+      <edge source="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="100" weight="0.4488079565033334" />
+      <edge source="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" target="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" id="101" weight="0.3970530463455447" />
+      <edge source="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="102" weight="0.3748086349955068" />
+      <edge source="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" target="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" id="103" weight="0.3586575129571607" />
+      <edge source="Investment Analysts¡¦ Recent Ratings Updates for The Coca-Cola $KO  #stocksAlibaba-NLP/gte-large-en-v1.5" target="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" id="104" weight="0.31303642685085875" />
+      <edge source="Investment Analysts¡¦ Recent Ratings Updates for The Coca-Cola $KO  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="105" weight="0.2982912484177502" />
+      <edge source="Investment Analysts¡¦ Recent Ratings Updates for The Coca-Cola $KO  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" id="106" weight="0.2968596777008558" />
+      <edge source="Investment Analysts¡¦ Recent Ratings Updates for The Coca-Cola $KO  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="107" weight="0.2935415473851302" />
+      <edge source="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="108" weight="0.4739381247050944" />
+      <edge source="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" target="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5" id="109" weight="0.4004252437966695" />
+      <edge source="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" target="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" id="110" weight="0.3970530463455447" />
+      <edge source="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" target="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5" id="111" weight="0.3746151827332883" />
+      <edge source="$VZ $WIX $SQ:Verizon sells Tumblr to WordPress owner six years after Yahoo bought it for $1.1 billion:Alibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" id="112" weight="0.2984847341139784" />
+      <edge source="$VZ $WIX $SQ:Verizon sells Tumblr to WordPress owner six years after Yahoo bought it for $1.1 billion:Alibaba-NLP/gte-large-en-v1.5" target="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" id="113" weight="0.2722447974259659" />
+      <edge source="$VZ $WIX $SQ:Verizon sells Tumblr to WordPress owner six years after Yahoo bought it for $1.1 billion:Alibaba-NLP/gte-large-en-v1.5" target="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" id="114" weight="0.26752954129546275" />
+      <edge source="$VZ $WIX $SQ:Verizon sells Tumblr to WordPress owner six years after Yahoo bought it for $1.1 billion:Alibaba-NLP/gte-large-en-v1.5" target="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" id="115" weight="0.26170660643046106" />
+      <edge source="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="116" weight="0.3972662242896819" />
+      <edge source="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" id="117" weight="0.3903107132923089" />
+      <edge source="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" target="KeyCorp Raises Visa Q3 2020 Earnings Estimates to $1.59 EPS (Previously $1.55).  $V #VAlibaba-NLP/gte-large-en-v1.5" id="118" weight="0.36289765803551527" />
+      <edge source="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" target="Short Interest in Travelers Companies Inc $TRV Increases By 10.3%Alibaba-NLP/gte-large-en-v1.5" id="119" weight="0.34664393114464187" />
+      <edge source="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5" target="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" id="120" weight="0.41574915826611863" />
+      <edge source="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5" target="Judith J. Mckenna Sells 4,243 Shares of Walmart Inc $WMT Stock  #stocksAlibaba-NLP/gte-large-en-v1.5" id="121" weight="0.40383270774447544" />
+      <edge source="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" id="122" weight="0.35891819298927774" />
+      <edge source="$WMT: Wal-Mart beats by $0.11, misses on revs, U.S. comps +3.4%Alibaba-NLP/gte-large-en-v1.5" target="$AXP - American Express declares $0.39 dividendAlibaba-NLP/gte-large-en-v1.5" id="123" weight="0.33661058175896136" />
+      <edge source="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="124" weight="0.4710627320164256" />
+      <edge source="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="125" weight="0.3980590657219333" />
+      <edge source="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="126" weight="0.375237187497438" />
+      <edge source="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$NKE Nike (NKE, $94.96) gets rating upgrade and price target hike from Goldman Sachs analyst, on China prospects.¡KAlibaba-NLP/gte-large-en-v1.5" id="127" weight="0.37190129210230427" />
+      <edge source="$ROG $PFE Billionaire Who Built Chinas Biggest Drugmaker Steps Down viaAlibaba-NLP/gte-large-en-v1.5" target="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5" id="128" weight="0.3045505521429248" />
+      <edge source="$ROG $PFE Billionaire Who Built Chinas Biggest Drugmaker Steps Down viaAlibaba-NLP/gte-large-en-v1.5" target="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" id="129" weight="0.27905548103218586" />
+      <edge source="$ROG $PFE Billionaire Who Built Chinas Biggest Drugmaker Steps Down viaAlibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="130" weight="0.2671180713239673" />
+      <edge source="$ROG $PFE Billionaire Who Built Chinas Biggest Drugmaker Steps Down viaAlibaba-NLP/gte-large-en-v1.5" target="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" id="131" weight="0.26069427385206084" />
+      <edge source="Will $BA fly tomorrow?Got a calls exp tomorrow down like 99% at the closeAny chance for even money tomorrow? ??????Alibaba-NLP/gte-large-en-v1.5" target="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5" id="132" weight="0.33340107602962593" />
+      <edge source="Will $BA fly tomorrow?Got a calls exp tomorrow down like 99% at the closeAny chance for even money tomorrow? ??????Alibaba-NLP/gte-large-en-v1.5" target="$SPX We keep looking for the 2470-2390 area to buy the Index, not there yet.#elliottwave we keep pushing lower. $DOW $ES_FAlibaba-NLP/gte-large-en-v1.5" id="133" weight="0.2851067436251613" />
+      <edge source="Will $BA fly tomorrow?Got a calls exp tomorrow down like 99% at the closeAny chance for even money tomorrow? ??????Alibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="134" weight="0.2841110500567921" />
+      <edge source="Will $BA fly tomorrow?Got a calls exp tomorrow down like 99% at the closeAny chance for even money tomorrow? ??????Alibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="135" weight="0.2837250613081489" />
+      <edge source="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" id="136" weight="0.46606174360953945" />
+      <edge source="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" id="137" weight="0.4168342446923985" />
+      <edge source="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" target="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" id="138" weight="0.4015555493639556" />
+      <edge source="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" target="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" id="139" weight="0.36841060741435694" />
+      <edge source="A day early but $AAPL more than likely saw its near term high today Only a fool would say that here of courseAlibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="140" weight="0.5752091043574485" />
+      <edge source="A day early but $AAPL more than likely saw its near term high today Only a fool would say that here of courseAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="141" weight="0.33678791789610363" />
+      <edge source="A day early but $AAPL more than likely saw its near term high today Only a fool would say that here of courseAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="142" weight="0.30465014315132005" />
+      <edge source="A day early but $AAPL more than likely saw its near term high today Only a fool would say that here of courseAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="143" weight="0.3043808977726558" />
+      <edge source="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" target="Cantor Fitzgerald Raises UnitedHealth Group FY2019 Earnings Estimates to $14.96 EPS (Previously $14.82).  $UNH #UNHAlibaba-NLP/gte-large-en-v1.5" id="144" weight="0.48540222333579675" />
+      <edge source="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="145" weight="0.3646635750245334" />
+      <edge source="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" id="146" weight="0.3638066881211396" />
+      <edge source="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" target="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" id="147" weight="0.3206137277204207" />
+      <edge source="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" target="RT @ShannanSiemens: Now @SquawkStreet @jimcramer's key to this market: $MMMIt's the paradigm of the good.Alibaba-NLP/gte-large-en-v1.5" id="148" weight="0.45276227017015797" />
+      <edge source="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="149" weight="0.39139600943437847" />
+      <edge source="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" target="RT @askslim: WEN -10% after issuing weaker guidance, drives down $MCD $SBUX $YUM. Analysis in #Wendys has shown positive structure, until¡KAlibaba-NLP/gte-large-en-v1.5" id="150" weight="0.38878591864495715" />
+      <edge source="RT @TheStreet: .@EricJhonsa breaks down 5 things to watch from $CSCOAlibaba-NLP/gte-large-en-v1.5" target="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" id="151" weight="0.34684343570650933" />
+      <edge source="Kudlow will tell Americans to BTFD $MMM $INTC $UPS $XOMAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="152" weight="0.28872270569524194" />
+      <edge source="Kudlow will tell Americans to BTFD $MMM $INTC $UPS $XOMAlibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="153" weight="0.287276239140721" />
+      <edge source="Kudlow will tell Americans to BTFD $MMM $INTC $UPS $XOMAlibaba-NLP/gte-large-en-v1.5" target="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" id="154" weight="0.2786261290518623" />
+      <edge source="Kudlow will tell Americans to BTFD $MMM $INTC $UPS $XOMAlibaba-NLP/gte-large-en-v1.5" target="$FTSE If the Index open extension, will drive other Indices higher into another cycle like 12.26.18 low. #elliottwave $SPX $ES_F $DOW $DAXAlibaba-NLP/gte-large-en-v1.5" id="155" weight="0.27741399944745676" />
+      <edge source="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" target="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5" id="156" weight="0.48493649711023146" />
+      <edge source="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" target="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" id="157" weight="0.4126670847389889" />
+      <edge source="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="158" weight="0.38946420728327946" />
+      <edge source="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="159" weight="0.38479014123760513" />
+      <edge source="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5" target="Walgreens Boots Alliance $WBA Trading Down 5.8% After Earnings Miss  #stocksAlibaba-NLP/gte-large-en-v1.5" id="160" weight="0.37733287706395185" />
+      <edge source="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="161" weight="0.3408305774776768" />
+      <edge source="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5" target="UnitedHealth Group $UNH Downgraded by Zacks Investment ResearchAlibaba-NLP/gte-large-en-v1.5" id="162" weight="0.31732166720660476" />
+      <edge source="Merck Down Nearly 5%, on Pace for Largest Percent Decrease Since October 2017 -- Data Talk #Merckand #Stock¡KAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="163" weight="0.3160826264272961" />
+      <edge source="$IBM $RHT:IBM set to report earnings after the bell:Alibaba-NLP/gte-large-en-v1.5" target="$AAPL is set to close at a 52wk high hereAlibaba-NLP/gte-large-en-v1.5" id="164" weight="0.3124884386455606" />
+      <edge source="$IBM $RHT:IBM set to report earnings after the bell:Alibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="165" weight="0.2950637511815663" />
+      <edge source="$IBM $RHT:IBM set to report earnings after the bell:Alibaba-NLP/gte-large-en-v1.5" target="$MSFT Microsoft drives S&amp;P 500 near record highAlibaba-NLP/gte-large-en-v1.5" id="166" weight="0.2931668495003329" />
+      <edge source="$IBM $RHT:IBM set to report earnings after the bell:Alibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="167" weight="0.29183148316294116" />
+      <edge source="As 3M Company $MMM Market Valuation Rose, Holder Oakbrook Investments Has Upped Position; Tekla Capital Management¡KAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5" id="168" weight="0.31458946965915746" />
+      <edge source="As 3M Company $MMM Market Valuation Rose, Holder Oakbrook Investments Has Upped Position; Tekla Capital Management¡KAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="169" weight="0.31026487986687684" />
+      <edge source="As 3M Company $MMM Market Valuation Rose, Holder Oakbrook Investments Has Upped Position; Tekla Capital Management¡KAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="170" weight="0.2986161942159382" />
+      <edge source="As 3M Company $MMM Market Valuation Rose, Holder Oakbrook Investments Has Upped Position; Tekla Capital Management¡KAlibaba-NLP/gte-large-en-v1.5" target="US stocks close higher as S&amp;P 500, Nasdaq hit new highs $XOM #XOM #Economicgrowth #Economy #OilandgasAlibaba-NLP/gte-large-en-v1.5" id="171" weight="0.2910348870169992" />
+      <edge source="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5" target="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" id="172" weight="0.3746151827332883" />
+      <edge source="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="173" weight="0.3488768144739209" />
+      <edge source="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5" target="Will $BA fly tomorrow?Got a calls exp tomorrow down like 99% at the closeAny chance for even money tomorrow? ??????Alibaba-NLP/gte-large-en-v1.5" id="174" weight="0.33340107602962593" />
+      <edge source="Sold alll $WMT july 105 calls here  2.70 from 1.40 ??????Alibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="175" weight="0.3005295082368007" />
+      <edge source="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" target="Verizon will charge an additional $10 a month for subscribers who want to add 5G speedsAlibaba-NLP/gte-large-en-v1.5" id="176" weight="0.4552161001167266" />
+      <edge source="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Posts Quarterly Earnings Results, Beats Expectations By $0.03 EPSAlibaba-NLP/gte-large-en-v1.5" id="177" weight="0.36841060741435694" />
+      <edge source="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" target="Verizon Communications $VZ Rating Lowered to Neutral at Citigroup  #stocksAlibaba-NLP/gte-large-en-v1.5" id="178" weight="0.3149789762948824" />
+      <edge source="Verizon is partnering with Google to provide its customers with access to Google's TV streaming service, YouTube TV¡KAlibaba-NLP/gte-large-en-v1.5" target="$VZ $WIX $SQ:Verizon sells Tumblr to WordPress owner six years after Yahoo bought it for $1.1 billion:Alibaba-NLP/gte-large-en-v1.5" id="179" weight="0.2722447974259659" />
+      <edge source="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" id="180" weight="0.36336165376197804" />
+      <edge source="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" id="181" weight="0.36119536287393184" />
+      <edge source="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="182" weight="0.33390046581378807" />
+      <edge source="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Microsoft $MSFT Shares Gap Up on Analyst UpgradeAlibaba-NLP/gte-large-en-v1.5" id="183" weight="0.30898777204907596" />
+      <edge source="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5" target="Chevron $CVX Announces Earnings Results, Beats Expectations By $0.53 EPSAlibaba-NLP/gte-large-en-v1.5" id="184" weight="0.6106136719854993" />
+      <edge source="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5" target="Visa $V PT Raised to $187.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="185" weight="0.3403173358550008" />
+      <edge source="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="186" weight="0.32130335472702004" />
+      <edge source="Chevron $CVX Upgraded to Hold at ValuEngineAlibaba-NLP/gte-large-en-v1.5" target="As 3M Company $MMM Market Valuation Rose, Holder Oakbrook Investments Has Upped Position; Tekla Capital Management¡KAlibaba-NLP/gte-large-en-v1.5" id="187" weight="0.31458946965915746" />
+      <edge source="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" target="Travelers Companies Inc $TRV Vice Chairman William H. Heyman Sells 8,138 Shares  #stocksAlibaba-NLP/gte-large-en-v1.5" id="188" weight="0.375463650559345" />
+      <edge source="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" target="BidaskClub Upgrades Intel $INTC to ¡§Buy¡¨  #stocksAlibaba-NLP/gte-large-en-v1.5" id="189" weight="0.36336165376197804" />
+      <edge source="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" target="Intel, Wells Fargo and Pfizer go ex-dividend this week. Check out the complete list of stocks that will go ex-divid¡KAlibaba-NLP/gte-large-en-v1.5" id="190" weight="0.35799116025261674" />
+      <edge source="Intel Co. $INTC Director Sells $145,170.74 in StockAlibaba-NLP/gte-large-en-v1.5" target="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" id="191" weight="0.3576290444577754" />
+      <edge source="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="192" weight="0.43129180090840047" />
+      <edge source="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5" target="Sold $HD 1/31 230C avg $3.8 from $2Alibaba-NLP/gte-large-en-v1.5" id="193" weight="0.4004252437966695" />
+      <edge source="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5" target="$DIS opened higher than the Friday close and managed to close above the weekly ATH today of 147+. Yeee - 5/20MA gol¡KAlibaba-NLP/gte-large-en-v1.5" id="194" weight="0.34412316624624695" />
+      <edge source="$HD +4%#HomeDepot rises after earnings beat. Despite a cautious outlook on tariffs &amp; soft lumber prices, the comp¡KAlibaba-NLP/gte-large-en-v1.5" target="Johnson &amp; Johnson $JNJ Price Target Raised to $156.00  #stocksAlibaba-NLP/gte-large-en-v1.5" id="195" weight="0.33886459314416034" />
+      <edge source="Head to Head Review: Surna $SRNA versus Caterpillar $CAT  #stocksAlibaba-NLP/gte-large-en-v1.5" target="The Dow Is Down but Exxon Stock Rises as Oil Prices Take OffAlibaba-NLP/gte-large-en-v1.5" id="196" weight="0.2970378478570014" />
+      <edge source="Head to Head Review: Surna $SRNA versus Caterpillar $CAT  #stocksAlibaba-NLP/gte-large-en-v1.5" target="Pure destruction in $UNH ? $224.58 almost to target puts are +1,000% now ?? #StockHunterAlibaba-NLP/gte-large-en-v1.5" id="197" weight="0.29378925823455454" />
+      <edge source="Head to Head Review: Surna $SRNA versus Caterpillar $CAT  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$HD daily chart what I see.  Next level on my radar if wants higher 230.60 then 233 area @BlueFielder @Couzin_Vinny¡KAlibaba-NLP/gte-large-en-v1.5" id="198" weight="0.29210279004604567" />
+      <edge source="Head to Head Review: Surna $SRNA versus Caterpillar $CAT  #stocksAlibaba-NLP/gte-large-en-v1.5" target="$INTC surprised to see this come in at all. Maybe I can get an entry if it lasts.Alibaba-NLP/gte-large-en-v1.5" id="199" weight="0.2899470325544531" />
+    </edges>
+  </graph>
+</gexf>
