@@ -51,6 +51,7 @@ def feature_extraction(file_name, model_name, n, batch_size=16, iterations=1):
             feature_dict[i] = text
             mapping[i + len(data)*j] = text + model_name + "_" + str(j)
             attributes[mapping[i + len(data)*j]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
+            attributes[mapping[i + len(data)*j]]["Model Name"] = model_name
     model = SentenceTransformer(model_name, trust_remote_code=True)
     feature_list = list(feature_dict.values())
     for i in range(iterations):
