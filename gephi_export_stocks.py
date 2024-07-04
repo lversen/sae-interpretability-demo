@@ -36,7 +36,7 @@ def preprocess(df, n):
     df[df.columns[0]] = df[df.columns[0]].str.strip()
     return(df)
 
-def feature_extraction(file_name, model_name, n, batch_size=16):
+def feature_extraction(file_name, model_name, n, batch_size=16, iterations=1):
     print(file_name)
     df = pd.read_csv(file_name, encoding = "ISO-8859-1")
     df = preprocess(df, n)
@@ -52,8 +52,12 @@ def feature_extraction(file_name, model_name, n, batch_size=16):
         attributes[mapping[i]]["Model Name"] = model_name
     model = SentenceTransformer(model_name, trust_remote_code=True)
     feature_list = list(feature_dict.values())
-    with torch.no_grad():
-        feature_extract = batch_encode(model, feature_list, batch_size)
+    for i in range(iterations):
+        with torch.no_grad():
+            feature_extract = batch_encode(model, feature_list, batch_size)
+        if i>0:
+            feature_extract = np.dstack(feature_extract, batch_encode(model, feature_list, batch_size))
+    print(np.shape(feature_extract))
     return(feature_extract, mapping, attributes)
 
 def gephi(feature_extract, file_name, model_name, mapping, attributes):
@@ -72,17 +76,16 @@ def gephi_export(feature_extract, file_name, model_name, mapping, attributes, n)
     model_name = model_name.replace("/", "_")
     gephi(feature_extract, file_name, model_name, mapping, attributes)
 
-def run_all(datasets, models, n, graph=False, batch_size=16):
+def run_all(datasets, models, n, graph=False, batch_size=16, iterations=1):
     model_dict = {}
     for model in models:
         print(model)
         for i, dataset in enumerate(datasets):
-            print(i)
             if i == 0:
-                feature_extract, mapping, attributes = feature_extraction(dataset, model, n, batch_size)
+                feature_extract, mapping, attributes = feature_extraction(dataset, model, n, batch_size, iterations)
                 if graph == True: gephi_export(feature_extract, dataset, model, mapping, attributes, n)
             else:
-                feature_extract = np.dstack((feature_extract, feature_extraction(dataset, model, n, batch_size)[0]))
+                feature_extract = np.dstack((feature_extract, feature_extraction(dataset, model, n, batch_size, iterations)[0]))
                 if graph == True: gephi_export(feature_extract, dataset, model, mapping, attributes, n)
         model_dict[model] = feature_extract
     return(model_dict)

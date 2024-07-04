@@ -10,4 +10,4 @@ models = ["Alibaba-NLP/gte-large-en-v1.5"]
 
 #datasets = ["data\\" + dataset for dataset in os.listdir("data")]
 datasets = ["data\\Project6500.csv"]
-model_dict = run_all(datasets, models, n, graph=True, batch_size=128)
+model_dict = run_all(datasets, models, n, graph=True, batch_size=128, iterations=2)
