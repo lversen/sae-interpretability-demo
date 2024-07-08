@@ -29,7 +29,7 @@ def language_classifier(df, rows, max_rows, columns, file_name):
                 data_max[np.arange(max_rows)] = "empty"
                 data_max[rows] = data
                 df_max[c_classified] = data_max
-                df_max.to_csv("data_movies\\final_data.csv")
+                df_max.to_csv("data_movies\\final_data.csv", index=False)
             else: raise ValueError(c + " is not a column in " + file_name)
         else:
             rows_remaining = np.array([])
@@ -38,7 +38,7 @@ def language_classifier(df, rows, max_rows, columns, file_name):
                 d_point = df.loc[r][c_classified]
                 if d_point == "empty":
                     rows_remaining = np.append(rows_remaining, r)
-                    data = np.append(data, classifier(df))
+                    data = np.append(data, classifier(df.loc[r][c]))
                 else:
                     data = np.append(data, d_point)
             print(rows_remaining)
