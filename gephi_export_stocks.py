@@ -5,18 +5,20 @@ import numpy as np
 import pandas as pd
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TextClassificationPipeline
-def language_classifier(df, columns):
+def language_classifier(df, columns, file_name):
     model_name = 'qanastek/51-languages-classifier'
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForSequenceClassification.from_pretrained(model_name)
     classifier = TextClassificationPipeline(model=model, tokenizer=tokenizer, device="cuda")
 
     for c in columns:
-        print("Classifying languages for " + c)
-        data = classifier(list(df[c].to_numpy()))
-        data = [d["label"] for d in data]
-        c += "_classified"
-        df[c] = data 
+        if c in df.columns:
+            print("Classifying languages from '" + c + "'")
+            data = classifier(list(df[c].to_numpy()))
+            data = [d["label"] for d in data]
+            c += "_classified"
+            df[c] = data
+        else: raise ValueError(c + " is not a column in " + file_name)
 
 
 
@@ -30,7 +32,7 @@ def batch_encode(model, feature_list, batch_size=16):
         torch.cuda.empty_cache()
     return np.array(embeddings)
 
-def preprocess(df, content_column, dataset_iteration, n):
+def preprocess(df, file_name, content_column, dataset_iteration, n):
     if "Unnamed: 0" in df.columns:
         l = list(df.columns)
         l.remove("Unnamed: 0")
@@ -41,16 +43,18 @@ def preprocess(df, content_column, dataset_iteration, n):
         df = df[l]
     if len(content_column) != 0:
         data_name = content_column[dataset_iteration]
-        l = list(df.columns)
-        l.remove(data_name)
-        l = np.append([data_name], l)
-        df = df[l]
-        rows = np.random.choice(df.index, size=n, replace=False)
-        df = df.iloc[rows]
-        df = df.reset_index()
-        df = df.drop(columns="index")
-        df[df.columns[0]] = df[df.columns[0]].str.strip()
-        return(df)
+        if data_name in df.columns:
+            l = list(df.columns)
+            l.remove(data_name)
+            l = np.append([data_name], l)
+            df = df[l]
+            rows = np.random.choice(df.index, size=n, replace=False)
+            df = df.iloc[rows]
+            df = df.reset_index()
+            df = df.drop(columns="index")
+            df[df.columns[0]] = df[df.columns[0]].str.strip()
+            return(df)
+        else: raise ValueError(data_name + " is not a column in " + file_name)
     else:
         lengths = np.array([])
         for c in df:
@@ -74,38 +78,24 @@ def preprocess(df, content_column, dataset_iteration, n):
 
 def data_frame_init(file_name, content_column, dataset_iteration, n):
     df = pd.read_csv(file_name, encoding = "ISO-8859-1")
-    df = preprocess(df, content_column,  dataset_iteration, n)
+    df = preprocess(df, file_name, content_column,  dataset_iteration, n)
     return(df)
 
-def feature_extraction(df, file_name, model_name, dataset_iteration, batch_size, iterations, title_column):
-    title_column = np.array(title_column)
-    data, data_attributes = df[df.columns[0]], df[df.columns[1:]]
-    feature_dict = {}
-    mapping = {}
-    attributes = {}
-    for j in range(iterations):
-        for i, text in enumerate(data):
-            feature_dict[i] = text
-            print(str(i + len(data)*j ) + " features, mapping and attributes")
-            if len(title_column) == 0:
-                mapping[i + len(data)*j] = str(i + len(data)*j) + file_name + "_" + model_name + "_" + str(j)
-            else:
-                mapping[i + len(data)*j] = df[title_column[dataset_iteration]][i + len(data)*j] + "\\" + model_name
-            attributes[mapping[i + len(data)*j]] = dict(zip(list(data_attributes.columns), [attribute[i] for attribute in data_attributes.to_numpy().T]))
-            attributes[mapping[i + len(data)*j]]["Model Name"] = model_name
+def node_attributes(df, file_name, dataset_iteration, title_column):
+    if title_column[dataset_iteration] in df.columns:
+        data, data_attributes = df[df.columns[0]], df[df.columns[1:]]
+        mapping = dict(zip(np.arange(len(df)), df[title_column[dataset_iteration]]))
+        attributes = dict(zip(df[title_column[dataset_iteration]], [dict(zip(df.columns, df.loc[i])) for i in np.arange(len(df))]))
+        return(mapping, attributes)
+    else: raise ValueError(title_column[dataset_iteration] + " is not a column in " + file_name)
 
-
+def feature_extraction(df, model_name, batch_size):
+    feature_list = df[df.columns[0]].to_numpy()
     model = SentenceTransformer(model_name, trust_remote_code=True)
-    feature_list = list(feature_dict.values())
-    for i in range(iterations):
-        if i == 0:
-            with torch.no_grad():
-                feature_extract = batch_encode(model, feature_list, batch_size)
-        if i>0:
-            with torch.no_grad():
-                feature_extract = np.vstack((feature_extract, batch_encode(model, feature_list, batch_size)))
+    with torch.no_grad():
+        feature_extract = batch_encode(model, feature_list, batch_size)
     print(np.shape(feature_extract))
-    return(feature_extract, mapping, attributes)
+    return(feature_extract)
 
 def gephi(feature_extract, file_name, model_name, mapping, attributes):
     nn = NN.kneighbors_graph(feature_extract, n_neighbors=4, mode="distance", metric="l1")
@@ -123,17 +113,17 @@ def gephi_export(feature_extract, file_name, model_name, mapping, attributes):
     model_name = model_name.replace("/", "_")
     gephi(feature_extract, file_name, model_name, mapping, attributes)
 
-def run_all(datasets, models, n, graph=False, batch_size=16, iterations=1, content_column=[], title_column=[], classify_language=[]):
+def run_all(datasets, models, n, graph=False, batch_size=16, content_column=[], title_column=[], classify_language=[]):
     model_dict = {}
     for i, dataset in enumerate(datasets):
         print(dataset)
         df = data_frame_init(dataset, content_column, i, n)
+        if len(classify_language) != 0:
+            language_classifier(df, classify_language, dataset)
+            mapping, attributes = node_attributes(df, dataset, i, title_column)
 
         for j, model in enumerate(models):
-            print(model)
-            if len(classify_language) != 0:
-                language_classifier(df, classify_language)
-            feature_extract, mapping, attributes = feature_extraction(df, dataset, model, i, batch_size, iterations, title_column)
+            feature_extract = feature_extraction(df, model, batch_size)
             if graph == True: gephi_export(feature_extract, dataset, model, mapping, attributes)
         
         if len(title_column) != 0:

@@ -1,0 +1,204 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2024-07-08">
+    <creator>NetworkX 3.3</creator>
+  </meta>
+  <graph defaultedgetype="directed" mode="static" name="">
+    <attributes mode="static" class="node">
+      <attribute id="0" title="Name" type="string" />
+      <attribute id="1" title="Genres" type="string" />
+      <attribute id="2" title="Actors" type="string" />
+      <attribute id="3" title="Director" type="string" />
+      <attribute id="4" title="DatePublished" type="string" />
+      <attribute id="5" title="Keywords" type="string" />
+      <attribute id="6" title="RatingCount" type="long" />
+      <attribute id="7" title="RatingValue" type="double" />
+      <attribute id="8" title="Name_classified" type="string" />
+      <attribute id="9" title="Model Name" type="string" />
+    </attributes>
+    <nodes>
+      <node id="Roustabout\all-mpnet-base-v2" label="Roustabout\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="Roustabout" />
+          <attvalue for="1" value="Drama,Music,Musical,Romance" />
+          <attvalue for="2" value="Elvis Presley,Barbara Stanwyck,Joan Freeman,Leif Erickson" />
+          <attvalue for="3" value="John Rich" />
+          <attvalue for="4" value="1964-11-11" />
+          <attvalue for="5" value="psychotronic film,carnival,one word title,drifter,fortune teller" />
+          <attvalue for="6" value="2559" />
+          <attvalue for="7" value="6.1" />
+          <attvalue for="8" value="fr-FR" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="The Quickie\all-mpnet-base-v2" label="The Quickie\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="The Quickie" />
+          <attvalue for="1" value="Crime,Drama" />
+          <attvalue for="2" value="Vladimir Mashkov,Jennifer Jason Leigh,Brenda Bakke,Dennis Bendersky" />
+          <attvalue for="3" value="Sergei Bodrov" />
+          <attvalue for="4" value="2001-07-25" />
+          <attvalue for="5" value="lust,leg spreading,female rear nudity,scantily clad female,sexy dance" />
+          <attvalue for="6" value="785" />
+          <attvalue for="7" value="5.8" />
+          <attvalue for="8" value="tl-PH" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="Jimi Plays Monterey\all-mpnet-base-v2" label="Jimi Plays Monterey\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="Jimi Plays Monterey" />
+          <attvalue for="1" value="Documentary,Music" />
+          <attvalue for="2" value="Jimi Hendrix,Noel Redding,Mitch Mitchell,John Phillips" />
+          <attvalue for="3" value="Chris Hegedus,D.A. Pennebaker" />
+          <attvalue for="4" value="1987-10-16" />
+          <attvalue for="5" value="rock music,concert film,independent film,character name in title" />
+          <attvalue for="6" value="1078" />
+          <attvalue for="7" value="8.2" />
+          <attvalue for="8" value="en-US" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" label="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly" />
+          <attvalue for="1" value="Animation,Comedy" />
+          <attvalue for="2" value="Wieslaw Cichy,Adam Cywka,Elzbieta Golinska,Krzysztof Grebski" />
+          <attvalue for="3" value="Bartosz Kedzierski" />
+          <attvalue for="4" value="2009-02-13" />
+          <attvalue for="5" value="future" />
+          <attvalue for="6" value="284" />
+          <attvalue for="7" value="4.8" />
+          <attvalue for="8" value="cy-GB" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="Moving Midway\all-mpnet-base-v2" label="Moving Midway\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="Moving Midway" />
+          <attvalue for="1" value="Documentary" />
+          <attvalue for="2" value="Bruce Chadwick" />
+          <attvalue for="3" value="Godfrey Cheshire" />
+          <attvalue for="4" value="2007-04-14" />
+          <attvalue for="5" value="historic preservation" />
+          <attvalue for="6" value="162" />
+          <attvalue for="7" value="7.1" />
+          <attvalue for="8" value="en-US" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="Offspring\all-mpnet-base-v2" label="Offspring\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="Offspring" />
+          <attvalue for="1" value="Horror" />
+          <attvalue for="2" value="Jessica Butler,Kelly Carey,Holter Graham,T.J. Graye" />
+          <attvalue for="3" value="Andrew van den Houten" />
+          <attvalue for="4" value="2009-08-28" />
+          <attvalue for="5" value="female frontal nudity,first part,part of a trilogy,slasher,cannibal" />
+          <attvalue for="6" value="2474" />
+          <attvalue for="7" value="4.9" />
+          <attvalue for="8" value="km-KH" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="Gandhi\all-mpnet-base-v2" label="Gandhi\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="Gandhi" />
+          <attvalue for="1" value="Biography,Drama,History" />
+          <attvalue for="2" value="Ben Kingsley,John Gielgud,Rohini Hattangadi,Roshan Seth" />
+          <attvalue for="3" value="Richard Attenborough" />
+          <attvalue for="4" value="1983-01-01" />
+          <attvalue for="5" value="india,peace,surname as title,independence,hindu" />
+          <attvalue for="6" value="217066" />
+          <attvalue for="7" value="8.0" />
+          <attvalue for="8" value="jv-ID" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="16 to Life\all-mpnet-base-v2" label="16 to Life\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="16 to Life" />
+          <attvalue for="1" value="Comedy,Romance" />
+          <attvalue for="2" value="Hallee Hirsh,Theresa Russell,Shiloh Fernandez,Mandy Musgrave" />
+          <attvalue for="3" value="Becky Smith" />
+          <attvalue for="4" value="2010-09-03" />
+          <attvalue for="5" value="birthday,love,teenager,f rated,masturbation" />
+          <attvalue for="6" value="445" />
+          <attvalue for="7" value="6.3" />
+          <attvalue for="8" value="en-US" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="House Party 4: Down to the Last Minute\all-mpnet-base-v2" label="House Party 4: Down to the Last Minute\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="House Party 4: Down to the Last Minute" />
+          <attvalue for="1" value="Comedy" />
+          <attvalue for="2" value="Marques Houston,Kym Whitley,Alexis Fields,Dorien Wilson" />
+          <attvalue for="3" value="Chris Stokes" />
+          <attvalue for="4" value="2001-08-14" />
+          <attvalue for="5" value="teensploitation,beach party,fourth part,sequel,african american" />
+          <attvalue for="6" value="909" />
+          <attvalue for="7" value="2.6" />
+          <attvalue for="8" value="en-US" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+      <node id="The Call of the Wild\all-mpnet-base-v2" label="The Call of the Wild\all-mpnet-base-v2">
+        <attvalues>
+          <attvalue for="0" value="The Call of the Wild" />
+          <attvalue for="1" value="Adventure" />
+          <attvalue for="2" value="John Beck,Jim Bohan,Dennis Burkley,Billy Green Bush" />
+          <attvalue for="3" value="Jerry Jameson" />
+          <attvalue for="4" value="1976-05-22" />
+          <attvalue for="5" value="gold,dog,dog movie,wilderness,based on novel" />
+          <attvalue for="6" value="91" />
+          <attvalue for="7" value="6.6" />
+          <attvalue for="8" value="en-US" />
+          <attvalue for="9" value="all-mpnet-base-v2" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="Roustabout\all-mpnet-base-v2" target="The Quickie\all-mpnet-base-v2" id="0" weight="0.3684008724987667" />
+      <edge source="Roustabout\all-mpnet-base-v2" target="Moving Midway\all-mpnet-base-v2" id="1" weight="0.40221922468195315" />
+      <edge source="Roustabout\all-mpnet-base-v2" target="Gandhi\all-mpnet-base-v2" id="2" weight="0.3688576498073366" />
+      <edge source="Roustabout\all-mpnet-base-v2" target="The Call of the Wild\all-mpnet-base-v2" id="3" weight="0.39156679231784214" />
+      <edge source="The Quickie\all-mpnet-base-v2" target="Roustabout\all-mpnet-base-v2" id="4" weight="0.3684008724987667" />
+      <edge source="The Quickie\all-mpnet-base-v2" target="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" id="5" weight="0.37544167583600335" />
+      <edge source="The Quickie\all-mpnet-base-v2" target="16 to Life\all-mpnet-base-v2" id="6" weight="0.379200729861058" />
+      <edge source="The Quickie\all-mpnet-base-v2" target="The Call of the Wild\all-mpnet-base-v2" id="7" weight="0.3921987117771943" />
+      <edge source="Jimi Plays Monterey\all-mpnet-base-v2" target="Roustabout\all-mpnet-base-v2" id="8" weight="0.36696530460428717" />
+      <edge source="Jimi Plays Monterey\all-mpnet-base-v2" target="Moving Midway\all-mpnet-base-v2" id="9" weight="0.34514214581293895" />
+      <edge source="Jimi Plays Monterey\all-mpnet-base-v2" target="Gandhi\all-mpnet-base-v2" id="10" weight="0.3280315172378852" />
+      <edge source="Jimi Plays Monterey\all-mpnet-base-v2" target="The Call of the Wild\all-mpnet-base-v2" id="11" weight="0.3246615383313161" />
+      <edge source="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" target="The Quickie\all-mpnet-base-v2" id="12" weight="0.37544167583600335" />
+      <edge source="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" target="Moving Midway\all-mpnet-base-v2" id="13" weight="0.3576685045866328" />
+      <edge source="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" target="Offspring\all-mpnet-base-v2" id="14" weight="0.3510134933285102" />
+      <edge source="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" target="16 to Life\all-mpnet-base-v2" id="15" weight="0.3449990808353597" />
+      <edge source="Moving Midway\all-mpnet-base-v2" target="Roustabout\all-mpnet-base-v2" id="16" weight="0.40221922468195315" />
+      <edge source="Moving Midway\all-mpnet-base-v2" target="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" id="17" weight="0.3576685045866328" />
+      <edge source="Moving Midway\all-mpnet-base-v2" target="Offspring\all-mpnet-base-v2" id="18" weight="0.3628734207605677" />
+      <edge source="Moving Midway\all-mpnet-base-v2" target="The Call of the Wild\all-mpnet-base-v2" id="19" weight="0.3882742392141733" />
+      <edge source="Offspring\all-mpnet-base-v2" target="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" id="20" weight="0.3510134933285102" />
+      <edge source="Offspring\all-mpnet-base-v2" target="Moving Midway\all-mpnet-base-v2" id="21" weight="0.3628734207605677" />
+      <edge source="Offspring\all-mpnet-base-v2" target="16 to Life\all-mpnet-base-v2" id="22" weight="0.39411603994573186" />
+      <edge source="Offspring\all-mpnet-base-v2" target="The Call of the Wild\all-mpnet-base-v2" id="23" weight="0.38067199833968396" />
+      <edge source="Gandhi\all-mpnet-base-v2" target="Roustabout\all-mpnet-base-v2" id="24" weight="0.3688576498073366" />
+      <edge source="Gandhi\all-mpnet-base-v2" target="The Quickie\all-mpnet-base-v2" id="25" weight="0.3645847481418894" />
+      <edge source="Gandhi\all-mpnet-base-v2" target="Offspring\all-mpnet-base-v2" id="26" weight="0.33909135886854574" />
+      <edge source="Gandhi\all-mpnet-base-v2" target="The Call of the Wild\all-mpnet-base-v2" id="27" weight="0.3805775798029024" />
+      <edge source="16 to Life\all-mpnet-base-v2" target="The Quickie\all-mpnet-base-v2" id="28" weight="0.379200729861058" />
+      <edge source="16 to Life\all-mpnet-base-v2" target="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" id="29" weight="0.3449990808353597" />
+      <edge source="16 to Life\all-mpnet-base-v2" target="Offspring\all-mpnet-base-v2" id="30" weight="0.39411603994573186" />
+      <edge source="16 to Life\all-mpnet-base-v2" target="House Party 4: Down to the Last Minute\all-mpnet-base-v2" id="31" weight="0.38539401620255254" />
+      <edge source="House Party 4: Down to the Last Minute\all-mpnet-base-v2" target="The Quickie\all-mpnet-base-v2" id="32" weight="0.35050678262509927" />
+      <edge source="House Party 4: Down to the Last Minute\all-mpnet-base-v2" target="Wlatcy mÃÂ³ch: Cmoki, czopki i mondzioly\all-mpnet-base-v2" id="33" weight="0.3163933024176992" />
+      <edge source="House Party 4: Down to the Last Minute\all-mpnet-base-v2" target="Offspring\all-mpnet-base-v2" id="34" weight="0.3271755429438496" />
+      <edge source="House Party 4: Down to the Last Minute\all-mpnet-base-v2" target="16 to Life\all-mpnet-base-v2" id="35" weight="0.38539401620255254" />
+      <edge source="The Call of the Wild\all-mpnet-base-v2" target="Roustabout\all-mpnet-base-v2" id="36" weight="0.39156679231784214" />
+      <edge source="The Call of the Wild\all-mpnet-base-v2" target="The Quickie\all-mpnet-base-v2" id="37" weight="0.3921987117771943" />
+      <edge source="The Call of the Wild\all-mpnet-base-v2" target="Moving Midway\all-mpnet-base-v2" id="38" weight="0.3882742392141733" />
+      <edge source="The Call of the Wild\all-mpnet-base-v2" target="Offspring\all-mpnet-base-v2" id="39" weight="0.38067199833968396" />
+    </edges>
+  </graph>
+</gexf>

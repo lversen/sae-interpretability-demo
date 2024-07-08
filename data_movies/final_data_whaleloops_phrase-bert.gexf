@@ -89,26 +89,26 @@
       </node>
     </nodes>
     <edges>
-      <edge source="Age of Ice" target="Terminal Velocity" id="0" weight="0.4011254845953336" />
-      <edge source="Age of Ice" target="L'enfant" id="1" weight="0.369253977550897" />
-      <edge source="Age of Ice" target="Tristan + Isolde" id="2" weight="0.41306509177442946" />
-      <edge source="Age of Ice" target="Korol shantazha" id="3" weight="0.3449160560868432" />
-      <edge source="Terminal Velocity" target="Age of Ice" id="4" weight="0.4011254845953336" />
-      <edge source="Terminal Velocity" target="L'enfant" id="5" weight="0.348595743445711" />
-      <edge source="Terminal Velocity" target="Tristan + Isolde" id="6" weight="0.39801456230409304" />
-      <edge source="Terminal Velocity" target="Korol shantazha" id="7" weight="0.34133396634455504" />
-      <edge source="L'enfant" target="Age of Ice" id="8" weight="0.369253977550897" />
-      <edge source="L'enfant" target="Terminal Velocity" id="9" weight="0.348595743445711" />
-      <edge source="L'enfant" target="Tristan + Isolde" id="10" weight="0.4323617172528814" />
-      <edge source="L'enfant" target="Korol shantazha" id="11" weight="0.28894887282365006" />
-      <edge source="Tristan + Isolde" target="Age of Ice" id="12" weight="0.41306509177442946" />
-      <edge source="Tristan + Isolde" target="Terminal Velocity" id="13" weight="0.39801456230409304" />
-      <edge source="Tristan + Isolde" target="L'enfant" id="14" weight="0.4323617172528814" />
-      <edge source="Tristan + Isolde" target="Korol shantazha" id="15" weight="0.352591997201105" />
-      <edge source="Korol shantazha" target="Age of Ice" id="16" weight="0.3449160560868432" />
-      <edge source="Korol shantazha" target="Terminal Velocity" id="17" weight="0.34133396634455504" />
-      <edge source="Korol shantazha" target="L'enfant" id="18" weight="0.28894887282365006" />
-      <edge source="Korol shantazha" target="Tristan + Isolde" id="19" weight="0.352591997201105" />
+      <edge source="Age of Ice" target="Terminal Velocity" id="0" weight="0.3230693468584549" />
+      <edge source="Age of Ice" target="L'enfant" id="1" weight="0.3085319302073577" />
+      <edge source="Age of Ice" target="Tristan + Isolde" id="2" weight="0.27977413825242736" />
+      <edge source="Age of Ice" target="Korol shantazha" id="3" weight="0.29981803755905606" />
+      <edge source="Terminal Velocity" target="Age of Ice" id="4" weight="0.3230693468584549" />
+      <edge source="Terminal Velocity" target="L'enfant" id="5" weight="0.4244133752972728" />
+      <edge source="Terminal Velocity" target="Tristan + Isolde" id="6" weight="0.35853933822874023" />
+      <edge source="Terminal Velocity" target="Korol shantazha" id="7" weight="0.43091089987065884" />
+      <edge source="L'enfant" target="Age of Ice" id="8" weight="0.3085319302073577" />
+      <edge source="L'enfant" target="Terminal Velocity" id="9" weight="0.4244133752972728" />
+      <edge source="L'enfant" target="Tristan + Isolde" id="10" weight="0.49213800261608703" />
+      <edge source="L'enfant" target="Korol shantazha" id="11" weight="0.4108830971822279" />
+      <edge source="Tristan + Isolde" target="Age of Ice" id="12" weight="0.27977413825242736" />
+      <edge source="Tristan + Isolde" target="Terminal Velocity" id="13" weight="0.35853933822874023" />
+      <edge source="Tristan + Isolde" target="L'enfant" id="14" weight="0.49213800261608703" />
+      <edge source="Tristan + Isolde" target="Korol shantazha" id="15" weight="0.3787804824399464" />
+      <edge source="Korol shantazha" target="Age of Ice" id="16" weight="0.29981803755905606" />
+      <edge source="Korol shantazha" target="Terminal Velocity" id="17" weight="0.43091089987065884" />
+      <edge source="Korol shantazha" target="L'enfant" id="18" weight="0.4108830971822279" />
+      <edge source="Korol shantazha" target="Tristan + Isolde" id="19" weight="0.3787804824399464" />
     </edges>
   </graph>
 </gexf>

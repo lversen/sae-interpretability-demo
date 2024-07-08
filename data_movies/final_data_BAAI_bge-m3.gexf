@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2024-07-08">
+    <creator>NetworkX 3.3</creator>
+  </meta>
+  <graph defaultedgetype="directed" mode="static" name="">
+    <attributes mode="static" class="node">
+      <attribute id="0" title="Description" type="string" />
+      <attribute id="1" title="Name" type="string" />
+      <attribute id="2" title="Genres" type="string" />
+      <attribute id="3" title="Actors" type="string" />
+      <attribute id="4" title="Director" type="string" />
+      <attribute id="5" title="DatePublished" type="string" />
+      <attribute id="6" title="Keywords" type="string" />
+      <attribute id="7" title="RatingCount" type="int" />
+      <attribute id="8" title="RatingValue" type="float" />
+      <attribute id="9" title="Name_classified" type="string" />
+    </attributes>
+    <nodes>
+      <node id="Dans les forÃÂªts de SibÃÂ©rie" label="Dans les forÃÂªts de SibÃÂ©rie">
+        <attvalues>
+          <attvalue for="0" value="Dans les forÃÂªts de SibÃÂ©rie is a movie starring RaphaÃÂ«l Personnaz and Evgeniy Sidikhin. Before the vastness of the Siberian Taiga, at the shores of the frozen Lake Baikal, a Parisian executive fleeing from the city, will find..." />
+          <attvalue for="1" value="Dans les forÃÂªts de SibÃÂ©rie" />
+          <attvalue for="2" value="Adventure,Drama" />
+          <attvalue for="3" value="RaphaÃÂ«l Personnaz,Evgeniy Sidikhin" />
+          <attvalue for="4" value="Safy Nebbou" />
+          <attvalue for="5" value="2016-06-15" />
+          <attvalue for="6" value="siberia,ice bath,death,friendship,nature" />
+          <attvalue for="7" value="1032" />
+          <attvalue for="8" value="6.9" />
+          <attvalue for="9" value="fr-FR" />
+        </attvalues>
+      </node>
+      <node id="Gu ling jie shao nian sha ren shi jian" label="Gu ling jie shao nian sha ren shi jian">
+        <attvalues>
+          <attvalue for="0" value="Gu ling jie shao nian sha ren shi jian is a movie starring Chen Chang, Lisa Yang, and Kuo-Chu Chang. Based on a true story, primarily on a conflict between two youth gangs, a 14-year-old boy's girlfriend conflicts with the head of..." />
+          <attvalue for="1" value="Gu ling jie shao nian sha ren shi jian" />
+          <attvalue for="2" value="Crime,Drama,Romance" />
+          <attvalue for="3" value="Chen Chang,Lisa Yang,Kuo-Chu Chang,Elaine Jin" />
+          <attvalue for="4" value="Edward Yang" />
+          <attvalue for="5" value="1991-07-27" />
+          <attvalue for="6" value="1960s,year 1959,year 1960,teenage boy,teenage girl" />
+          <attvalue for="7" value="7700" />
+          <attvalue for="8" value="8.4" />
+          <attvalue for="9" value="jv-ID" />
+        </attvalues>
+      </node>
+      <node id="The Forest" label="The Forest">
+        <attvalues>
+          <attvalue for="0" value="The Forest is a movie starring Natalie Dormer, Eoin Macken, and Stephanie Vogt. A woman goes into Japan's Suicide Forest to find her twin sister, and confronts supernatural terror." />
+          <attvalue for="1" value="The Forest" />
+          <attvalue for="2" value="Horror,Mystery,Thriller" />
+          <attvalue for="3" value="Natalie Dormer,Eoin Macken,Stephanie Vogt,Osamu Tanpopo" />
+          <attvalue for="4" value="Jason Zada" />
+          <attvalue for="5" value="2016-01-07" />
+          <attvalue for="6" value="japan,forest,suicide,ghost,british actress playing american character" />
+          <attvalue for="7" value="39950" />
+          <attvalue for="8" value="4.8" />
+          <attvalue for="9" value="en-US" />
+        </attvalues>
+      </node>
+      <node id="All Over the Guy" label="All Over the Guy">
+        <attvalues>
+          <attvalue for="0" value="All Over the Guy is a movie starring Dan Bucatinsky, Richard Ruccolo, and Sasha Alexander. &quot;All Over The Guy&quot; is a contemporary romantic comedy about the quest to find the &quot;one&quot; when &quot;the one&quot; doesn't know he's the &quot;one.&quot; It..." />
+          <attvalue for="1" value="All Over the Guy" />
+          <attvalue for="2" value="Comedy,Romance" />
+          <attvalue for="3" value="Dan Bucatinsky,Richard Ruccolo,Sasha Alexander,Adam Goldberg" />
+          <attvalue for="4" value="Julie Davis" />
+          <attvalue for="5" value="2002-03-07" />
+          <attvalue for="6" value="watching tv,hunk,masculinity,macho,fellatio" />
+          <attvalue for="7" value="4498" />
+          <attvalue for="8" value="6.5" />
+          <attvalue for="9" value="km-KH" />
+        </attvalues>
+      </node>
+      <node id="Gun Crazy" label="Gun Crazy">
+        <attvalues>
+          <attvalue for="0" value="Gun Crazy is a movie starring John Dall, Peggy Cummins, and Berry Kroeger. Two disturbed young people release their fascination with guns through a crime spree." />
+          <attvalue for="1" value="Gun Crazy" />
+          <attvalue for="2" value="Crime,Drama,Film-Noir,Romance,Thriller" />
+          <attvalue for="3" value="John Dall,Peggy Cummins,Berry Kroeger,Morris Carnovsky" />
+          <attvalue for="4" value="Joseph H. Lewis" />
+          <attvalue for="5" value="1950-01-20" />
+          <attvalue for="6" value="sharpshooter,murder,fugitive,lovers on the lam,national film registry" />
+          <attvalue for="7" value="11571" />
+          <attvalue for="8" value="7.6" />
+          <attvalue for="9" value="en-US" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="Gu ling jie shao nian sha ren shi jian" id="0" weight="0.38297545693256124" />
+      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="The Forest" id="1" weight="0.37909296659501834" />
+      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="All Over the Guy" id="2" weight="0.3929158827336148" />
+      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="Gun Crazy" id="3" weight="0.32995075158127657" />
+      <edge source="Gu ling jie shao nian sha ren shi jian" target="Dans les forÃÂªts de SibÃÂ©rie" id="4" weight="0.38297545693256124" />
+      <edge source="Gu ling jie shao nian sha ren shi jian" target="The Forest" id="5" weight="0.3396441214061952" />
+      <edge source="Gu ling jie shao nian sha ren shi jian" target="All Over the Guy" id="6" weight="0.4702079361819122" />
+      <edge source="Gu ling jie shao nian sha ren shi jian" target="Gun Crazy" id="7" weight="0.40739575346214546" />
+      <edge source="The Forest" target="Dans les forÃÂªts de SibÃÂ©rie" id="8" weight="0.37909296659501834" />
+      <edge source="The Forest" target="Gu ling jie shao nian sha ren shi jian" id="9" weight="0.3396441214061952" />
+      <edge source="The Forest" target="All Over the Guy" id="10" weight="0.31130205282207646" />
+      <edge source="The Forest" target="Gun Crazy" id="11" weight="0.3264062174139988" />
+      <edge source="All Over the Guy" target="Dans les forÃÂªts de SibÃÂ©rie" id="12" weight="0.3929158827336148" />
+      <edge source="All Over the Guy" target="Gu ling jie shao nian sha ren shi jian" id="13" weight="0.4702079361819122" />
+      <edge source="All Over the Guy" target="The Forest" id="14" weight="0.31130205282207646" />
+      <edge source="All Over the Guy" target="Gun Crazy" id="15" weight="0.35180915898476034" />
+      <edge source="Gun Crazy" target="Dans les forÃÂªts de SibÃÂ©rie" id="16" weight="0.32995075158127657" />
+      <edge source="Gun Crazy" target="Gu ling jie shao nian sha ren shi jian" id="17" weight="0.40739575346214546" />
+      <edge source="Gun Crazy" target="The Forest" id="18" weight="0.3264062174139988" />
+      <edge source="Gun Crazy" target="All Over the Guy" id="19" weight="0.35180915898476034" />
+    </edges>
+  </graph>
+</gexf>
