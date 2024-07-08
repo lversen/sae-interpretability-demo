@@ -8,17 +8,17 @@
     "text": "Sebastian"
   },
   "text": {
-    "more": "Stock sentiment analysis",
-    "intro": "Stock sentiment analysis",
-    "title": "Stock sentiment data"
+    "more": "Latent space of llm movie descriptions",
+    "intro": "Latent space of llm movie descriptions",
+    "title": "LLM movie descriptions"
   },
   "legend": {
-    "edgeLabel": "Stock feature vectors",
-    "colorLabel": "Stock name",
-    "nodeLabel": "Stock sentiment"
+    "edgeLabel": "Nearest neighbour",
+    "colorLabel": "Inferred class",
+    "nodeLabel": "Movie description"
   },
   "features": {
-    "search": false,
+    "search": true,
     "groupSelectorAttribute": false,
     "hoverBehavior": "default"
   },
