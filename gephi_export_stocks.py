@@ -14,7 +14,7 @@ def language_classifier(df, rows, max_rows, columns, file_name):
     model = AutoModelForSequenceClassification.from_pretrained(model_name)
     classifier = TextClassificationPipeline(model=model, tokenizer=tokenizer, device="cuda")
 
-    df_max = pd.read_csv(file_name, encoding = "ISO-8859-1")
+    df_max = pd.read_csv(file_name)
 
     for c in columns:
         c_classified = c + "_classified"
@@ -29,21 +29,26 @@ def language_classifier(df, rows, max_rows, columns, file_name):
                 data_max[np.arange(max_rows)] = "empty"
                 data_max[rows] = data
                 df_max[c_classified] = data_max
-                df_max.to_csv("data_movies\\final_data.csv", index=False)
+                df_max.to_csv(file_name, index=False)
             else: raise ValueError(c + " is not a column in " + file_name)
         else:
-            rows_remaining = np.array([])
-            data = np.array([], dtype='U100')
-            for r in range(len(df)):
-                d_point = df.loc[r][c_classified]
-                if d_point == "empty":
-                    rows_remaining = np.append(rows_remaining, r)
-                    data = np.append(data, classifier(df.loc[r][c]))
-                else:
-                    data = np.append(data, d_point)
-            print(rows_remaining)
-            
-            
+            if c_classified in df.columns:
+                rows_remaining = np.array([], dtype=int)
+                data = np.array([], dtype='U100')
+                for r in range(len(df)):
+                    data_remaining = df.loc[r][c_classified]
+                    if data_remaining == "empty":
+                        rows_remaining = np.append(rows_remaining, r)
+                        data = np.append(data, classifier(df.loc[r][c]))
+                    else:
+                        data = np.append(data, data_remaining)
+                print(str(len(rows_remaining)) + " rows have not been classified before")
+                data_remaining = classifier(list(df[c][rows_remaining].to_numpy()))
+                data_remaining = [d["label"] for d in data_remaining]
+                rows_remaining = rows[rows_remaining]
+                df_max.loc[rows_remaining, c_classified] = data_remaining
+                df_max.to_csv(file_name, index=False)
+            else: raise ValueError(c + " is not a column in " + file_name)
 
 
 def batch_encode(model, feature_list, batch_size, n):
@@ -59,10 +64,6 @@ def batch_encode(model, feature_list, batch_size, n):
     return np.array(embeddings)
 
 def preprocess(df, file_name, content_column, dataset_iteration, n):
-    if "Unnamed: 0" in df.columns:
-        l = list(df.columns)
-        l.remove("Unnamed: 0")
-        df = df[l]
     if "id" in df.columns:
         l = list(df.columns)
         l.remove("id")
@@ -105,7 +106,7 @@ def preprocess(df, file_name, content_column, dataset_iteration, n):
         return(df, rows, max_rows)
 
 def data_frame_init(file_name, content_column, dataset_iteration, n):
-    df = pd.read_csv(file_name, encoding = "ISO-8859-1")
+    df = pd.read_csv(file_name)
     df, rows, max_rows = preprocess(df, file_name, content_column,  dataset_iteration, n)
     return(df, rows, max_rows)
 
