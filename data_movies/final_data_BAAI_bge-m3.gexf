@@ -1,114 +1,193 @@
 <?xml version='1.0' encoding='utf-8'?>
 <gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
-  <meta lastmodifieddate="2024-07-08">
+  <meta lastmodifieddate="2024-07-09">
     <creator>NetworkX 3.3</creator>
   </meta>
   <graph defaultedgetype="directed" mode="static" name="">
     <attributes mode="static" class="node">
       <attribute id="0" title="Description" type="string" />
-      <attribute id="1" title="Name" type="string" />
-      <attribute id="2" title="Genres" type="string" />
-      <attribute id="3" title="Actors" type="string" />
-      <attribute id="4" title="Director" type="string" />
-      <attribute id="5" title="DatePublished" type="string" />
-      <attribute id="6" title="Keywords" type="string" />
-      <attribute id="7" title="RatingCount" type="int" />
-      <attribute id="8" title="RatingValue" type="float" />
-      <attribute id="9" title="Name_classified" type="string" />
+      <attribute id="1" title="Genres" type="string" />
+      <attribute id="2" title="Actors" type="string" />
+      <attribute id="3" title="Director" type="string" />
+      <attribute id="4" title="DatePublished" type="string" />
+      <attribute id="5" title="Keywords" type="string" />
+      <attribute id="6" title="RatingCount" type="long" />
+      <attribute id="7" title="RatingValue" type="double" />
+      <attribute id="8" title="Name_classified" type="string" />
     </attributes>
     <nodes>
-      <node id="Dans les forÃÂªts de SibÃÂ©rie" label="Dans les forÃÂªts de SibÃÂ©rie">
+      <node id="Manners of Dying" label="Manners of Dying">
         <attvalues>
-          <attvalue for="0" value="Dans les forÃÂªts de SibÃÂ©rie is a movie starring RaphaÃÂ«l Personnaz and Evgeniy Sidikhin. Before the vastness of the Siberian Taiga, at the shores of the frozen Lake Baikal, a Parisian executive fleeing from the city, will find..." />
-          <attvalue for="1" value="Dans les forÃÂªts de SibÃÂ©rie" />
-          <attvalue for="2" value="Adventure,Drama" />
-          <attvalue for="3" value="RaphaÃÂ«l Personnaz,Evgeniy Sidikhin" />
-          <attvalue for="4" value="Safy Nebbou" />
-          <attvalue for="5" value="2016-06-15" />
-          <attvalue for="6" value="siberia,ice bath,death,friendship,nature" />
-          <attvalue for="7" value="1032" />
-          <attvalue for="8" value="6.9" />
-          <attvalue for="9" value="fr-FR" />
+          <attvalue for="0" value="Manners of Dying is a movie starring Roy Dupuis, Serge Houde, and Tony Robinow. Kevin Barlow will die on schedule and according to regulations. Harry Parlington, director of the Cantos execution facility, intends to make sure of it...." />
+          <attvalue for="1" value="Drama" />
+          <attvalue for="2" value="Roy Dupuis,Serge Houde,Tony Robinow,Vlasta Vrana" />
+          <attvalue for="3" value="Jeremy Peter Allen" />
+          <attvalue for="4" value="2004-10-31" />
+          <attvalue for="5" value="execution,multiple storyline,death row,death penalty,battle of wits" />
+          <attvalue for="6" value="200" />
+          <attvalue for="7" value="7.0" />
+          <attvalue for="8" value="ar-SA" />
         </attvalues>
       </node>
-      <node id="Gu ling jie shao nian sha ren shi jian" label="Gu ling jie shao nian sha ren shi jian">
+      <node id="Heart Condition" label="Heart Condition">
         <attvalues>
-          <attvalue for="0" value="Gu ling jie shao nian sha ren shi jian is a movie starring Chen Chang, Lisa Yang, and Kuo-Chu Chang. Based on a true story, primarily on a conflict between two youth gangs, a 14-year-old boy's girlfriend conflicts with the head of..." />
-          <attvalue for="1" value="Gu ling jie shao nian sha ren shi jian" />
-          <attvalue for="2" value="Crime,Drama,Romance" />
-          <attvalue for="3" value="Chen Chang,Lisa Yang,Kuo-Chu Chang,Elaine Jin" />
-          <attvalue for="4" value="Edward Yang" />
-          <attvalue for="5" value="1991-07-27" />
-          <attvalue for="6" value="1960s,year 1959,year 1960,teenage boy,teenage girl" />
-          <attvalue for="7" value="7700" />
-          <attvalue for="8" value="8.4" />
-          <attvalue for="9" value="jv-ID" />
+          <attvalue for="0" value="Heart Condition is a movie starring Bob Hoskins, Denzel Washington, and Chloe Webb. A racist cop receives a heart transplant from a black lawyer he hates, who returns as a ghost to ask the cop to help take down the men who murdered..." />
+          <attvalue for="1" value="Comedy,Crime,Drama,Fantasy" />
+          <attvalue for="2" value="Bob Hoskins,Denzel Washington,Chloe Webb,Roger E. Mosley" />
+          <attvalue for="3" value="James D. Parriott" />
+          <attvalue for="4" value="1990-02-02" />
+          <attvalue for="5" value="lawyer,ghost,racist,heart transplant,heart attack" />
+          <attvalue for="6" value="3240" />
+          <attvalue for="7" value="5.6" />
+          <attvalue for="8" value="en-US" />
         </attvalues>
       </node>
-      <node id="The Forest" label="The Forest">
+      <node id="The Other One: The Long, Strange Trip of Bob Weir" label="The Other One: The Long, Strange Trip of Bob Weir">
         <attvalues>
-          <attvalue for="0" value="The Forest is a movie starring Natalie Dormer, Eoin Macken, and Stephanie Vogt. A woman goes into Japan's Suicide Forest to find her twin sister, and confronts supernatural terror." />
-          <attvalue for="1" value="The Forest" />
-          <attvalue for="2" value="Horror,Mystery,Thriller" />
-          <attvalue for="3" value="Natalie Dormer,Eoin Macken,Stephanie Vogt,Osamu Tanpopo" />
-          <attvalue for="4" value="Jason Zada" />
-          <attvalue for="5" value="2016-01-07" />
-          <attvalue for="6" value="japan,forest,suicide,ghost,british actress playing american character" />
-          <attvalue for="7" value="39950" />
-          <attvalue for="8" value="4.8" />
-          <attvalue for="9" value="en-US" />
+          <attvalue for="0" value="The Other One: The Long, Strange Trip of Bob Weir is a movie starring John Perry Barlow, Chuck Berry, and Neal Cassady. A documentary that explores Bob Weirs life, through the Grateful Dead, Ratdog, and his childhood." />
+          <attvalue for="1" value="Documentary,Biography,Music" />
+          <attvalue for="2" value="John Perry Barlow,Chuck Berry,Neal Cassady,John Coltrane" />
+          <attvalue for="3" value="Mike Fleiss" />
+          <attvalue for="4" value="2015-05-22" />
+          <attvalue for="5" value="musician,psychedelic rock" />
+          <attvalue for="6" value="1390" />
+          <attvalue for="7" value="7.4" />
+          <attvalue for="8" value="ar-SA" />
         </attvalues>
       </node>
-      <node id="All Over the Guy" label="All Over the Guy">
+      <node id="Dumb Bell of the Yukon" label="Dumb Bell of the Yukon">
         <attvalues>
-          <attvalue for="0" value="All Over the Guy is a movie starring Dan Bucatinsky, Richard Ruccolo, and Sasha Alexander. &quot;All Over The Guy&quot; is a contemporary romantic comedy about the quest to find the &quot;one&quot; when &quot;the one&quot; doesn't know he's the &quot;one.&quot; It..." />
-          <attvalue for="1" value="All Over the Guy" />
-          <attvalue for="2" value="Comedy,Romance" />
-          <attvalue for="3" value="Dan Bucatinsky,Richard Ruccolo,Sasha Alexander,Adam Goldberg" />
-          <attvalue for="4" value="Julie Davis" />
-          <attvalue for="5" value="2002-03-07" />
-          <attvalue for="6" value="watching tv,hunk,masculinity,macho,fellatio" />
-          <attvalue for="7" value="4498" />
-          <attvalue for="8" value="6.5" />
-          <attvalue for="9" value="km-KH" />
+          <attvalue for="0" value="Dumb Bell of the Yukon is a short starring Clarence Nash. A snowy scene; Daisy would like a fur coat, so Donald filches a baby bear from its sleeping mother. But the mother awakens and tracks Donald (and her baby) down. Donald uses..." />
+          <attvalue for="1" value="Family,Short,Comedy,Animation" />
+          <attvalue for="2" value="Clarence Nash" />
+          <attvalue for="3" value="Jack King,Clyde Geronimi" />
+          <attvalue for="4" value="1946-08-30" />
+          <attvalue for="5" value="yukon,1940s,donald duck character,five word title,daisy duck character" />
+          <attvalue for="6" value="291" />
+          <attvalue for="7" value="6.6" />
+          <attvalue for="8" value="km-KH" />
         </attvalues>
       </node>
-      <node id="Gun Crazy" label="Gun Crazy">
+      <node id="Taksi-blyuz" label="Taksi-blyuz">
         <attvalues>
-          <attvalue for="0" value="Gun Crazy is a movie starring John Dall, Peggy Cummins, and Berry Kroeger. Two disturbed young people release their fascination with guns through a crime spree." />
-          <attvalue for="1" value="Gun Crazy" />
-          <attvalue for="2" value="Crime,Drama,Film-Noir,Romance,Thriller" />
-          <attvalue for="3" value="John Dall,Peggy Cummins,Berry Kroeger,Morris Carnovsky" />
-          <attvalue for="4" value="Joseph H. Lewis" />
-          <attvalue for="5" value="1950-01-20" />
-          <attvalue for="6" value="sharpshooter,murder,fugitive,lovers on the lam,national film registry" />
-          <attvalue for="7" value="11571" />
-          <attvalue for="8" value="7.6" />
-          <attvalue for="9" value="en-US" />
+          <attvalue for="0" value="Taksi-blyuz is a movie starring Pyotr Mamonov, Pyotr Zaychenko, and Vladimir Kashpur. A comedic love/hate relationship develops between a dour taxi driver and a hapless aspiring musician after the latter stiffs his cab fare." />
+          <attvalue for="1" value="Comedy,Drama" />
+          <attvalue for="2" value="Pyotr Mamonov,Pyotr Zaychenko,Vladimir Kashpur,Natalya Kolyakanova" />
+          <attvalue for="3" value="Pavel Lungin" />
+          <attvalue for="4" value="1990-10-17" />
+          <attvalue for="5" value="post soviet russia,hare krishna,automobile,russia,alcoholic" />
+          <attvalue for="6" value="1613" />
+          <attvalue for="7" value="7.4" />
+          <attvalue for="8" value="tl-PH" />
+        </attvalues>
+      </node>
+      <node id="Ai no korîda" label="Ai no korîda">
+        <attvalues>
+          <attvalue for="0" value="Ai no korîda is a movie starring Tatsuya Fuji, Eiko Matsuda, and Aoi Nakajima. A passionate telling of the story of Sada Abe, a woman whose affair with her master led to an obsessive and ultimately destructive sexual relationship." />
+          <attvalue for="1" value="Drama,Romance" />
+          <attvalue for="2" value="Tatsuya Fuji,Eiko Matsuda,Aoi Nakajima,Yasuko Matsui" />
+          <attvalue for="3" value="Nagisa Ôshima" />
+          <attvalue for="4" value="1976-09-15" />
+          <attvalue for="5" value="sex in public,female nudity,bare breasts,erotic asphyxiation,sexual satisfaction" />
+          <attvalue for="6" value="18261" />
+          <attvalue for="7" value="6.6" />
+          <attvalue for="8" value="sq-AL" />
+        </attvalues>
+      </node>
+      <node id="Fuglene over sundet" label="Fuglene over sundet">
+        <attvalues>
+          <attvalue for="0" value="Fuglene over sundet is a movie starring David Dencik, Danica Curcic, and Jakob Cedergren. Fuglene Over Sundet is the gripping tale of the Danish Jews' escape to Sweden in October 1943." />
+          <attvalue for="1" value="Drama,History,War" />
+          <attvalue for="2" value="David Dencik,Danica Curcic,Jakob Cedergren,Nicolas Bro" />
+          <attvalue for="3" value="Nicolo Donato" />
+          <attvalue for="4" value="2016-10-27" />
+          <attvalue for="5" value="danish jew,mother,fishermen,nazi uniform,nazis" />
+          <attvalue for="6" value="651" />
+          <attvalue for="7" value="6.2" />
+          <attvalue for="8" value="da-DK" />
+        </attvalues>
+      </node>
+      <node id="When You're in Love" label="When You're in Love">
+        <attvalues>
+          <attvalue for="0" value="When You're in Love is a movie starring Grace Moore, Cary Grant, and Aline MacMahon. Artist Jimmy Hudson (Cary Grant) is stuck in Mexico unable to pay his hotel bill. Meanwhile, Louise Fuller (Grace Moore) opera singer is stuck in..." />
+          <attvalue for="1" value="Comedy,Musical,Romance" />
+          <attvalue for="2" value="Grace Moore,Cary Grant,Aline MacMahon,Henry Stephenson" />
+          <attvalue for="3" value="Robert Riskin,Harry Lachman" />
+          <attvalue for="4" value="1937-02-12" />
+          <attvalue for="5" value="taming of the shrew,opera" />
+          <attvalue for="6" value="327" />
+          <attvalue for="7" value="6.2" />
+          <attvalue for="8" value="en-US" />
+        </attvalues>
+      </node>
+      <node id="Calendar Girl" label="Calendar Girl">
+        <attvalues>
+          <attvalue for="0" value="Calendar Girl is a movie starring Jason Priestley, Gabriel Olds, and Jerry O'Connell. Three young men go on an end of the summer trip to Hollywood, California. Their quest: to fulfill the fantasy of meeting Marilyn Monroe." />
+          <attvalue for="1" value="Comedy,Drama" />
+          <attvalue for="2" value="Jason Priestley,Gabriel Olds,Jerry O'Connell,Joe Pantoliano" />
+          <attvalue for="3" value="John Whitesell" />
+          <attvalue for="4" value="1993-09-03" />
+          <attvalue for="5" value="grauman's chinese theatre los angeles,handcuffed man,ciro's nightclub hollywood,summer,hollywood" />
+          <attvalue for="6" value="2115" />
+          <attvalue for="7" value="5.1" />
+          <attvalue for="8" value="ar-SA" />
+        </attvalues>
+      </node>
+      <node id="Dallas 362" label="Dallas 362">
+        <attvalues>
+          <attvalue for="0" value="Dallas 362 is a movie starring Scott Caan, Jeff Goldblum, and Shawn Hatosy. Rusty (Hatosy) starts to pursue a path to a more meaningful life, thanks to his connection to Bob (Goldblum), the boyfriend of his mother, Mary (Lynch). His..." />
+          <attvalue for="1" value="Drama" />
+          <attvalue for="2" value="Scott Caan,Jeff Goldblum,Shawn Hatosy,Kelly Lynch" />
+          <attvalue for="3" value="Scott Caan" />
+          <attvalue for="4" value="2003-06-14" />
+          <attvalue for="5" value="character name in title,number in title" />
+          <attvalue for="6" value="1110" />
+          <attvalue for="7" value="6.2" />
+          <attvalue for="8" value="km-KH" />
         </attvalues>
       </node>
     </nodes>
     <edges>
-      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="Gu ling jie shao nian sha ren shi jian" id="0" weight="0.38297545693256124" />
-      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="The Forest" id="1" weight="0.37909296659501834" />
-      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="All Over the Guy" id="2" weight="0.3929158827336148" />
-      <edge source="Dans les forÃÂªts de SibÃÂ©rie" target="Gun Crazy" id="3" weight="0.32995075158127657" />
-      <edge source="Gu ling jie shao nian sha ren shi jian" target="Dans les forÃÂªts de SibÃÂ©rie" id="4" weight="0.38297545693256124" />
-      <edge source="Gu ling jie shao nian sha ren shi jian" target="The Forest" id="5" weight="0.3396441214061952" />
-      <edge source="Gu ling jie shao nian sha ren shi jian" target="All Over the Guy" id="6" weight="0.4702079361819122" />
-      <edge source="Gu ling jie shao nian sha ren shi jian" target="Gun Crazy" id="7" weight="0.40739575346214546" />
-      <edge source="The Forest" target="Dans les forÃÂªts de SibÃÂ©rie" id="8" weight="0.37909296659501834" />
-      <edge source="The Forest" target="Gu ling jie shao nian sha ren shi jian" id="9" weight="0.3396441214061952" />
-      <edge source="The Forest" target="All Over the Guy" id="10" weight="0.31130205282207646" />
-      <edge source="The Forest" target="Gun Crazy" id="11" weight="0.3264062174139988" />
-      <edge source="All Over the Guy" target="Dans les forÃÂªts de SibÃÂ©rie" id="12" weight="0.3929158827336148" />
-      <edge source="All Over the Guy" target="Gu ling jie shao nian sha ren shi jian" id="13" weight="0.4702079361819122" />
-      <edge source="All Over the Guy" target="The Forest" id="14" weight="0.31130205282207646" />
-      <edge source="All Over the Guy" target="Gun Crazy" id="15" weight="0.35180915898476034" />
-      <edge source="Gun Crazy" target="Dans les forÃÂªts de SibÃÂ©rie" id="16" weight="0.32995075158127657" />
-      <edge source="Gun Crazy" target="Gu ling jie shao nian sha ren shi jian" id="17" weight="0.40739575346214546" />
-      <edge source="Gun Crazy" target="The Forest" id="18" weight="0.3264062174139988" />
-      <edge source="Gun Crazy" target="All Over the Guy" id="19" weight="0.35180915898476034" />
+      <edge source="Manners of Dying" target="Heart Condition" id="0" weight="0.426441971575807" />
+      <edge source="Manners of Dying" target="Dallas 362" id="1" weight="0.37881812205798104" />
+      <edge source="Manners of Dying" target="The Other One: The Long, Strange Trip of Bob Weir" id="2" weight="0.37478833629139935" />
+      <edge source="Manners of Dying" target="Calendar Girl" id="3" weight="0.3521603158974032" />
+      <edge source="Heart Condition" target="Dallas 362" id="4" weight="0.44266120473152637" />
+      <edge source="Heart Condition" target="Manners of Dying" id="5" weight="0.426441971575807" />
+      <edge source="Heart Condition" target="The Other One: The Long, Strange Trip of Bob Weir" id="6" weight="0.38513266279424957" />
+      <edge source="Heart Condition" target="When You're in Love" id="7" weight="0.38171715255751404" />
+      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Dallas 362" id="8" weight="0.4117083068017266" />
+      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Heart Condition" id="9" weight="0.38513266279424957" />
+      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Taksi-blyuz" id="10" weight="0.37556953255737086" />
+      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Manners of Dying" id="11" weight="0.37478833629139935" />
+      <edge source="Dumb Bell of the Yukon" target="The Other One: The Long, Strange Trip of Bob Weir" id="12" weight="0.34800316565060563" />
+      <edge source="Dumb Bell of the Yukon" target="Dallas 362" id="13" weight="0.3443462745363468" />
+      <edge source="Dumb Bell of the Yukon" target="Heart Condition" id="14" weight="0.32999703749369524" />
+      <edge source="Dumb Bell of the Yukon" target="When You're in Love" id="15" weight="0.3203279254666163" />
+      <edge source="Taksi-blyuz" target="The Other One: The Long, Strange Trip of Bob Weir" id="16" weight="0.37556953255737086" />
+      <edge source="Taksi-blyuz" target="Dallas 362" id="17" weight="0.35954441707665635" />
+      <edge source="Taksi-blyuz" target="When You're in Love" id="18" weight="0.353588082914306" />
+      <edge source="Taksi-blyuz" target="Heart Condition" id="19" weight="0.34931916787347295" />
+      <edge source="Ai no korîda" target="Dallas 362" id="20" weight="0.3666434417909119" />
+      <edge source="Ai no korîda" target="Heart Condition" id="21" weight="0.3624077882004136" />
+      <edge source="Ai no korîda" target="The Other One: The Long, Strange Trip of Bob Weir" id="22" weight="0.3499024721516268" />
+      <edge source="Ai no korîda" target="When You're in Love" id="23" weight="0.34467941332759316" />
+      <edge source="Fuglene over sundet" target="Heart Condition" id="24" weight="0.3234857994220805" />
+      <edge source="Fuglene over sundet" target="Calendar Girl" id="25" weight="0.3087647756660352" />
+      <edge source="Fuglene over sundet" target="The Other One: The Long, Strange Trip of Bob Weir" id="26" weight="0.3040273767060208" />
+      <edge source="Fuglene over sundet" target="Ai no korîda" id="27" weight="0.302392879303384" />
+      <edge source="When You're in Love" target="Calendar Girl" id="28" weight="0.4009559583942777" />
+      <edge source="When You're in Love" target="Heart Condition" id="29" weight="0.38171715255751404" />
+      <edge source="When You're in Love" target="Dallas 362" id="30" weight="0.36371341756514614" />
+      <edge source="When You're in Love" target="Taksi-blyuz" id="31" weight="0.353588082914306" />
+      <edge source="Calendar Girl" target="When You're in Love" id="32" weight="0.4009559583942777" />
+      <edge source="Calendar Girl" target="The Other One: The Long, Strange Trip of Bob Weir" id="33" weight="0.3679007548897748" />
+      <edge source="Calendar Girl" target="Heart Condition" id="34" weight="0.36711560278430333" />
+      <edge source="Calendar Girl" target="Manners of Dying" id="35" weight="0.3521603158974032" />
+      <edge source="Dallas 362" target="Heart Condition" id="36" weight="0.44266120473152637" />
+      <edge source="Dallas 362" target="The Other One: The Long, Strange Trip of Bob Weir" id="37" weight="0.4117083068017266" />
+      <edge source="Dallas 362" target="Manners of Dying" id="38" weight="0.37881812205798104" />
+      <edge source="Dallas 362" target="Ai no korîda" id="39" weight="0.3666434417909119" />
     </edges>
   </graph>
 </gexf>

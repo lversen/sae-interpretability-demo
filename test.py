@@ -1,18 +1,27 @@
-import numpy as np
-import pandas as pd
-from sentence_transformers import SentenceTransformer
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, TextClassificationPipeline
-from functools import lru_cache
-from typing import Tuple, List, Dict, Any
-from sklearn.neighbors import kneighbors_graph
-import networkx as nx
-import warnings
-from langchain_huggingface import HuggingFaceEndpoint
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
 import os
 import pickle
+import warnings
+from functools import lru_cache
+from typing import List, Dict, Any, Tuple
+
+# Third-party library imports
+import numpy as np
+import pandas as pd
+import torch
+import networkx as nx
+from sklearn.neighbors import kneighbors_graph
+from sentence_transformers import SentenceTransformer
+
+# Transformers and related imports
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TextClassificationPipeline
+
+# LangChain imports
+from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEndpoint, HuggingFaceEmbeddings
+
+
 @lru_cache(maxsize=None)
 def get_classifier(model_name: str):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -169,35 +178,6 @@ def gephi_export(feature_extract: np.ndarray, file_name: str, model_name: str, m
     model_name = model_name.replace("/", "_")
     gephi(feature_extract, file_name, model_name, mapping, attributes)
 
-def setup_rag_pipeline(model_name: str, embeddings_model: str):
-    api_token = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
-    if not api_token:
-        raise ValueError("HUGGINGFACEHUB_API_TOKEN not found in environment variables")
-    
-    llm = HuggingFaceEndpoint(
-        repo_id=model_name,
-        huggingfacehub_api_token=api_token,
-        model_kwargs={"temperature": 0.7, "max_length": 512}
-    )
-    embeddings = HuggingFaceEmbeddings(model_name=embeddings_model)
-    return llm, embeddings
-
-def create_or_load_vectorstore(df: pd.DataFrame, content_column: str, embeddings, dataset_name: str):
-    vectorstore_path = f"vectorstore_{dataset_name}.pkl"
-    
-    if os.path.exists(vectorstore_path):
-        print(f"Loading existing vector store for {dataset_name}")
-        with open(vectorstore_path, "rb") as f:
-            vectorstore = pickle.load(f)
-    else:
-        print(f"Creating new vector store for {dataset_name}")
-        texts = df[content_column].tolist()
-        vectorstore = FAISS.from_texts(texts, embeddings)
-        with open(vectorstore_path, "wb") as f:
-            pickle.dump(vectorstore, f)
-    
-    return vectorstore
-
 def process_with_rag(df: pd.DataFrame, content_column: str, query_column: str, llm, embeddings, vectorstore):
     rag_chain = RetrievalQA.from_chain_type(
         llm=llm,
@@ -214,13 +194,82 @@ def process_with_rag(df: pd.DataFrame, content_column: str, query_column: str, l
     
     results = []
     for query in df[query_column]:
-        result = rag_chain({"query": query})
+        result = rag_chain.invoke({"query": query})  # Changed from __call__ to invoke
         results.append(result['result'])
     
     df['rag_result'] = results
     return df
 
-# Modified run_all function
+
+def create_or_load_vectorstore(
+    df: pd.DataFrame, 
+    content_column: str, 
+    embeddings, 
+    dataset_name: str, 
+    model_name: str,
+    n: int, 
+    force_recreate: bool = False
+):
+    # Clean up model name for file naming
+    model_name_clean = model_name.replace('/', '_').replace('\\', '_')
+    
+    vectorstore_path = f"vectorstore_{dataset_name}_{model_name_clean}_n{n}.pkl"
+    
+    if os.path.exists(vectorstore_path) and not force_recreate:
+        print(f"Loading existing vector store for {dataset_name} with model {model_name} and n={n}")
+        with open(vectorstore_path, "rb") as f:
+            vectorstore = pickle.load(f)
+    else:
+        print(f"Creating new vector store for {dataset_name} with model {model_name} and n={n}")
+        texts = df[content_column].tolist()
+        vectorstore = FAISS.from_texts(texts, embeddings)
+        with open(vectorstore_path, "wb") as f:
+            pickle.dump(vectorstore, f)
+    
+    return vectorstore
+
+
+def setup_rag_pipeline(model_name: str, embeddings_model: str):
+    api_token = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
+    if not api_token:
+        raise ValueError("HUGGINGFACEHUB_API_TOKEN not found in environment variables")
+    
+    llm = HuggingFaceEndpoint(
+        repo_id=model_name,
+        huggingfacehub_api_token=api_token,
+        task="text-generation",
+        model_kwargs={
+            "max_new_tokens": 250,
+            "temperature": 0.7,
+            "top_k": 50,
+            "top_p": 0.95,
+        }
+    )
+    embeddings = HuggingFaceEmbeddings(model_name=embeddings_model)
+    return llm, embeddings
+
+def feature_extraction_with_store(df: pd.DataFrame, model: str, batch_size: int, n: int, dataset_name: str, content_column: str, force_new_embeddings: bool = False):
+    vectorstore_path = f"vectorstore_{dataset_name}_{model.replace('/', '_')}_n{n}.pkl"
+    
+    if os.path.exists(vectorstore_path) and not force_new_embeddings:
+        print(f"Loading existing vector store for {dataset_name} with model {model}")
+        with open(vectorstore_path, "rb") as f:
+            vectorstore = pickle.load(f)
+            
+        feature_extract = vectorstore
+    else:
+        print(f"Creating new vector store for {dataset_name} with model {model}")
+        embeddings = HuggingFaceEmbeddings(model_name=model, show_progress=True)
+        texts = df[content_column].tolist()
+        feature_extract = embeddings.embed_documents(texts)
+        text_embedding_pairs = zip(texts, feature_extract)
+        vectorstore = FAISS.from_embeddings(text_embedding_pairs, embeddings)
+        with open(vectorstore_path, "wb") as f:
+            pickle.dump(vectorstore, f)
+    
+    return feature_extract, vectorstore
+
+
 
 def run_all(
     datasets: List[str],
@@ -241,70 +290,79 @@ def run_all(
     model_dict = {}
     
     if use_rag:
-        llm, embeddings = setup_rag_pipeline(rag_model, rag_embeddings_model)
+        try:
+            llm, rag_embeddings = setup_rag_pipeline(rag_model, rag_embeddings_model)
+        except Exception as e:
+            print(f"Error setting up RAG pipeline: {str(e)}")
+            return model_dict
     
     for i, dataset in enumerate(datasets):
         print(f"Processing dataset: {dataset}")
         
-        try:
-            # Initialize dataframe
-            df, rows, max_rows = data_frame_init(dataset, content_column, i, n)
+        # Initialize dataframe
+        df, rows, max_rows = data_frame_init(dataset, content_column, i, n)
             
-            # Preprocess to handle duplicates
-            if title_column:
-                df = preprocess_duplicates(df, title_column[i], method=duplicate_method)
+        # Preprocess to handle duplicates
+        if title_column:
+            df = preprocess_duplicates(df, title_column[i], method=duplicate_method)
             
-            # Perform language classification if requested
-            if classify_language:
-                with warnings.catch_warnings(record=True) as w:
-                    language_classifier(df, rows, max_rows, classify_language, dataset)
-                    if w:
-                        print(f"Warning in language_classifier for {dataset}: {w[0].message}")
+        # Perform language classification if requested
+        if classify_language:
+            with warnings.catch_warnings(record=True) as w:
+                language_classifier(df, rows, max_rows, classify_language, dataset)
+                if w:
+                    print(f"Warning in language_classifier for {dataset}: {w[0].message}")
             
-            # Process with RAG if requested
-            if use_rag:
-                print(f"Processing {dataset} with RAG")
-                dataset_name = os.path.basename(dataset).split('.')[0]
-                if force_new_embeddings:
-                    vectorstore_path = f"vectorstore_{dataset_name}.pkl"
-                    if os.path.exists(vectorstore_path):
-                        os.remove(vectorstore_path)
-                vectorstore = create_or_load_vectorstore(df, content_column[i], embeddings, dataset_name)
-                df = process_with_rag(df, content_column[i], query_column, llm, embeddings, vectorstore)
+        # Process with RAG if requested
+        if use_rag:
+            print(f"Processing {dataset} with RAG")
+            dataset_name = os.path.basename(dataset).split('.')[0]
+            rag_vectorstore = create_or_load_vectorstore(
+                df, 
+                content_column[i], 
+                rag_embeddings, 
+                dataset_name,
+                rag_embeddings_model,
+                n, 
+                force_new_embeddings
+            )
+            df = process_with_rag(df, content_column[i], query_column, llm, rag_embeddings, rag_vectorstore)
             
-            # Get node attributes
-            if title_column:
-                with warnings.catch_warnings(record=True) as w:
-                    mapping, attributes = node_attributes(df, title_column[i])
-                    if w:
-                        print(f"Warning in node_attributes for {dataset}: {w[0].message}")
-            else:
-                mapping, attributes = {}, {}
+        # Get node attributes
+        if title_column:
+            with warnings.catch_warnings(record=True) as w:
+                mapping, attributes = node_attributes(df, title_column[i])
+                if w:
+                    print(f"Warning in node_attributes for {dataset}: {w[0].message}")
+        else:
+            mapping, attributes = {}, {}
             
-            # Process each model
-            for model in models:
-                print(f"Extracting features using model: {model}")
-                feature_extract = feature_extraction(df, model, batch_size, n)
+        # Process each model
+        for model in models:
+            print(f"Extracting features using model: {model}")
+            feature_extract, model_vectorstore = feature_extraction_with_store(
+                df, model, batch_size, n, dataset, content_column[i], force_new_embeddings
+            )
                 
-                if graph:
-                    gephi_export(feature_extract, dataset, model, mapping, attributes)
+            if graph:
+                gephi_export(feature_extract, dataset, model, mapping, attributes)
                 
-                # Store feature extraction results
-                if model not in model_dict:
-                    model_dict[model] = {}
-                model_dict[model][dataset] = feature_extract
+            # Store feature extraction results and vector store
+            if model not in model_dict:
+                model_dict[model] = {}
+            model_dict[model][dataset] = {
+                'feature_extract': feature_extract,
+                'vectorstore': model_vectorstore
+            }
                 
-                print(f"Completed processing for model: {model}")
+            print(f"Completed processing for model: {model}")
             
-            # Store the processed dataframe
-            if 'processed_df' not in model_dict:
-                model_dict['processed_df'] = {}
-            model_dict['processed_df'][dataset] = df
-            
-        except Exception as e:
-            print(f"Error processing dataset {dataset}: {str(e)}")
-            continue  # Skip to next dataset if processing fails
+        # Store the processed dataframe
+        if 'processed_df' not in model_dict:
+            model_dict['processed_df'] = {}
+        model_dict['processed_df'][dataset] = df
         
         print(f"Completed processing for dataset: {dataset}")
     
     return model_dict
+
