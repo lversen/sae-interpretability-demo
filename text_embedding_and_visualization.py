@@ -225,7 +225,7 @@ def feature_extraction_with_store(
     
     if force_new_embeddings or not os.path.exists(embeddings_path):
         print(f"Creating new embeddings for {dataset_name} with model {model}")
-        embeddings = HuggingFaceEmbeddings(model_name=model, show_progress=True)
+        embeddings = HuggingFaceEmbeddings(model_name=model)
         texts = df[content_column].tolist()
         feature_extract = embeddings.embed_documents(texts)
         
@@ -234,15 +234,12 @@ def feature_extraction_with_store(
         
         if not embeddings_only:
             print(f"Creating new vector store for {dataset_name} with model {model}")
-            text_embedding_pairs = list(zip(texts, feature_extract))
-            vectorstore = FAISS.from_embeddings(text_embedding_pairs, embeddings)
+            vectorstore = FAISS.from_texts(texts, embeddings)
             
             # Save vectorstore
-            with open(vectorstore_path, "wb") as f:
-                pickle.dump(vectorstore, f)
+            vectorstore.save_local(vectorstore_path)
     
     return feature_extract, vectorstore
-
 def classify_with_networkx(feature_extract, df, id_column, category_column, vectorstore=None, n_neighbors=5):
     G = nx.Graph()
     
@@ -252,14 +249,17 @@ def classify_with_networkx(feature_extract, df, id_column, category_column, vect
     
     if vectorstore:
         # Use vectorstore for nearest neighbor search
-        for i in range(len(df)):
-            query = df.iloc[i][id_column]
-            results = vectorstore.similarity_search(query, k=n_neighbors+1)
+        for i, content in enumerate(df[id_column]):  # Using id_column as content for matching
+            results = vectorstore.similarity_search(content, k=n_neighbors+1)
             for doc in results[1:]:  # Skip the first result (self)
-                j = df.index[df[id_column] == doc.metadata['id']].tolist()[0]
-                similarity = 1 - doc.metadata['score']
-                if similarity > 0.5:
-                    G.add_edge(i, j, weight=similarity)
+                # Find the index of the matching content in the dataframe
+                matching_indices = df.index[df[id_column] == doc.page_content].tolist()
+                if matching_indices:
+                    j = matching_indices[0]
+                    if i != j:  # Avoid self-loops
+                        similarity = 1 - doc.metadata['score'] if 'score' in doc.metadata else 0.5
+                        if similarity > 0.5:
+                            G.add_edge(i, j, weight=similarity)
     else:
         # Use sklearn NearestNeighbors for embedding-based search
         nbrs = NearestNeighbors(n_neighbors=n_neighbors+1, metric='cosine').fit(feature_extract)
@@ -440,7 +440,7 @@ def run_all(
                 model_dict[model][dataset] = {}
             model_dict[model][dataset]['feature_extract'] = feature_extract
             model_dict[model][dataset]['vectorstore'] = vectorstore
-            
+
             if use_networkx_classification:
                 print(f"Performing NetworkX classification for {dataset} with model {model}")
                 df, graph = classify_with_networkx(
