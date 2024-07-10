@@ -248,44 +248,80 @@ def setup_rag_pipeline(model_name: str, embeddings_model: str):
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model)
     return llm, embeddings
 
-def feature_extraction_with_store(df: pd.DataFrame, model: str, batch_size: int, n: int, dataset_name: str, content_column: str, force_new_embeddings: bool = False):
-    vectorstore_path = f"vectorstore_{dataset_name}_{model.replace('/', '_')}_n{n}.pkl"
+def feature_extraction_with_store(
+    df: pd.DataFrame, 
+    model: str, 
+    batch_size: int, 
+    n: int, 
+    dataset_name: str, 
+    content_column: str, 
+    force_new_embeddings: bool = False,
+    embeddings_only: bool = False
+):
+    # Create a directory for storing vectorstores and embeddings
+    storage_dir = os.path.join("vectorstores_and_embeddings", dataset_name)
     
-    if os.path.exists(vectorstore_path) and not force_new_embeddings:
+    vectorstore_path = os.path.join(storage_dir, f"vectorstore_{model.replace('/', '_')}_n{n}.pkl")
+    embeddings_path = os.path.join(storage_dir, f"embeddings_{model.replace('/', '_')}_n{n}.npy")
+    
+    # Create the full path to the directory
+    os.makedirs(os.path.dirname(vectorstore_path), exist_ok=True)
+    
+    if os.path.exists(embeddings_path) and not force_new_embeddings:
+        print(f"Loading existing embeddings for {dataset_name} with model {model}")
+        feature_extract = np.load(embeddings_path)
+        
+        # Check if the number of embeddings matches the current dataframe
+        if len(feature_extract) != len(df):
+            print("Number of stored embeddings doesn't match current data. Recomputing embeddings.")
+            force_new_embeddings = True
+        elif embeddings_only:
+            return feature_extract, None
+    
+    if not embeddings_only and os.path.exists(vectorstore_path) and not force_new_embeddings:
         print(f"Loading existing vector store for {dataset_name} with model {model}")
         with open(vectorstore_path, "rb") as f:
             vectorstore = pickle.load(f)
-            
-        feature_extract = vectorstore
     else:
-        print(f"Creating new vector store for {dataset_name} with model {model}")
+        vectorstore = None
+    
+    if force_new_embeddings or not os.path.exists(embeddings_path):
+        print(f"Creating new embeddings for {dataset_name} with model {model}")
         embeddings = HuggingFaceEmbeddings(model_name=model, show_progress=True)
         texts = df[content_column].tolist()
         feature_extract = embeddings.embed_documents(texts)
-        text_embedding_pairs = zip(texts, feature_extract)
-        vectorstore = FAISS.from_embeddings(text_embedding_pairs, embeddings)
-        with open(vectorstore_path, "wb") as f:
-            pickle.dump(vectorstore, f)
+        
+        # Save embeddings
+        np.save(embeddings_path, feature_extract)
+        
+        if not embeddings_only:
+            print(f"Creating new vector store for {dataset_name} with model {model}")
+            text_embedding_pairs = list(zip(texts, feature_extract))
+            vectorstore = FAISS.from_embeddings(text_embedding_pairs, embeddings)
+            
+            # Save vectorstore
+            with open(vectorstore_path, "wb") as f:
+                pickle.dump(vectorstore, f)
     
     return feature_extract, vectorstore
-
 
 
 def run_all(
     datasets: List[str],
     models: List[str],
     n: int,
-    graph: bool = False,
-    batch_size: int = 16,
-    content_column: List[str] = [],
+    content_column: List[str],
     title_column: List[str] = [],
     classify_language: List[str] = [],
     duplicate_method: str = 'suffix',
+    batch_size: int = 16,
+    create_graph: bool = False,
     use_rag: bool = False,
     rag_model: str = "google/flan-t5-base",
     rag_embeddings_model: str = "sentence-transformers/all-MiniLM-L6-v2",
     query_column: str = "",
-    force_new_embeddings: bool = False
+    force_new_embeddings: bool = False,
+    embeddings_only: bool = False
 ) -> Dict[str, Dict[str, Any]]:
     model_dict = {}
     
@@ -328,8 +364,8 @@ def run_all(
             )
             df = process_with_rag(df, content_column[i], query_column, llm, rag_embeddings, rag_vectorstore)
             
-        # Get node attributes
-        if title_column:
+        # Get node attributes for graph creation
+        if create_graph and title_column:
             with warnings.catch_warnings(record=True) as w:
                 mapping, attributes = node_attributes(df, title_column[i])
                 if w:
@@ -341,10 +377,12 @@ def run_all(
         for model in models:
             print(f"Extracting features using model: {model}")
             feature_extract, model_vectorstore = feature_extraction_with_store(
-                df, model, batch_size, n, dataset, content_column[i], force_new_embeddings
+                df, model, batch_size, n, dataset, content_column[i], 
+                force_new_embeddings=force_new_embeddings,
+                embeddings_only=embeddings_only
             )
                 
-            if graph:
+            if create_graph and not embeddings_only:
                 gephi_export(feature_extract, dataset, model, mapping, attributes)
                 
             # Store feature extraction results and vector store
@@ -365,4 +403,3 @@ def run_all(
         print(f"Completed processing for dataset: {dataset}")
     
     return model_dict
-

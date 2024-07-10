@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
-  <meta lastmodifieddate="2024-07-09">
+  <meta lastmodifieddate="2024-07-10">
     <creator>NetworkX 3.3</creator>
   </meta>
   <graph defaultedgetype="directed" mode="static" name="">
@@ -16,178 +16,178 @@
       <attribute id="8" title="Name_classified" type="string" />
     </attributes>
     <nodes>
-      <node id="Manners of Dying" label="Manners of Dying">
+      <node id="The Wizard of Lies" label="The Wizard of Lies">
         <attvalues>
-          <attvalue for="0" value="Manners of Dying is a movie starring Roy Dupuis, Serge Houde, and Tony Robinow. Kevin Barlow will die on schedule and according to regulations. Harry Parlington, director of the Cantos execution facility, intends to make sure of it...." />
-          <attvalue for="1" value="Drama" />
-          <attvalue for="2" value="Roy Dupuis,Serge Houde,Tony Robinow,Vlasta Vrana" />
-          <attvalue for="3" value="Jeremy Peter Allen" />
-          <attvalue for="4" value="2004-10-31" />
-          <attvalue for="5" value="execution,multiple storyline,death row,death penalty,battle of wits" />
-          <attvalue for="6" value="200" />
-          <attvalue for="7" value="7.0" />
+          <attvalue for="0" value="The Wizard of Lies is a TV movie starring Robert De Niro, Michelle Pfeiffer, and Alessandro Nivola. The fall of Bernie Madoff, whose Ponzi scheme robbed $65 billion from unsuspecting victims; the largest fraud in U.S. history." />
+          <attvalue for="1" value="Biography,Crime,Drama" />
+          <attvalue for="2" value="Robert De Niro,Michelle Pfeiffer,Alessandro Nivola,Nathan Darrow" />
+          <attvalue for="3" value="Barry Levinson" />
+          <attvalue for="4" value="2017-05-20" />
+          <attvalue for="5" value="financial fraud,financier,ponzi scheme,fraudster,fraud" />
+          <attvalue for="6" value="21650" />
+          <attvalue for="7" value="6.8" />
           <attvalue for="8" value="ar-SA" />
         </attvalues>
       </node>
-      <node id="Heart Condition" label="Heart Condition">
+      <node id="Khuen nan" label="Khuen nan">
         <attvalues>
-          <attvalue for="0" value="Heart Condition is a movie starring Bob Hoskins, Denzel Washington, and Chloe Webb. A racist cop receives a heart transplant from a black lawyer he hates, who returns as a ghost to ask the cop to help take down the men who murdered..." />
-          <attvalue for="1" value="Comedy,Crime,Drama,Fantasy" />
-          <attvalue for="2" value="Bob Hoskins,Denzel Washington,Chloe Webb,Roger E. Mosley" />
-          <attvalue for="3" value="James D. Parriott" />
-          <attvalue for="4" value="1990-02-02" />
-          <attvalue for="5" value="lawyer,ghost,racist,heart transplant,heart attack" />
-          <attvalue for="6" value="3240" />
+          <attvalue for="0" value="Khuen nan is a movie starring Steven Foorer, Natouch Siripongthon, and Suttinut Uengtrakul. A young man who gets frustrated in love meets another who loses all his memories and they find some ways to start a new life together." />
+          <attvalue for="1" value="Thriller" />
+          <attvalue for="2" value="Steven Foorer,Natouch Siripongthon,Suttinut Uengtrakul" />
+          <attvalue for="3" value="Tanwarin Sukkhapisit" />
+          <attvalue for="4" value="2015-07-23" />
+          <attvalue for="5" value="love" />
+          <attvalue for="6" value="208" />
+          <attvalue for="7" value="4.7" />
+          <attvalue for="8" value="jv-ID" />
+        </attvalues>
+      </node>
+      <node id="Hot Moves" label="Hot Moves">
+        <attvalues>
+          <attvalue for="0" value="Hot Moves is a movie starring Michael Zorek, Adam Silbar, and Jeff Fishman. Four Venice Beach boys make a pact to lose their virginity before beginning their senior year of high school." />
+          <attvalue for="1" value="Comedy" />
+          <attvalue for="2" value="Michael Zorek,Adam Silbar,Jeff Fishman,Johnny Timko" />
+          <attvalue for="3" value="Jim Sotos" />
+          <attvalue for="4" value="1984-10-04" />
+          <attvalue for="5" value="cityscape,last day of school,juggling,surfing,trick bicycle riding" />
+          <attvalue for="6" value="594" />
+          <attvalue for="7" value="4.8" />
+          <attvalue for="8" value="km-KH" />
+        </attvalues>
+      </node>
+      <node id="La grande bellezza" label="La grande bellezza">
+        <attvalues>
+          <attvalue for="0" value="La grande bellezza is a movie starring Toni Servillo, Carlo Verdone, and Sabrina Ferilli. Jep Gambardella has seduced his way through the lavish nightlife of Rome for decades, but after his 65th birthday and a shock from the past,..." />
+          <attvalue for="1" value="Drama" />
+          <attvalue for="2" value="Toni Servillo,Carlo Verdone,Sabrina Ferilli,Carlo Buccirosso" />
+          <attvalue for="3" value="Paolo Sorrentino" />
+          <attvalue for="4" value="2013-05-21" />
+          <attvalue for="5" value="party,male nudity,genitalia,magical realism,bare breasts" />
+          <attvalue for="6" value="80536" />
+          <attvalue for="7" value="7.8" />
+          <attvalue for="8" value="it-IT" />
+        </attvalues>
+      </node>
+      <node id="The Maltese Falcon" label="The Maltese Falcon">
+        <attvalues>
+          <attvalue for="0" value="The Maltese Falcon is a movie starring Humphrey Bogart, Mary Astor, and Gladys George. A private detective takes on a case that involves him with three eccentric criminals, a gorgeous liar, and their quest for a priceless statuette." />
+          <attvalue for="1" value="Film-Noir,Mystery" />
+          <attvalue for="2" value="Humphrey Bogart,Mary Astor,Gladys George,Peter Lorre" />
+          <attvalue for="3" value="John Huston" />
+          <attvalue for="4" value="1941-10-18" />
+          <attvalue for="5" value="private detective,murder,taxi,private eye,maltese falcon" />
+          <attvalue for="6" value="148254" />
+          <attvalue for="7" value="8.0" />
+          <attvalue for="8" value="km-KH" />
+        </attvalues>
+      </node>
+      <node id="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt" label="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt">
+        <attvalues>
+          <attvalue for="0" value="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt is a movie starring Friedrich von Thun, Rena Bergen, and Kurt Bülau. 10 vignettes about scandalous behavior of horny German schoolgirls. First, a strict, conservative teacher..." />
+          <attvalue for="1" value="Comedy,Drama,Romance" />
+          <attvalue for="2" value="Friedrich von Thun,Rena Bergen,Kurt Bülau,Rolf Castell" />
+          <attvalue for="3" value="Ernst Hofbauer" />
+          <attvalue for="4" value="1971-08-26" />
+          <attvalue for="5" value="scantily clad female,adult actress playing minor girl,erotic 70s,female pubic hair,female removes her clothes" />
+          <attvalue for="6" value="359" />
+          <attvalue for="7" value="4.3" />
+          <attvalue for="8" value="de-DE" />
+        </attvalues>
+      </node>
+      <node id="Les maîtres du suspense" label="Les maîtres du suspense">
+        <attvalues>
+          <attvalue for="0" value="Les maîtres du suspense is a movie starring Michel Côté, Ras Kent, and Robin Aubert. Hubert Wolfe, a successful author who hasn't written anything for 10 years, is living a life of lies. He uses a ghostwriter named Dany-a prolific..." />
+          <attvalue for="1" value="Comedy" />
+          <attvalue for="2" value="Michel Côté,Ras Kent,Robin Aubert,Antoine Bertrand" />
+          <attvalue for="3" value="Stéphane Lapointe" />
+          <attvalue for="4" value="2014-12-17" />
+          <attvalue for="5" value="suspense" />
+          <attvalue for="6" value="223" />
+          <attvalue for="7" value="6.1" />
+          <attvalue for="8" value="fr-FR" />
+        </attvalues>
+      </node>
+      <node id="24 jours" label="24 jours">
+        <attvalues>
+          <attvalue for="0" value="24 jours is a movie starring Zabou Breitman, Pascal Elbé, and Jacques Gamblin. When Ilan Halimi is kidnapped for ransom because he's Jewish and supposedly rich, his family and the police start a race against time to save him from..." />
+          <attvalue for="1" value="Drama,Thriller" />
+          <attvalue for="2" value="Zabou Breitman,Pascal Elbé,Jacques Gamblin,Sylvie Testud" />
+          <attvalue for="3" value="Alexandre Arcady" />
+          <attvalue for="4" value="2014-04-30" />
+          <attvalue for="5" value="police" />
+          <attvalue for="6" value="626" />
+          <attvalue for="7" value="6.3" />
+          <attvalue for="8" value="fr-FR" />
+        </attvalues>
+      </node>
+      <node id="Wu ji" label="Wu ji">
+        <attvalues>
+          <attvalue for="0" value="Wu ji is a movie starring Cecilia Cheung, Jang Dong-Gun, and Hiroyuki Sanada. Empowered by the love of a slave (Jang), a royal concubine (Cheung) is given the chance to make an extraordinary decision." />
+          <attvalue for="1" value="Action,Drama,Fantasy" />
+          <attvalue for="2" value="Cecilia Cheung,Jang Dong-Gun,Hiroyuki Sanada,Nicholas Tse" />
+          <attvalue for="3" value="Kaige Chen" />
+          <attvalue for="4" value="2005-12-15" />
+          <attvalue for="5" value="slave,princess,general,armor,king" />
+          <attvalue for="6" value="8909" />
           <attvalue for="7" value="5.6" />
-          <attvalue for="8" value="en-US" />
+          <attvalue for="8" value="sw-KE" />
         </attvalues>
       </node>
-      <node id="The Other One: The Long, Strange Trip of Bob Weir" label="The Other One: The Long, Strange Trip of Bob Weir">
+      <node id="711 Ocean Drive" label="711 Ocean Drive">
         <attvalues>
-          <attvalue for="0" value="The Other One: The Long, Strange Trip of Bob Weir is a movie starring John Perry Barlow, Chuck Berry, and Neal Cassady. A documentary that explores Bob Weirs life, through the Grateful Dead, Ratdog, and his childhood." />
-          <attvalue for="1" value="Documentary,Biography,Music" />
-          <attvalue for="2" value="John Perry Barlow,Chuck Berry,Neal Cassady,John Coltrane" />
-          <attvalue for="3" value="Mike Fleiss" />
-          <attvalue for="4" value="2015-05-22" />
-          <attvalue for="5" value="musician,psychedelic rock" />
-          <attvalue for="6" value="1390" />
-          <attvalue for="7" value="7.4" />
-          <attvalue for="8" value="ar-SA" />
-        </attvalues>
-      </node>
-      <node id="Dumb Bell of the Yukon" label="Dumb Bell of the Yukon">
-        <attvalues>
-          <attvalue for="0" value="Dumb Bell of the Yukon is a short starring Clarence Nash. A snowy scene; Daisy would like a fur coat, so Donald filches a baby bear from its sleeping mother. But the mother awakens and tracks Donald (and her baby) down. Donald uses..." />
-          <attvalue for="1" value="Family,Short,Comedy,Animation" />
-          <attvalue for="2" value="Clarence Nash" />
-          <attvalue for="3" value="Jack King,Clyde Geronimi" />
-          <attvalue for="4" value="1946-08-30" />
-          <attvalue for="5" value="yukon,1940s,donald duck character,five word title,daisy duck character" />
-          <attvalue for="6" value="291" />
-          <attvalue for="7" value="6.6" />
-          <attvalue for="8" value="km-KH" />
-        </attvalues>
-      </node>
-      <node id="Taksi-blyuz" label="Taksi-blyuz">
-        <attvalues>
-          <attvalue for="0" value="Taksi-blyuz is a movie starring Pyotr Mamonov, Pyotr Zaychenko, and Vladimir Kashpur. A comedic love/hate relationship develops between a dour taxi driver and a hapless aspiring musician after the latter stiffs his cab fare." />
-          <attvalue for="1" value="Comedy,Drama" />
-          <attvalue for="2" value="Pyotr Mamonov,Pyotr Zaychenko,Vladimir Kashpur,Natalya Kolyakanova" />
-          <attvalue for="3" value="Pavel Lungin" />
-          <attvalue for="4" value="1990-10-17" />
-          <attvalue for="5" value="post soviet russia,hare krishna,automobile,russia,alcoholic" />
-          <attvalue for="6" value="1613" />
-          <attvalue for="7" value="7.4" />
-          <attvalue for="8" value="tl-PH" />
-        </attvalues>
-      </node>
-      <node id="Ai no korîda" label="Ai no korîda">
-        <attvalues>
-          <attvalue for="0" value="Ai no korîda is a movie starring Tatsuya Fuji, Eiko Matsuda, and Aoi Nakajima. A passionate telling of the story of Sada Abe, a woman whose affair with her master led to an obsessive and ultimately destructive sexual relationship." />
-          <attvalue for="1" value="Drama,Romance" />
-          <attvalue for="2" value="Tatsuya Fuji,Eiko Matsuda,Aoi Nakajima,Yasuko Matsui" />
-          <attvalue for="3" value="Nagisa Ôshima" />
-          <attvalue for="4" value="1976-09-15" />
-          <attvalue for="5" value="sex in public,female nudity,bare breasts,erotic asphyxiation,sexual satisfaction" />
-          <attvalue for="6" value="18261" />
-          <attvalue for="7" value="6.6" />
-          <attvalue for="8" value="sq-AL" />
-        </attvalues>
-      </node>
-      <node id="Fuglene over sundet" label="Fuglene over sundet">
-        <attvalues>
-          <attvalue for="0" value="Fuglene over sundet is a movie starring David Dencik, Danica Curcic, and Jakob Cedergren. Fuglene Over Sundet is the gripping tale of the Danish Jews' escape to Sweden in October 1943." />
-          <attvalue for="1" value="Drama,History,War" />
-          <attvalue for="2" value="David Dencik,Danica Curcic,Jakob Cedergren,Nicolas Bro" />
-          <attvalue for="3" value="Nicolo Donato" />
-          <attvalue for="4" value="2016-10-27" />
-          <attvalue for="5" value="danish jew,mother,fishermen,nazi uniform,nazis" />
-          <attvalue for="6" value="651" />
-          <attvalue for="7" value="6.2" />
-          <attvalue for="8" value="da-DK" />
-        </attvalues>
-      </node>
-      <node id="When You're in Love" label="When You're in Love">
-        <attvalues>
-          <attvalue for="0" value="When You're in Love is a movie starring Grace Moore, Cary Grant, and Aline MacMahon. Artist Jimmy Hudson (Cary Grant) is stuck in Mexico unable to pay his hotel bill. Meanwhile, Louise Fuller (Grace Moore) opera singer is stuck in..." />
-          <attvalue for="1" value="Comedy,Musical,Romance" />
-          <attvalue for="2" value="Grace Moore,Cary Grant,Aline MacMahon,Henry Stephenson" />
-          <attvalue for="3" value="Robert Riskin,Harry Lachman" />
-          <attvalue for="4" value="1937-02-12" />
-          <attvalue for="5" value="taming of the shrew,opera" />
-          <attvalue for="6" value="327" />
-          <attvalue for="7" value="6.2" />
-          <attvalue for="8" value="en-US" />
-        </attvalues>
-      </node>
-      <node id="Calendar Girl" label="Calendar Girl">
-        <attvalues>
-          <attvalue for="0" value="Calendar Girl is a movie starring Jason Priestley, Gabriel Olds, and Jerry O'Connell. Three young men go on an end of the summer trip to Hollywood, California. Their quest: to fulfill the fantasy of meeting Marilyn Monroe." />
-          <attvalue for="1" value="Comedy,Drama" />
-          <attvalue for="2" value="Jason Priestley,Gabriel Olds,Jerry O'Connell,Joe Pantoliano" />
-          <attvalue for="3" value="John Whitesell" />
-          <attvalue for="4" value="1993-09-03" />
-          <attvalue for="5" value="grauman's chinese theatre los angeles,handcuffed man,ciro's nightclub hollywood,summer,hollywood" />
-          <attvalue for="6" value="2115" />
-          <attvalue for="7" value="5.1" />
-          <attvalue for="8" value="ar-SA" />
-        </attvalues>
-      </node>
-      <node id="Dallas 362" label="Dallas 362">
-        <attvalues>
-          <attvalue for="0" value="Dallas 362 is a movie starring Scott Caan, Jeff Goldblum, and Shawn Hatosy. Rusty (Hatosy) starts to pursue a path to a more meaningful life, thanks to his connection to Bob (Goldblum), the boyfriend of his mother, Mary (Lynch). His..." />
-          <attvalue for="1" value="Drama" />
-          <attvalue for="2" value="Scott Caan,Jeff Goldblum,Shawn Hatosy,Kelly Lynch" />
-          <attvalue for="3" value="Scott Caan" />
-          <attvalue for="4" value="2003-06-14" />
-          <attvalue for="5" value="character name in title,number in title" />
-          <attvalue for="6" value="1110" />
-          <attvalue for="7" value="6.2" />
-          <attvalue for="8" value="km-KH" />
+          <attvalue for="0" value="711 Ocean Drive is a movie starring Edmond O'Brien, Joanne Dru, and Otto Kruger. An electronics expert creates a huge bookie broadcast system for his crime boss, and takes over operations when his boss is murdered. His greed leads..." />
+          <attvalue for="1" value="Action,Crime,Drama,Film-Noir,Romance,Thriller" />
+          <attvalue for="2" value="Edmond O'Brien,Joanne Dru,Otto Kruger,Barry Kelley" />
+          <attvalue for="3" value="Joseph M. Newman" />
+          <attvalue for="4" value="1950-07-04" />
+          <attvalue for="5" value="arizona,arizona desert,damsel in distress,deception,gambler" />
+          <attvalue for="6" value="1190" />
+          <attvalue for="7" value="6.9" />
+          <attvalue for="8" value="hi-IN" />
         </attvalues>
       </node>
     </nodes>
     <edges>
-      <edge source="Manners of Dying" target="Heart Condition" id="0" weight="0.3852474838096857" />
-      <edge source="Manners of Dying" target="Dallas 362" id="1" weight="0.3782896803608273" />
-      <edge source="Manners of Dying" target="Taksi-blyuz" id="2" weight="0.35056220570530267" />
-      <edge source="Manners of Dying" target="Dumb Bell of the Yukon" id="3" weight="0.34147917415111684" />
-      <edge source="Heart Condition" target="When You're in Love" id="4" weight="0.4006593709849746" />
-      <edge source="Heart Condition" target="Manners of Dying" id="5" weight="0.3852474838096857" />
-      <edge source="Heart Condition" target="Dallas 362" id="6" weight="0.37672064026804547" />
-      <edge source="Heart Condition" target="The Other One: The Long, Strange Trip of Bob Weir" id="7" weight="0.3669175105986217" />
-      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Dallas 362" id="8" weight="0.40481079950185417" />
-      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Taksi-blyuz" id="9" weight="0.3975608427849728" />
-      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Fuglene over sundet" id="10" weight="0.3739446089237149" />
-      <edge source="The Other One: The Long, Strange Trip of Bob Weir" target="Heart Condition" id="11" weight="0.3669175105986217" />
-      <edge source="Dumb Bell of the Yukon" target="Taksi-blyuz" id="12" weight="0.3465955122615305" />
-      <edge source="Dumb Bell of the Yukon" target="Manners of Dying" id="13" weight="0.34147917415111684" />
-      <edge source="Dumb Bell of the Yukon" target="Dallas 362" id="14" weight="0.32619352354693326" />
-      <edge source="Dumb Bell of the Yukon" target="The Other One: The Long, Strange Trip of Bob Weir" id="15" weight="0.3233754652432151" />
-      <edge source="Taksi-blyuz" target="The Other One: The Long, Strange Trip of Bob Weir" id="16" weight="0.3975608427849728" />
-      <edge source="Taksi-blyuz" target="Dallas 362" id="17" weight="0.3865776725758941" />
-      <edge source="Taksi-blyuz" target="Ai no korîda" id="18" weight="0.3564522049877084" />
-      <edge source="Taksi-blyuz" target="Heart Condition" id="19" weight="0.3562043342141886" />
-      <edge source="Ai no korîda" target="Calendar Girl" id="20" weight="0.37746125967126626" />
-      <edge source="Ai no korîda" target="Taksi-blyuz" id="21" weight="0.3564522049877084" />
-      <edge source="Ai no korîda" target="The Other One: The Long, Strange Trip of Bob Weir" id="22" weight="0.3467817436605195" />
-      <edge source="Ai no korîda" target="When You're in Love" id="23" weight="0.3420003316690906" />
-      <edge source="Fuglene over sundet" target="The Other One: The Long, Strange Trip of Bob Weir" id="24" weight="0.3739446089237149" />
-      <edge source="Fuglene over sundet" target="Calendar Girl" id="25" weight="0.35958905508537586" />
-      <edge source="Fuglene over sundet" target="Manners of Dying" id="26" weight="0.3346292257394211" />
-      <edge source="Fuglene over sundet" target="Ai no korîda" id="27" weight="0.3320760111946281" />
-      <edge source="When You're in Love" target="Heart Condition" id="28" weight="0.4006593709849746" />
-      <edge source="When You're in Love" target="Calendar Girl" id="29" weight="0.3970304918467438" />
-      <edge source="When You're in Love" target="Dallas 362" id="30" weight="0.36339437111547424" />
-      <edge source="When You're in Love" target="Ai no korîda" id="31" weight="0.3420003316690906" />
-      <edge source="Calendar Girl" target="When You're in Love" id="32" weight="0.3970304918467438" />
-      <edge source="Calendar Girl" target="Ai no korîda" id="33" weight="0.37746125967126626" />
-      <edge source="Calendar Girl" target="The Other One: The Long, Strange Trip of Bob Weir" id="34" weight="0.36022622810886834" />
-      <edge source="Calendar Girl" target="Fuglene over sundet" id="35" weight="0.35958905508537586" />
-      <edge source="Dallas 362" target="The Other One: The Long, Strange Trip of Bob Weir" id="36" weight="0.40481079950185417" />
-      <edge source="Dallas 362" target="Taksi-blyuz" id="37" weight="0.3865776725758941" />
-      <edge source="Dallas 362" target="Manners of Dying" id="38" weight="0.3782896803608273" />
-      <edge source="Dallas 362" target="Heart Condition" id="39" weight="0.37672064026804547" />
+      <edge source="The Wizard of Lies" target="Wu ji" id="0" weight="0.39977847181093285" />
+      <edge source="The Wizard of Lies" target="The Maltese Falcon" id="1" weight="0.36409973721715255" />
+      <edge source="The Wizard of Lies" target="711 Ocean Drive" id="2" weight="0.35643167005933746" />
+      <edge source="The Wizard of Lies" target="Hot Moves" id="3" weight="0.33985816913804845" />
+      <edge source="Khuen nan" target="24 jours" id="4" weight="0.37852710234515285" />
+      <edge source="Khuen nan" target="Wu ji" id="5" weight="0.37080854504950284" />
+      <edge source="Khuen nan" target="711 Ocean Drive" id="6" weight="0.36425430143652826" />
+      <edge source="Khuen nan" target="Hot Moves" id="7" weight="0.36252155522518353" />
+      <edge source="Hot Moves" target="Khuen nan" id="8" weight="0.36252155522518353" />
+      <edge source="Hot Moves" target="Wu ji" id="9" weight="0.3419750595509514" />
+      <edge source="Hot Moves" target="The Wizard of Lies" id="10" weight="0.33985816913804845" />
+      <edge source="Hot Moves" target="The Maltese Falcon" id="11" weight="0.33750042823281595" />
+      <edge source="La grande bellezza" target="24 jours" id="12" weight="0.42192685620550663" />
+      <edge source="La grande bellezza" target="Les maîtres du suspense" id="13" weight="0.388653728756036" />
+      <edge source="La grande bellezza" target="Wu ji" id="14" weight="0.3711180848770128" />
+      <edge source="La grande bellezza" target="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt" id="15" weight="0.3454306313600532" />
+      <edge source="The Maltese Falcon" target="24 jours" id="16" weight="0.3732405621796298" />
+      <edge source="The Maltese Falcon" target="Wu ji" id="17" weight="0.36685319865179955" />
+      <edge source="The Maltese Falcon" target="The Wizard of Lies" id="18" weight="0.36409973721715255" />
+      <edge source="The Maltese Falcon" target="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt" id="19" weight="0.3516158877572039" />
+      <edge source="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt" target="The Maltese Falcon" id="20" weight="0.3516158877572039" />
+      <edge source="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt" target="24 jours" id="21" weight="0.34674314148869295" />
+      <edge source="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt" target="La grande bellezza" id="22" weight="0.3454306313600532" />
+      <edge source="Schulmädchen-Report 2. Teil - Was Eltern den Schlaf raubt" target="Wu ji" id="23" weight="0.3291638118208917" />
+      <edge source="Les maîtres du suspense" target="La grande bellezza" id="24" weight="0.388653728756036" />
+      <edge source="Les maîtres du suspense" target="Wu ji" id="25" weight="0.38058579448144314" />
+      <edge source="Les maîtres du suspense" target="24 jours" id="26" weight="0.37112100549809357" />
+      <edge source="Les maîtres du suspense" target="Khuen nan" id="27" weight="0.3590687620082022" />
+      <edge source="24 jours" target="La grande bellezza" id="28" weight="0.42192685620550663" />
+      <edge source="24 jours" target="Khuen nan" id="29" weight="0.37852710234515285" />
+      <edge source="24 jours" target="Wu ji" id="30" weight="0.3782758552850957" />
+      <edge source="24 jours" target="The Maltese Falcon" id="31" weight="0.3732405621796298" />
+      <edge source="Wu ji" target="The Wizard of Lies" id="32" weight="0.39977847181093285" />
+      <edge source="Wu ji" target="Les maîtres du suspense" id="33" weight="0.38058579448144314" />
+      <edge source="Wu ji" target="24 jours" id="34" weight="0.3782758552850957" />
+      <edge source="Wu ji" target="711 Ocean Drive" id="35" weight="0.37594516166619474" />
+      <edge source="711 Ocean Drive" target="Wu ji" id="36" weight="0.37594516166619474" />
+      <edge source="711 Ocean Drive" target="24 jours" id="37" weight="0.3696982148494774" />
+      <edge source="711 Ocean Drive" target="Khuen nan" id="38" weight="0.36425430143652826" />
+      <edge source="711 Ocean Drive" target="The Wizard of Lies" id="39" weight="0.35643167005933746" />
     </edges>
   </graph>
 </gexf>
