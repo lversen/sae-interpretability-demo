@@ -9,32 +9,30 @@ if __name__ == "__main__":
     datasets = ["data_movies\\final_data.csv"]
     models = [
         "BAAI/bge-m3",
-        "intfloat/e5-large-v2",
-        'whaleloops/phrase-bert',
-        "sentence-transformers/paraphrase-MiniLM-L6-v2",
-        "sentence-transformers/all-mpnet-base-v2"
+        #"intfloat/e5-large-v2",
+        #'whaleloops/phrase-bert',
+        #"sentence-transformers/paraphrase-MiniLM-L6-v2",
+        #"sentence-transformers/all-mpnet-base-v2"
     ]
-    n = 10
+    n = 10_000
     content_column = ["Description"]
-    title_column = ["Name"]
+    id_column = ["Name"]
+    category_column = ["Genres"]
     classify_language = ["Name"]
 
     results = run_all(
         datasets=datasets,
         models=models,
         n=n,
-        create_graph=True,
-        batch_size=32,
         content_column=content_column,
-        title_column=title_column,
-        classify_language=classify_language,
-        duplicate_method='suffix',
-        use_rag=False,
-        rag_model="google/flan-t5-base",
-        rag_embeddings_model="sentence-transformers/all-MiniLM-L6-v2",
-        query_column="Description",
+        id_column=id_column,
+        category_column=category_column,
+        n_neighbors=10,
+        max_categories=5,
+        use_networkx_classification=True,
+        create_graph=True,
         force_new_embeddings=False,
-        embeddings_only=True
+        embeddings_only=False
     )
 
     print("Processing complete. Results stored in 'results' dictionary.")
