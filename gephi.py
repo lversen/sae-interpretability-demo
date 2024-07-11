@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.neighbors import kneighbors_graph
 import warnings
+import os
+
 def node_attributes(df: pd.DataFrame, title_column: str, model) -> Tuple[Dict[int, str], Dict[str, Dict[str, Any]]]:
     print("Creating node mapping and attributes")
     if title_column not in df.columns:
@@ -15,7 +17,7 @@ def node_attributes(df: pd.DataFrame, title_column: str, model) -> Tuple[Dict[in
         df[title_column] = df[title_column] + '_' + df.groupby(title_column).cumcount().astype(str)
     
     df2 = df
-    df2[title_column] = df2[title_column].to_numpy() + np.repeat(model, len(df))
+    df2[title_column] = df2[title_column].astype(str) + ' ' + np.repeat(model, len(df))
     mapping = dict(enumerate(df2[title_column]))
     
     # Use reset_index to ensure unique index for to_dict
@@ -24,7 +26,7 @@ def node_attributes(df: pd.DataFrame, title_column: str, model) -> Tuple[Dict[in
     print("Mapping and attributes completed")
     return mapping, attributes
 
-def gephi(feature_extract: np.ndarray, file_name: str, model_name: str, mapping: Dict[int, str], attributes: Dict[str, Dict[str, Any]]):
+def gephi(feature_extract: np.ndarray, file_path: str, model_name: str, mapping: Dict[int, str], attributes: Dict[str, Dict[str, Any]]):
     nn = kneighbors_graph(feature_extract, n_neighbors=4, mode="distance", metric="l1")
     nn.data = np.exp(-nn.data**2 / np.mean(nn.data)**2)
     
@@ -32,11 +34,22 @@ def gephi(feature_extract: np.ndarray, file_name: str, model_name: str, mapping:
     H = nx.relabel_nodes(G, mapping)
     nx.set_node_attributes(H, attributes)
     
-    output_file = f"{file_name}_{model_name.replace('/', '_')}.gexf"
-    nx.write_gexf(H, output_file)
-    print(f"Graph exported to {output_file}")
+    nx.write_gexf(H, file_path)
+    print(f"Graph exported to {file_path}")
 
 def gephi_export(feature_extract: np.ndarray, file_name: str, model_name: str, mapping: Dict[int, str], attributes: Dict[str, Dict[str, Any]]):
-    file_name = file_name.replace(".csv", "").replace("data\\", "")
+    # Extract the base file name without extension and path
+    base_file_name = os.path.splitext(os.path.basename(file_name))[0]
+    
+    # Create a folder with the same name as the input file
+    folder_name = f"gephi_exports_{base_file_name}"
+    os.makedirs(folder_name, exist_ok=True)
+    
+    # Clean up the model name
     model_name = model_name.replace("/", "_")
-    gephi(feature_extract, file_name, model_name, mapping, attributes)
+    
+    # Create the output file path
+    output_file = os.path.join(folder_name, f"{base_file_name}_{model_name}.gexf")
+    
+    # Call the gephi function with the new file path
+    gephi(feature_extract, output_file, model_name, mapping, attributes)

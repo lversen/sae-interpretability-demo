@@ -13,9 +13,9 @@ def run_all(
     n: int,
     feature_column: List[str],
     label_column: List[str],
-    classify_language: List[str],
     create_graph: bool = True,
-    force_new_embeddings: bool = False
+    force_new_embeddings: bool = False,
+    classify_language = []
 ):
     
     for i, dataset in enumerate(datasets):
@@ -48,18 +48,18 @@ def run_all(
 if __name__ == "__main__":
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
     
-    datasets = ["data\\final_data.csv"]
+
+    datasets = ["data\\raw_analyst_ratings.csv"]
+    feature_column = ["headline"]
+    label_column = ["headline"]
     models = [
         "BAAI/bge-m3",
-        "intfloat/e5-large-v2",
-        'whaleloops/phrase-bert',
-        "sentence-transformers/paraphrase-MiniLM-L6-v2",
-        "sentence-transformers/all-mpnet-base-v2"
+        #"intfloat/e5-large-v2",
+        #'whaleloops/phrase-bert',
+        #"sentence-transformers/paraphrase-MiniLM-L6-v2",
+        #"sentence-transformers/all-mpnet-base-v2"
     ]
-    n = 10_000
-    feature_column = ["Description"]
-    label_column = ["Name"]
-    classify_language = ["Name"]
+    n = 100_000
 
     results = run_all(
         datasets=datasets,
@@ -68,5 +68,4 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         create_graph=True,
-        classify_language=classify_language
     )
