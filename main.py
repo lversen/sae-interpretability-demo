@@ -59,7 +59,7 @@ if __name__ == "__main__":
         #"sentence-transformers/paraphrase-MiniLM-L6-v2",
         #"sentence-transformers/all-mpnet-base-v2"
     ]
-    n = 100_000
+    n = 5000
 
     results = run_all(
         datasets=datasets,
