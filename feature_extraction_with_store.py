@@ -3,28 +3,36 @@ import numpy as np
 import pandas as pd
 import pickle
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+from typing import List
 
-def feature_extraction_with_store(df: pd.DataFrame, model: str, batch_size: int, n: int, dataset_name: str, content_column: str, force_new_embeddings: bool = False, embeddings_only: bool = False):
-    base_dir = os.path.join("vectorstores_and_embeddings", dataset_name, model.replace('/', '_'))
+def feature_extraction_with_store(
+    df: pd.DataFrame,
+    full_df: pd.DataFrame,
+    model: str,
+    n: int,
+    dataset_name: str,
+    content_column: str,
+    force_new_embeddings: bool = False
+) -> np.ndarray:
+    base_dir = os.path.join("embeddings", dataset_name, model.replace('/', '_'))
     os.makedirs(base_dir, exist_ok=True)
     
     embeddings_path = os.path.join(base_dir, "embeddings.npy")
-    vectorstore_path = os.path.join(base_dir, "vectorstore")
     index_path = os.path.join(base_dir, "index_max.pkl")
     
     # Initialize embeddings
     embeddings = HuggingFaceEmbeddings(model_name=model)
     
     # Load or create index
-    if os.path.exists(index_path):
+    if os.path.exists(index_path) and not force_new_embeddings:
         with open(index_path, 'rb') as f:
             all_indices = pickle.load(f)
     else:
-        all_indices = np.random.permutation(df.index)
+        all_indices = df.index.tolist()
+        np.random.shuffle(all_indices)
         with open(index_path, 'wb') as f:
             pickle.dump(all_indices, f)
-    
+
     selected_indices = all_indices[:n]
     
     # Load existing embeddings if available
@@ -36,25 +44,11 @@ def feature_extraction_with_store(df: pd.DataFrame, model: str, batch_size: int,
         existing_n = 0
     
     # Determine which embeddings need to be computed
-    new_indices = [idx for idx in selected_indices if idx >= existing_n]
+    new_indices = selected_indices[existing_n:]
     
-    # Debug information
-    print(f"DataFrame shape: {df.shape}")
-    print(f"Content column: {content_column}")
-    print(f"Number of new indices: {len(new_indices)}")
-    print(f"Max index in DataFrame: {df.index.max()}")
-    print(f"Max new index: {max(new_indices) if new_indices else 'N/A'}")
-    
-    # Check if all new_indices are in the DataFrame
-    missing_indices = [idx for idx in new_indices if idx not in df.index]
-    if missing_indices:
-        print(f"Warning: {len(missing_indices)} indices are missing from the DataFrame")
-        print(f"First few missing indices: {missing_indices[:5]}")
-        new_indices = [idx for idx in new_indices if idx in df.index]
-    
-    if len(new_indices) > 0 or force_new_embeddings:
+    if new_indices or force_new_embeddings:
         print(f"Computing embeddings for {len(new_indices)} new samples")
-        new_texts = df.loc[new_indices, content_column].tolist()
+        new_texts = full_df.loc[new_indices, content_column].tolist()
         new_embeddings = embeddings.embed_documents(new_texts)
         
         if len(all_embeddings) > 0 and not force_new_embeddings:
@@ -63,40 +57,13 @@ def feature_extraction_with_store(df: pd.DataFrame, model: str, batch_size: int,
             all_embeddings = np.array(new_embeddings)
         
         np.save(embeddings_path, all_embeddings)
+        print(str(len(all_embeddings)) + " embeddings have been saved")
+    
+    # Ensure we have enough embeddings
+    if len(all_embeddings) < n:
+        raise ValueError(f"Not enough embeddings computed. Requested {n}, but only have {len(all_embeddings)}")
     
     # Select only the required embeddings
-    mask = np.isin(all_indices[:len(all_embeddings)], selected_indices)
-    feature_extract = all_embeddings[mask]
+    feature_extract = all_embeddings[:n]
     
-    print(f"Embedding statistics:")
-    print(f"  Shape: {feature_extract.shape}")
-    print(f"  Mean: {np.mean(feature_extract):.4f}")
-    print(f"  Std: {np.std(feature_extract):.4f}")
-    print(f"  Min: {np.min(feature_extract):.4f}")
-    print(f"  Max: {np.max(feature_extract):.4f}")
-    
-    if not embeddings_only:
-        if os.path.exists(vectorstore_path) and not force_new_embeddings:
-            print(f"Loading existing vector store for {dataset_name} with model {model}")
-            vectorstore = FAISS.load_local(vectorstore_path, embeddings)
-            print(f"Loaded vectorstore with {vectorstore.index.ntotal} vectors")
-        else:
-            print(f"Creating new vector store for {dataset_name} with model {model}")
-            texts = df.loc[selected_indices, content_column].tolist()
-            vectorstore = FAISS.from_texts(texts, embeddings, metadatas=[{"index": str(idx)} for idx in selected_indices])
-            print(f"Created vectorstore with {vectorstore.index.ntotal} vectors")
-        
-        # Test vectorstore
-        print("Testing vectorstore with a sample query...")
-        sample_query = df.loc[selected_indices[0], content_column]
-        results = vectorstore.similarity_search_with_score(sample_query, k=5)
-        print(f"Sample query: {sample_query[:50]}...")
-        for doc, score in results:
-            print(f"  Result: {doc.page_content[:50]}..., Score: {score}")
-        
-        vectorstore.save_local(vectorstore_path)
-        print(f"Saved vectorstore to {vectorstore_path}")
-    else:
-        vectorstore = None
-    
-    return feature_extract, vectorstore
+    return feature_extract

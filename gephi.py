@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.neighbors import kneighbors_graph
 import warnings
-def node_attributes(df: pd.DataFrame, title_column: str) -> Tuple[Dict[int, str], Dict[str, Dict[str, Any]]]:
+def node_attributes(df: pd.DataFrame, title_column: str, model) -> Tuple[Dict[int, str], Dict[str, Dict[str, Any]]]:
+    print("Creating node mapping and attributes")
     if title_column not in df.columns:
         raise ValueError(f"{title_column} is not a column in the DataFrame")
     
@@ -13,11 +14,14 @@ def node_attributes(df: pd.DataFrame, title_column: str) -> Tuple[Dict[int, str]
         warnings.warn(f"Duplicate values found in {title_column}. Adding unique suffixes to ensure uniqueness.")
         df[title_column] = df[title_column] + '_' + df.groupby(title_column).cumcount().astype(str)
     
-    mapping = dict(enumerate(df[title_column]))
+    df2 = df
+    df2[title_column] = df2[title_column].to_numpy() + np.repeat(model, len(df))
+    mapping = dict(enumerate(df2[title_column]))
     
     # Use reset_index to ensure unique index for to_dict
+    df["Model Name"] = np.repeat(model, len(df))
     attributes = df.reset_index(drop=True).set_index(title_column).to_dict('index')
-    
+    print("Mapping and attributes completed")
     return mapping, attributes
 
 def gephi(feature_extract: np.ndarray, file_name: str, model_name: str, mapping: Dict[int, str], attributes: Dict[str, Dict[str, Any]]):

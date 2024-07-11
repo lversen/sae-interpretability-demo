@@ -7,10 +7,11 @@ def get_classifier(model_name: str):
     model = AutoModelForSequenceClassification.from_pretrained(model_name)
     return TextClassificationPipeline(model=model, tokenizer=tokenizer, device="cuda")
 
-def language_classifier(df: pd.DataFrame, rows: np.ndarray, max_rows: int, columns: List[str], file_name: str) -> None:
+def language_classifier(df: pd.DataFrame, rows: np.ndarray, columns: List[str], file_name: str) -> None:
     model_name = 'qanastek/51-languages-classifier'
     classifier = get_classifier(model_name)
     df_max = pd.read_csv(file_name)
+    max_rows = len(df_max)
 
     for c in columns:
         c_classified = f"{c}_classified"
@@ -23,7 +24,7 @@ def language_classifier(df: pd.DataFrame, rows: np.ndarray, max_rows: int, colum
             update_dataframes(df, df_max, c_classified, data, rows, max_rows)
         else:
             update_remaining_rows(df, df_max, c, c_classified, classifier, rows)
-
+        print("Language classification complete")
         df_max.to_csv(file_name, index=False)
 
 def classify_data(classifier: TextClassificationPipeline, data: pd.Series) -> List[str]:

@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 import pandas as pd
 def get_consistent_samples(df: pd.DataFrame, n: int, dataset_name: str, model: str, max_n: int = None):
-    base_dir = os.path.join("vectorstores_and_embeddings", dataset_name, model.replace('/', '_'))
+    base_dir = os.path.join("embeddings", dataset_name, model.replace('/', '_'))
     os.makedirs(base_dir, exist_ok=True)
     index_path = os.path.join(base_dir, f"index_max.pkl")
     
