@@ -38,6 +38,20 @@ def feature_extraction_with_store(df: pd.DataFrame, model: str, batch_size: int,
     # Determine which embeddings need to be computed
     new_indices = [idx for idx in selected_indices if idx >= existing_n]
     
+    # Debug information
+    print(f"DataFrame shape: {df.shape}")
+    print(f"Content column: {content_column}")
+    print(f"Number of new indices: {len(new_indices)}")
+    print(f"Max index in DataFrame: {df.index.max()}")
+    print(f"Max new index: {max(new_indices) if new_indices else 'N/A'}")
+    
+    # Check if all new_indices are in the DataFrame
+    missing_indices = [idx for idx in new_indices if idx not in df.index]
+    if missing_indices:
+        print(f"Warning: {len(missing_indices)} indices are missing from the DataFrame")
+        print(f"First few missing indices: {missing_indices[:5]}")
+        new_indices = [idx for idx in new_indices if idx in df.index]
+    
     if len(new_indices) > 0 or force_new_embeddings:
         print(f"Computing embeddings for {len(new_indices)} new samples")
         new_texts = df.loc[new_indices, content_column].tolist()
