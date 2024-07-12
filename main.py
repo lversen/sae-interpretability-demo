@@ -1,11 +1,56 @@
-from typing import List, Dict, Any
 import pandas as pd
+import numpy as np
+from typing import List, Dict, Any, Optional, Tuple
 from feature_extraction_with_store import *
 from gephi import *
 from language_classification import *
-from data_init import *
 from sample_handler import *
+from collections import Counter
+import random
 
+def split_categories(category_string: str, delimiter: str = ',') -> List[str]:
+    """Split a category string into a list of categories."""
+    return [cat.strip() for cat in category_string.split(delimiter) if cat.strip()]
+
+def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int, delimiter: str = ',') -> Tuple[pd.DataFrame, List[str]]:
+    """
+    Select exactly N categories and then filter and assign these categories to movies.
+    """
+    if category not in df.columns:
+        raise ValueError(f"{category} is not a column in the dataset")
+    
+    # Split the categories and create a flat list of all categories
+    all_categories = [cat for cats in df[category].apply(lambda x: split_categories(str(x), delimiter)) for cat in cats]
+    
+    # Count the occurrences of each unique category
+    category_counts = Counter(all_categories)
+    
+    # Get exactly n unique categories, even if some have low frequency
+    selected_categories = [cat for cat, _ in category_counts.most_common(n)]
+    
+    # If we don't have enough categories, add some random ones to make up the difference
+    if len(selected_categories) < n:
+        remaining_categories = list(set(all_categories) - set(selected_categories))
+        selected_categories.extend(random.sample(remaining_categories, n - len(selected_categories)))
+    
+    print(f"Exactly {n} selected categories: {selected_categories}")
+    
+    # Function to assign a random category from selected categories if any match, else return None
+    def assign_random_selected_category(cat_string):
+        cats = split_categories(str(cat_string), delimiter)
+        matching_cats = [cat for cat in cats if cat in selected_categories]
+        return random.choice(matching_cats) if matching_cats else None
+    
+    # Assign categories and filter out rows with no matching categories
+    df['assigned_category'] = df[category].apply(assign_random_selected_category)
+    filtered_df = df.dropna(subset=['assigned_category'])
+    
+    # Print the distribution of assigned categories
+    assigned_categories = filtered_df['assigned_category'].value_counts(normalize=True) * 100
+    print("Distribution of assigned categories:")
+    print(assigned_categories)
+    
+    return filtered_df, selected_categories
 
 def run_all(
     datasets: List[str],
@@ -15,7 +60,8 @@ def run_all(
     label_column: List[str],
     create_graph: bool = True,
     force_new_embeddings: bool = False,
-    classify_language = []
+    classify_language: List[str] = [],
+    top_n_category: Optional[Dict[str, Dict[str, Any]]] = None
 ):
     
     for i, dataset in enumerate(datasets):
@@ -23,12 +69,35 @@ def run_all(
         # Load full dataset
         full_df = pd.read_csv(dataset)
         print(f"Full dataset shape: {full_df.shape}")
+
+        # If top_n_category is specified, filter the dataset and assign categories
+        category_column = None
+        if top_n_category:
+            category_info = top_n_category.get(dataset, {})
+            if category_info:
+                category_column = category_info['column']
+                n_top = category_info['n']
+                delimiter = category_info.get('delimiter', ',')
+                full_df, selected_categories = select_and_assign_exact_n_categories(full_df, category_column, n_top, delimiter)
+                print(f"Filtered dataset shape after selecting and assigning exactly {n_top} categories: {full_df.shape}")
+
+        # Adjust n if it's larger than the filtered dataset
+        original_n = n
+        n = min(n, len(full_df))
+        if n < original_n:
+            print(f"Warning: Requested sample size ({original_n}) is larger than the available data ({n}). Using {n} samples.")
+
         for model in models:
             print(f"Processing model: {model}")
             
             # Get consistent samples
             df, indices = get_consistent_samples(full_df, n, dataset, model)
             print(f"Sample shape: {df.shape}")
+            
+            # Print the distribution of categories in the sample
+            sample_categories = df['assigned_category'].value_counts(normalize=True) * 100
+            print("Distribution of categories in the sample:")
+            print(sample_categories)
             
             # Feature extraction
             feature_extract = feature_extraction_with_store(
@@ -40,7 +109,7 @@ def run_all(
                 language_classifier(df, indices, classify_language, dataset)
             if create_graph:
                 # Gephi export
-                mapping, attributes = node_attributes(df, label_column[i], model)
+                mapping, attributes = node_attributes(df, label_column[i], model, 'assigned_category')
                 print(f"Exporting Gephi graph for {dataset} with model {model}")
                 gephi_export(feature_extract, dataset, model, mapping, attributes)
 
@@ -48,10 +117,9 @@ def run_all(
 if __name__ == "__main__":
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
     
-
-    datasets = ["data\\raw_analyst_ratings.csv"]
-    feature_column = ["headline"]
-    label_column = ["headline"]
+    datasets = ["data\\final_data.csv"]
+    feature_column = ["Description"]
+    label_column = ["Name"]
     models = [
         "BAAI/bge-m3",
         #"intfloat/e5-large-v2",
@@ -59,7 +127,8 @@ if __name__ == "__main__":
         #"sentence-transformers/paraphrase-MiniLM-L6-v2",
         #"sentence-transformers/all-mpnet-base-v2"
     ]
-    n = 5000
+    n = 10_000
+    top_n_category = {"data\\final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}  # Specify the column name and number of top categories
 
     results = run_all(
         datasets=datasets,
@@ -68,4 +137,5 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         create_graph=True,
+        top_n_category=top_n_category
     )

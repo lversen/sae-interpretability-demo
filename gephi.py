@@ -1,12 +1,12 @@
 import networkx as nx
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import kneighbors_graph
 import warnings
 import os
 
-def node_attributes(df: pd.DataFrame, title_column: str, model) -> Tuple[Dict[int, str], Dict[str, Dict[str, Any]]]:
+def node_attributes(df: pd.DataFrame, title_column: str, model: str, category_column: Optional[str] = None) -> Tuple[Dict[int, str], Dict[str, Dict[str, Any]]]:
     print("Creating node mapping and attributes")
     if title_column not in df.columns:
         raise ValueError(f"{title_column} is not a column in the DataFrame")
@@ -16,13 +16,23 @@ def node_attributes(df: pd.DataFrame, title_column: str, model) -> Tuple[Dict[in
         warnings.warn(f"Duplicate values found in {title_column}. Adding unique suffixes to ensure uniqueness.")
         df[title_column] = df[title_column] + '_' + df.groupby(title_column).cumcount().astype(str)
     
-    df2 = df
-    df2[title_column] = df2[title_column].astype(str) + ' ' + np.repeat(model, len(df))
-    mapping = dict(enumerate(df2[title_column]))
+    # Create a new column for the combined title and model
+    combined_title = df[title_column].astype(str) + ' ' + model
     
-    # Use reset_index to ensure unique index for to_dict
-    df["Model Name"] = np.repeat(model, len(df))
-    attributes = df.reset_index(drop=True).set_index(title_column).to_dict('index')
+    # Create the mapping
+    mapping = dict(enumerate(combined_title))
+    
+    # Create attributes dictionary
+    attributes = {}
+    for index, row in df.iterrows():
+        key = f"{row[title_column]} {model}"
+        attributes[key] = row.to_dict()
+        attributes[key]['Model Name'] = model
+        
+        # Ensure the category column (genres) is included and uses the updated values
+        if category_column and category_column in df.columns:
+            attributes[key][category_column] = row[category_column]
+    
     print("Mapping and attributes completed")
     return mapping, attributes
 
