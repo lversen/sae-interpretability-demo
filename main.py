@@ -14,35 +14,30 @@ def split_categories(category_string: str, delimiter: str = ',') -> List[str]:
 
 def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int, delimiter: str = ',') -> Tuple[pd.DataFrame, List[str]]:
     """
-    Select exactly N categories and then filter and assign these categories to movies.
+    Select exactly N unique categories and then filter and assign these categories to movies.
     """
     if category not in df.columns:
         raise ValueError(f"{category} is not a column in the dataset")
     
     # Split the categories and create a flat list of all categories
-    all_categories = [cat for cats in df[category].apply(lambda x: split_categories(str(x), delimiter)) for cat in cats]
+    all_categories = [cat.strip() for cats in df[category].apply(lambda x: split_categories(str(x), delimiter)) for cat in cats]
     
     # Count the occurrences of each unique category
     category_counts = Counter(all_categories)
     
-    # Get exactly n unique categories, even if some have low frequency
+    # Get exactly n unique categories
     selected_categories = [cat for cat, _ in category_counts.most_common(n)]
     
-    # If we don't have enough categories, add some random ones to make up the difference
-    if len(selected_categories) < n:
-        remaining_categories = list(set(all_categories) - set(selected_categories))
-        selected_categories.extend(random.sample(remaining_categories, n - len(selected_categories)))
-    
-    print(f"Exactly {n} selected categories: {selected_categories}")
+    print(f"Selected top {n} categories: {selected_categories}")
     
     # Function to assign a random category from selected categories if any match, else return None
-    def assign_random_selected_category(cat_string):
+    def assign_category(cat_string):
         cats = split_categories(str(cat_string), delimiter)
         matching_cats = [cat for cat in cats if cat in selected_categories]
         return random.choice(matching_cats) if matching_cats else None
     
     # Assign categories and filter out rows with no matching categories
-    df['assigned_category'] = df[category].apply(assign_random_selected_category)
+    df['assigned_category'] = df[category].apply(assign_category)
     filtered_df = df.dropna(subset=['assigned_category'])
     
     # Print the distribution of assigned categories
@@ -94,11 +89,6 @@ def run_all(
             df, indices = get_consistent_samples(full_df, n, dataset, model)
             print(f"Sample shape: {df.shape}")
             
-            # Print the distribution of categories in the sample
-            sample_categories = df['assigned_category'].value_counts(normalize=True) * 100
-            print("Distribution of categories in the sample:")
-            print(sample_categories)
-            
             # Feature extraction
             feature_extract = feature_extraction_with_store(
                 df, full_df, model, n, dataset, feature_column[i], 
@@ -113,7 +103,6 @@ def run_all(
                 print(f"Exporting Gephi graph for {dataset} with model {model}")
                 gephi_export(feature_extract, dataset, model, mapping, attributes)
 
-
 if __name__ == "__main__":
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
     
@@ -122,10 +111,10 @@ if __name__ == "__main__":
     label_column = ["Name"]
     models = [
         "BAAI/bge-m3",
-        #"intfloat/e5-large-v2",
-        #'whaleloops/phrase-bert',
-        #"sentence-transformers/paraphrase-MiniLM-L6-v2",
-        #"sentence-transformers/all-mpnet-base-v2"
+        "intfloat/e5-large-v2",
+        'whaleloops/phrase-bert',
+        "sentence-transformers/paraphrase-MiniLM-L6-v2",
+        "sentence-transformers/all-mpnet-base-v2"
     ]
     n = 10_000
     top_n_category = {"data\\final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}  # Specify the column name and number of top categories

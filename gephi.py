@@ -29,10 +29,6 @@ def node_attributes(df: pd.DataFrame, title_column: str, model: str, category_co
         attributes[key] = row.to_dict()
         attributes[key]['Model Name'] = model
         
-        # Ensure the category column (genres) is included and uses the updated values
-        if category_column and category_column in df.columns:
-            attributes[key][category_column] = row[category_column]
-    
     print("Mapping and attributes completed")
     return mapping, attributes
 
