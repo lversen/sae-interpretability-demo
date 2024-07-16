@@ -1,12 +1,14 @@
+import os
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
-from feature_extraction_with_store import *
-from gephi import *
-from language_classification import *
-from sample_handler import *
+from feature_extraction_with_store import feature_extraction_with_store
+from gephi import node_attributes, gephi_export
+from language_classification import language_classifier
+from sample_handler import get_consistent_samples
 from collections import Counter
 import random
+from matrix_decomposition import decompose_matrix
 
 def split_categories(category_string: str, delimiter: str = ',') -> List[str]:
     """Split a category string into a list of categories."""
@@ -56,7 +58,9 @@ def run_all(
     create_graph: bool = True,
     force_new_embeddings: bool = False,
     classify_language: List[str] = [],
-    top_n_category: Optional[Dict[str, Dict[str, Any]]] = None
+    top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
+    perform_decomposition: bool = False,  # New parameter
+    n_components: int = 3
 ):
     
     for i, dataset in enumerate(datasets):
@@ -94,37 +98,50 @@ def run_all(
                 df, full_df, model, n, dataset, feature_column[i], 
                 force_new_embeddings=force_new_embeddings
             )
+            
+            # Matrix decomposition (optional)
+            if perform_decomposition:
+                print(f"Performing matrix decomposition for {dataset} with model {model}")
+                U, s, Vt = decompose_matrix(feature_extract, n_components, dataset, model)
+            else:
+                print(f"Skipping matrix decomposition for {dataset} with model {model}")
+            
             if len(classify_language) != 0:
                 indices = np.array(indices, dtype=np.int32)
                 language_classifier(df, indices, classify_language, dataset)
+            
             if create_graph:
                 # Gephi export
                 mapping, attributes = node_attributes(df, label_column[i], model, 'assigned_category')
                 print(f"Exporting Gephi graph for {dataset} with model {model}")
                 gephi_export(feature_extract, dataset, model, mapping, attributes)
-
+    
+    print("Processing complete for all datasets and models.")
 if __name__ == "__main__":
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
     
-    datasets = ["data\\final_data.csv"]
+    datasets = ["data/final_data.csv"]
     feature_column = ["Description"]
     label_column = ["Name"]
     models = [
         "BAAI/bge-m3",
-        "intfloat/e5-large-v2",
-        'whaleloops/phrase-bert',
-        "sentence-transformers/paraphrase-MiniLM-L6-v2",
-        "sentence-transformers/all-mpnet-base-v2"
+        #"intfloat/e5-large-v2",
+        #'whaleloops/phrase-bert',
+        #"sentence-transformers/paraphrase-MiniLM-L6-v2",
+        #"sentence-transformers/all-mpnet-base-v2"
     ]
-    n = 10_000
-    top_n_category = {"data\\final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}  # Specify the column name and number of top categories
+    n = 10
+    top_n_category = {"data/final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}
+    n_components = 10
 
-    results = run_all(
+    run_all(
         datasets=datasets,
         models=models,
         n=n,
         feature_column=feature_column,
         label_column=label_column,
         create_graph=True,
-        top_n_category=top_n_category
+        top_n_category=top_n_category,
+        perform_decomposition=True,  # Set to False if you don't want to perform decomposition
+        n_components=n_components
     )
