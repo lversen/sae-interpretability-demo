@@ -9,7 +9,7 @@ from sample_handler import get_consistent_samples
 from collections import Counter
 import random
 from matrix_decomposition import decompose_matrix
-
+np.set_printoptions(suppress=True)
 def split_categories(category_string: str, delimiter: str = ',') -> List[str]:
     """Split a category string into a list of categories."""
     return [cat.strip() for cat in category_string.split(delimiter) if cat.strip()]
@@ -103,6 +103,7 @@ def run_all(
             if perform_decomposition:
                 print(f"Performing matrix decomposition for {dataset} with model {model}")
                 U, s, Vt = decompose_matrix(feature_extract, n_components, dataset, model)
+                print(U)
             else:
                 print(f"Skipping matrix decomposition for {dataset} with model {model}")
             
