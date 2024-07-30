@@ -2,13 +2,17 @@ import os
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
+from collections import Counter
+import random
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from feature_extraction_with_store import feature_extraction_with_store
 from gephi import node_attributes, gephi_export
 from language_classification import language_classifier
 from sample_handler import get_consistent_samples
-from collections import Counter
-import random
-from matrix_decomposition import decompose_matrix
+from SAE import SparseAutoencoder
+
 np.set_printoptions(suppress=True)
 def split_categories(category_string: str, delimiter: str = ',') -> List[str]:
     """Split a category string into a list of categories."""
@@ -55,12 +59,10 @@ def run_all(
     n: int,
     feature_column: List[str],
     label_column: List[str],
-    create_graph: bool = True,
+    create_graph: bool = False,
     force_new_embeddings: bool = False,
     classify_language: List[str] = [],
-    top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
-    perform_decomposition: bool = False,  # New parameter
-    n_components: int = 3
+    top_n_category: Optional[Dict[str, Dict[str, Any]]] = None
 ):
     
     for i, dataset in enumerate(datasets):
@@ -98,6 +100,28 @@ def run_all(
                 df, full_df, model, n, dataset, feature_column[i], 
                 force_new_embeddings=force_new_embeddings
             )
+
+            def train_sparse_autoencoder(model, activations, num_epochs=100, learning_rate=1e-3):
+                optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+                
+                for epoch in range(num_epochs):
+                    optimizer.zero_grad()
+                    x_hat, encoded = model(activations)
+                    loss = model.loss_function(activations, x_hat, encoded)
+                    loss.backward()
+                    optimizer.step()
+                    
+                    if (epoch + 1) % 10 == 0:
+                        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
+
+            # Example usage
+            # Assuming 'activation_matrix' is your input tensor of shape (num_samples, D)
+            activation_matrix = torch.randn(100, 784)  # Example: 100 samples, 784 dimensions (e.g., for MNIST)
+            hidden_dim = 256  # F features
+            lambda_l1 = 1e-5
+
+            model = SparseAutoencoder(feature_extract, hidden_dim, lambda_l1)
+            train_sparse_autoencoder(model, feature_extract)
             
             
             if len(classify_language) != 0:
@@ -118,15 +142,14 @@ if __name__ == "__main__":
     feature_column = ["Description"]
     label_column = ["Name"]
     models = [
-        "BAAI/bge-m3",
+        #"BAAI/bge-m3",
         #"intfloat/e5-large-v2",
-        #'whaleloops/phrase-bert',
+        'whaleloops/phrase-bert',
         #"sentence-transformers/paraphrase-MiniLM-L6-v2",
         #"sentence-transformers/all-mpnet-base-v2"
     ]
     n = 10
     top_n_category = {"data/final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}
-    n_components = 10
 
     run_all(
         datasets=datasets,
@@ -134,6 +157,4 @@ if __name__ == "__main__":
         n=n,
         feature_column=feature_column,
         label_column=label_column,
-        create_graph=True,
-        top_n_category=top_n_category
     )
