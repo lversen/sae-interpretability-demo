@@ -99,13 +99,6 @@ def run_all(
                 force_new_embeddings=force_new_embeddings
             )
             
-            # Matrix decomposition (optional)
-            if perform_decomposition:
-                print(f"Performing matrix decomposition for {dataset} with model {model}")
-                U, s, Vt = decompose_matrix(feature_extract, n_components, dataset, model)
-                print(U)
-            else:
-                print(f"Skipping matrix decomposition for {dataset} with model {model}")
             
             if len(classify_language) != 0:
                 indices = np.array(indices, dtype=np.int32)
@@ -142,7 +135,5 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         create_graph=True,
-        top_n_category=top_n_category,
-        perform_decomposition=True,  # Set to False if you don't want to perform decomposition
-        n_components=n_components
+        top_n_category=top_n_category
     )
