@@ -100,29 +100,9 @@ def run_all(
                 df, full_df, model, n, dataset, feature_column[i], 
                 force_new_embeddings=force_new_embeddings
             )
-
-            def train_sparse_autoencoder(model, activations, num_epochs=100, learning_rate=1e-3):
-                optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-                
-                for epoch in range(num_epochs):
-                    optimizer.zero_grad()
-                    x_hat, encoded = model(activations)
-                    loss = model.loss_function(activations, x_hat, encoded)
-                    loss.backward()
-                    optimizer.step()
-                    
-                    if (epoch + 1) % 10 == 0:
-                        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
-
-            # Example usage
-            # Assuming 'activation_matrix' is your input tensor of shape (num_samples, D)
-            activation_matrix = torch.randn(100, 784)  # Example: 100 samples, 784 dimensions (e.g., for MNIST)
-            hidden_dim = 256  # F features
-            lambda_l1 = 1e-5
-
-            model = SparseAutoencoder(feature_extract, hidden_dim, lambda_l1)
-            train_sparse_autoencoder(model, feature_extract)
-            
+            SAE = SparseAutoencoder(feature_extract, 200, 16)
+            SAE.forward(feature_extract[0])
+            print(SAE.W_dec.shape)
             
             if len(classify_language) != 0:
                 indices = np.array(indices, dtype=np.int32)
