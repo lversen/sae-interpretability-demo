@@ -47,7 +47,7 @@ class SparseAutoencoder(nn.Module):
         l1_loss = self.lambda_l1 * torch.sum(torch.abs(f_i) * torch.norm(self.decoder.weight, dim=0))
         return mse_loss + l1_loss
 
-    def train_model(self, feature_extract, batch_size=32, num_epochs=100, learning_rate=1e-3, patience=10, min_delta=1e-4):
+    def train_model(self, feature_extract, batch_size=32, num_epochs=100, learning_rate=5e-5, patience=10, min_delta=1e-4):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate)
         
         # Convert to PyTorch tensor if necessary
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     feature_column = ["Description"]
     label_column = ["Name"]
     models = ['whaleloops/phrase-bert']
-    n = 1000
+    n = 20_000
     top_n_category = {"data/final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}
 
     run_all(
