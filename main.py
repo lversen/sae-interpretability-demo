@@ -16,7 +16,7 @@ from sample_handler import get_consistent_samples
 np.set_printoptions(suppress=True)
 
 class SparseAutoencoder(nn.Module):
-    def __init__(self, D, F, lambda_l1=0.1):
+    def __init__(self, D, F, lambda_l1=1):
         super(SparseAutoencoder, self).__init__()
         self.D = D  # Input dimension (residual stream dimension)
         self.F = F  # Number of features
@@ -55,8 +55,7 @@ class SparseAutoencoder(nn.Module):
             feature_extract = torch.from_numpy(feature_extract).float()
         
         # Normalize input
-        feature_extract = feature_extract / torch.sqrt(torch.mean(feature_extract**2, dim=1, keepdim=True))
-        
+        feature_extract = self.D * feature_extract / torch.sqrt(torch.mean(feature_extract**2, dim=1, keepdim=True))
         # Create DataLoader for batching
         dataset = TensorDataset(feature_extract)
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -197,8 +196,8 @@ def run_all(
             )
             
             # Implement SAE with batching and early stopping
-            D = feature_extract.shape[1]  # Input dimension (residual stream dimension)
-            F = 16  # Number of features in the SAE (you can adjust this)
+            D = feature_extract.shape[1]
+            F = 2*D 
             sae = SparseAutoencoder(D, F)
             sae.train_model(feature_extract, batch_size=batch_size, patience=patience, min_delta=min_delta, num_epochs=100_000)
             
@@ -228,7 +227,7 @@ if __name__ == "__main__":
     feature_column = ["Description"]
     label_column = ["Name"]
     models = ['whaleloops/phrase-bert']
-    n = 20_000
+    n = 5
     top_n_category = {"data/final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}
 
     run_all(
@@ -237,7 +236,7 @@ if __name__ == "__main__":
         n=n,
         feature_column=feature_column,
         label_column=label_column,
-        batch_size=n,  # You can adjust this value
+        batch_size=n,
         patience=1000,    # Number of epochs with no improvement after which training will be stopped
         min_delta=1e-5  # Minimum change in loss to qualify as an improvement
     )
