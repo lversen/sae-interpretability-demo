@@ -12,7 +12,7 @@ from feature_extraction_with_store import feature_extraction_with_store
 from gephi import node_attributes, gephi_export
 from language_classification import language_classifier
 from sample_handler import get_consistent_samples
-
+#conda list --export > requirements.txt
 np.set_printoptions(suppress=True)
 
 class SparseAutoencoder(nn.Module):
