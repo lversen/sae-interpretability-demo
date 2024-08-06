@@ -12,7 +12,24 @@ from feature_extraction_with_store import feature_extraction_with_store
 from gephi import node_attributes, gephi_export
 from language_classification import language_classifier
 from sample_handler import get_consistent_samples
+import sys
+
+# Get the current script's directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Navigate up one directory to the parent of both 'Internship' and 'sparse_autoencoder'
+parent_dir = os.path.dirname(current_dir)
+
+# Add the parent directory to sys.path
+sys.path.append(parent_dir)
+# Now you can import from sparse_autoencoder
+
+import sparse_autoencoder
 #conda list --export > requirements.txt
+
+#pipeline = sparse_autoencoder.train.pipeline.PipeLine
+
+
 np.set_printoptions(suppress=True)
 
 class SparseAutoencoder(nn.Module):
