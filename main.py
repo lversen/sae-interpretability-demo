@@ -4,140 +4,16 @@ import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
 from collections import Counter, deque
 import random
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+
 from feature_extraction_with_store import feature_extraction_with_store
 from gephi import node_attributes, gephi_export
 from language_classification import language_classifier
 from sample_handler import get_consistent_samples
-import sys
-
-# Get the current script's directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Navigate up one directory to the parent of both 'Internship' and 'sparse_autoencoder'
-parent_dir = os.path.dirname(current_dir)
-
-# Add the parent directory to sys.path
-sys.path.append(parent_dir)
-# Now you can import from sparse_autoencoder
-
-import sparse_autoencoder
+from SAE import SparseAutoencoder
 #conda list --export > requirements.txt
-
-#pipeline = sparse_autoencoder.train.pipeline.PipeLine
-
 
 np.set_printoptions(suppress=True)
 
-class SparseAutoencoder(nn.Module):
-    def __init__(self, D, F, lambda_l1=1):
-        super(SparseAutoencoder, self).__init__()
-        self.D = D  # Input dimension (residual stream dimension)
-        self.F = F  # Number of features
-        self.lambda_l1 = lambda_l1
-
-        # Encoder: W^enc ∈ ℝ^(F×D)
-        self.encoder = nn.Linear(D, F)
-        # Decoder: W^dec ∈ ℝ^(D×F)
-        self.decoder = nn.Linear(F, D)
-
-        # Initialize weights
-        nn.init.xavier_uniform_(self.encoder.weight)
-        nn.init.xavier_uniform_(self.decoder.weight)
-
-        # Learned biases
-        self.b_enc = nn.Parameter(torch.zeros(F))
-        self.b_dec = nn.Parameter(torch.zeros(D))
-
-    def forward(self, x):
-        # Encoder: calculate feature activations (f_i)
-        f_i = torch.relu(self.encoder(x) + self.b_enc)
-        # Decoder
-        x_hat = self.decoder(f_i) + self.b_dec
-        return x_hat, f_i
-
-    def loss_function(self, x, x_hat, f_i):
-        mse_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1))
-        l1_loss = self.lambda_l1 * torch.sum(torch.abs(f_i) * torch.norm(self.decoder.weight, dim=0))
-        return mse_loss + l1_loss
-
-    def train_model(self, feature_extract, batch_size=32, num_epochs=100, learning_rate=5e-5, patience=10, min_delta=1e-4):
-        optimizer = optim.Adam(self.parameters(), lr=learning_rate)
-        
-        # Convert to PyTorch tensor if necessary
-        if isinstance(feature_extract, np.ndarray):
-            feature_extract = torch.from_numpy(feature_extract).float()
-        
-        # Normalize input
-        feature_extract = self.D * feature_extract / torch.sqrt(torch.mean(feature_extract**2, dim=1, keepdim=True))
-        # Create DataLoader for batching
-        dataset = TensorDataset(feature_extract)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-        
-        # Early stopping setup
-        best_loss = float('inf')
-        no_improve_epochs = 0
-        loss_history = deque(maxlen=patience)
-        
-        for epoch in range(num_epochs):
-            total_loss = 0
-            for batch in dataloader:
-                x = batch[0]
-                
-                x_hat, f_i = self(x)
-                loss = self.loss_function(x, x_hat, f_i)
-                
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                
-                total_loss += loss.item()
-            
-            avg_loss = total_loss / len(dataloader)
-            loss_history.append(avg_loss)
-            
-            if (epoch + 1) % 10 == 0:
-                print(f'Epoch [{epoch+1}/{num_epochs}], Average Loss: {avg_loss:.4f}')
-            
-            # Check for improvement
-            if avg_loss < best_loss - min_delta:
-                best_loss = avg_loss
-                no_improve_epochs = 0
-            else:
-                no_improve_epochs += 1
-            
-            # Early stopping check
-            if no_improve_epochs >= patience:
-                print(f"Early stopping triggered. No improvement for {patience} epochs.")
-                break
-        
-        # Print final loss and number of epochs
-        print(f"Training completed. Final loss: {avg_loss:.4f}, Epochs: {epoch+1}")
-
-    def get_feature_activations(self, x, batch_size=32):
-        if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x).float()
-        
-        x = x / torch.sqrt(torch.mean(x**2, dim=1, keepdim=True))
-        
-        dataset = TensorDataset(x)
-        dataloader = DataLoader(dataset, batch_size=batch_size)
-        
-        feature_activations = []
-        
-        with torch.no_grad():
-            for batch in dataloader:
-                _, f_i = self(batch[0])
-                feature_activations.append(f_i)
-        
-        return torch.cat(feature_activations, dim=0)
-
-    @property
-    def W_dec(self):
-        return self.decoder.weight.data.T
 
 def split_categories(category_string: str, delimiter: str = ',') -> List[str]:
     return [cat.strip() for cat in category_string.split(delimiter) if cat.strip()]
@@ -216,15 +92,7 @@ def run_all(
             D = feature_extract.shape[1]
             F = 2*D 
             sae = SparseAutoencoder(D, F)
-            sae.train_model(feature_extract, batch_size=batch_size, patience=patience, min_delta=min_delta, num_epochs=100_000)
-            
-            # Get feature activations using batching
-            feature_activations = sae.get_feature_activations(feature_extract, batch_size=batch_size)
-            print("Feature activations shape:", feature_activations)
-            
-            # Get decoder weights (feature vectors)
-            feature_vectors = sae.W_dec
-            print("Feature vectors shape:", feature_vectors.shape)
+            sae.train(feature_extract, learning_rate=1e-3, batch_size=256, num_epochs=1)
             
             if len(classify_language) != 0:
                 indices = np.array(indices, dtype=np.int32)
@@ -244,7 +112,7 @@ if __name__ == "__main__":
     feature_column = ["Description"]
     label_column = ["Name"]
     models = ['whaleloops/phrase-bert']
-    n = 5
+    n = 20_000
     top_n_category = {"data/final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}
 
     run_all(
@@ -252,8 +120,5 @@ if __name__ == "__main__":
         models=models,
         n=n,
         feature_column=feature_column,
-        label_column=label_column,
-        batch_size=n,
-        patience=1000,    # Number of epochs with no improvement after which training will be stopped
-        min_delta=1e-5  # Minimum change in loss to qualify as an improvement
+        label_column=label_column
     )
