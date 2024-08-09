@@ -69,3 +69,12 @@ class SparseAutoencoder(nn.Module):
                 
             avg_loss = total_loss / len(dataloader)
             print(f"Epoch {epoch+1}, Average Loss: {avg_loss}")
+    
+    def feature_vectors(self):
+        return(self.decoder.weight/torch.norm(self.decoder.weight, p=2, dim=0))
+    
+    def feature_activations(self, x):
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x.astype(np.float32))
+        f = torch.relu(self.encoder(x) + self.b_enc)
+        return(f*torch.norm(self.decoder.weight, p=2, dim=0))

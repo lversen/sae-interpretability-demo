@@ -92,8 +92,13 @@ def run_all(
             D = feature_extract.shape[1]
             F = 2*D 
             sae = SparseAutoencoder(D, F)
-            sae.train(feature_extract, learning_rate=1e-3, batch_size=256, num_epochs=1)
+            sae.train(feature_extract, learning_rate=1e-3, batch_size=5, num_epochs=1)
             
+            feature_vectors = sae.feature_vectors()
+            print(feature_vectors.shape)
+            
+            feature_activations = sae.feature_activations(feature_extract)
+            print(feature_activations.shape)
             if len(classify_language) != 0:
                 indices = np.array(indices, dtype=np.int32)
                 language_classifier(df, indices, classify_language, dataset)
@@ -112,7 +117,7 @@ if __name__ == "__main__":
     feature_column = ["Description"]
     label_column = ["Name"]
     models = ['whaleloops/phrase-bert']
-    n = 20_000
+    n = 20
     top_n_category = {"data/final_data.csv": {"column": "Genres", "n": 10, "delimiter": ","}}
 
     run_all(
