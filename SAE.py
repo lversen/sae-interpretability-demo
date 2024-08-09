@@ -6,11 +6,12 @@ from torch.utils.data import DataLoader, TensorDataset
 from collections import deque
 
 class SparseAutoencoder(nn.Module):
-    def __init__(self, D, F, lambda_l1=1):
+    def __init__(self, D, F, lambda_l1=1, device='cuda'):
         super(SparseAutoencoder, self).__init__()
         self.D = D  # Input dimension (residual stream dimension)
         self.F = F  # Number of features
         self.lambda_l1 = lambda_l1
+        self.device = device
 
         # Encoder: W^enc ∈ ℝ^(F×D)
         self.encoder = nn.Linear(D, F)
@@ -25,24 +26,33 @@ class SparseAutoencoder(nn.Module):
         self.b_enc = nn.Parameter(torch.zeros(F))
         self.b_dec = nn.Parameter(torch.zeros(D))
 
+        # Move model to the specified device (GPU or CPU)
+        self.to(device)
+
     def forward(self, x):
         if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x.astype(np.float32))
+            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
+        elif isinstance(x, torch.Tensor) and x.device != self.device:
+            x = x.to(self.device)
+        
         f = torch.relu(self.encoder(x) + self.b_enc)
         x_hat = self.b_dec + self.decoder(f)
-        return(x, x_hat, f)
+        return x, x_hat, f
 
     def loss_j(self, x, x_hat, f):
         L2_pen = torch.sum((x - x_hat)**2)
         L1_pen = self.lambda_l1*(f@torch.norm(self.decoder.weight, p=2, dim=0))
-        return(L1_pen + L2_pen)
+        return L1_pen + L2_pen
     
     def preprocess(self, X):
         if isinstance(X, np.ndarray):
-            X = torch.from_numpy(X.astype(np.float32))
+            X = torch.from_numpy(X.astype(np.float32)).to(self.device)
+        elif isinstance(X, torch.Tensor) and X.device != self.device:
+            X = X.to(self.device)
+        
         C = torch.mean(torch.norm(X, p=2, dim=1))/self.D
         X /= C
-        return(X)
+        return X
 
     def train(self, X, learning_rate, batch_size, num_epochs=1):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate)
@@ -71,10 +81,13 @@ class SparseAutoencoder(nn.Module):
             print(f"Epoch {epoch+1}, Average Loss: {avg_loss}")
     
     def feature_vectors(self):
-        return(self.decoder.weight/torch.norm(self.decoder.weight, p=2, dim=0))
+        return self.decoder.weight/torch.norm(self.decoder.weight, p=2, dim=0)
     
     def feature_activations(self, x):
         if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x.astype(np.float32))
+            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
+        elif isinstance(x, torch.Tensor) and x.device != self.device:
+            x = x.to(self.device)
+        
         f = torch.relu(self.encoder(x) + self.b_enc)
-        return(f*torch.norm(self.decoder.weight, p=2, dim=0))
+        return f*torch.norm(self.decoder.weight, p=2, dim=0)

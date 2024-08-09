@@ -97,7 +97,7 @@ def run_all(
             F = 2*D
             sae = SparseAutoencoder(D, F)
             sae.train(feature_extract, learning_rate=1e-3,
-                      batch_size=5, num_epochs=1)
+                      batch_size=40, num_epochs=20)
             feature_vectors = sae.feature_vectors()
             feature_activations = sae.feature_activations(feature_extract)
             if len(classify_language) != 0:
