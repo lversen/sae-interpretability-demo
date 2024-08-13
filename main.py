@@ -59,7 +59,7 @@ def load_or_train_sae(sae, feature_extract, model_path, learning_rate, batch_siz
 
     if os.path.exists(model_path) and not force_retrain:
         try:
-            sae.load_state_dict(torch.load(model_path))
+            sae.load_state_dict(torch.load(model_path, weights_only=True))
             print(f"Loaded pre-trained SAE model from {model_path}")
             
             with torch.no_grad():
@@ -68,14 +68,14 @@ def load_or_train_sae(sae, feature_extract, model_path, learning_rate, batch_siz
             
             if reconstruction_error > reconstruction_error_threshold:
                 print(f"Loaded model seems untrained or poorly fitted (error: {reconstruction_error:.4f}). Retraining...")
-                sae.train(feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                sae.train_and_validate(feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
                 torch.save(sae.state_dict(), model_path)
                 print(f"Retrained model saved to {model_path}")
             else:
                 print(f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
         except Exception as e:
             print(f"Error loading the model: {e}. Training a new one...")
-            sae.train(feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+            sae.train_and_validate(feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
             torch.save(sae.state_dict(), model_path)
             print(f"New model trained and saved to {model_path}")
     else:
@@ -84,7 +84,7 @@ def load_or_train_sae(sae, feature_extract, model_path, learning_rate, batch_siz
         else:
             print(f"No pre-trained model found at {model_path}. Training a new one...")
         
-        sae.train(feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+        sae.train_and_validate(feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
         torch.save(sae.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
     
@@ -140,7 +140,8 @@ def run_all(
             # Initialize and train/load SAE
             D = feature_extract.shape[1]
             F = 2 * D
-            sae = SparseAutoencoder(D, F)
+            l1_lambda = 5
+            sae = SparseAutoencoder(D, F, l1_lambda)
             sae_model_path = f'models/sae_model_{dataset}_{model}.pth'
             sae = load_or_train_sae(
                 sae, 
@@ -169,7 +170,7 @@ def run_all(
                              model, mapping, attributes)
 
     print("Processing complete for all datasets and models.")
-    return sae_feature_vectors.cpu().data.numpy(), sae_feature_activations.cpu().data.numpy()
+    return sae.encoder, sae.decoder, sae_feature_vectors.cpu().data.numpy(), sae_feature_activations.cpu().data.numpy()
 
 # In the if __name__ == "__main__": section:
 if __name__ == "__main__":
@@ -179,7 +180,7 @@ if __name__ == "__main__":
     feature_column = ["Description"]
     label_column = ["Name"]
     models = ['whaleloops/phrase-bert']
-    n = 44266
+    n = 10_000
 
     # SAE hyperparameters
     sae_params = {
@@ -190,7 +191,7 @@ if __name__ == "__main__":
         'force_retrain': False  # Set this to True when you want to retrain the model
     }
 
-    feature_vectors, feature_activations = run_all(
+    encoder, decoder, feature_vectors, feature_activations = run_all(
         datasets=datasets,
         models=models,
         n=n,

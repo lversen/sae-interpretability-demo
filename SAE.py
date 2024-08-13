@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 from collections import deque
 
 class SparseAutoencoder(nn.Module):
@@ -54,15 +54,24 @@ class SparseAutoencoder(nn.Module):
         X /= C
         return X
 
-    def train(self, X, learning_rate, batch_size, num_epochs=1):
+
+    def train_and_validate(self, X, learning_rate, batch_size, num_epochs=1):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate)
         X = self.preprocess(X)
         dataset = TensorDataset(X)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        
+        # Split the dataset into train and validation sets
+        train_size = int(0.75 * len(dataset))
+        val_size = len(dataset) - train_size
+        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+        
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
         
         for epoch in range(num_epochs):
-            total_loss = 0
-            for batch in dataloader:
+            self.train()
+            total_train_loss = 0
+            for batch_idx, batch in enumerate(train_loader):
                 optimizer.zero_grad()
                 batch_loss = 0
                 for x in batch[0]:
@@ -71,15 +80,34 @@ class SparseAutoencoder(nn.Module):
                     batch_loss += loss_j
                 
                 batch_loss /= len(batch[0])
-                print(batch_loss.item())
                 batch_loss.backward()
                 optimizer.step()
                 
-                total_loss += batch_loss.item()
-                
-            avg_loss = total_loss / len(dataloader)
-            print(f"Epoch {epoch+1}, Average Loss: {avg_loss}")
-    
+                total_train_loss += batch_loss.item()
+                print(f"Epoch {epoch+1}, Train Batch {batch_idx+1}/{len(train_loader)}, Loss: {batch_loss.item():.4f}")
+            
+            avg_train_loss = total_train_loss / len(train_loader)
+            
+            # Validation step
+            self.eval()
+            total_val_loss = 0
+            with torch.no_grad():
+                for batch_idx, batch in enumerate(val_loader):
+                    batch_loss = 0
+                    for x in batch[0]:
+                        x, x_hat, f = self.forward(x)
+                        loss_j = self.loss_j(x, x_hat, f)
+                        batch_loss += loss_j
+                    
+                    batch_loss /= len(batch[0])
+                    total_val_loss += batch_loss.item()
+                    print(f"Epoch {epoch+1}, Val Batch {batch_idx+1}/{len(val_loader)}, Loss: {batch_loss.item():.4f}")
+            
+            avg_val_loss = total_val_loss / len(val_loader)
+            
+            print(f"Epoch {epoch+1}, Average Train Loss: {avg_train_loss:.4f}, Average Validation Loss: {avg_val_loss:.4f}")
+            print("-" * 50)
+
     def feature_vectors(self):
         return self.decoder.weight/torch.norm(self.decoder.weight, p=2, dim=0)
     
