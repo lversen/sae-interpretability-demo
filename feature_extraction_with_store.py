@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pickle
 from langchain_huggingface import HuggingFaceEmbeddings
-from typing import List
+from typing import List, Tuple, Optional
 
 def feature_extraction_with_store(
     df: pd.DataFrame,
@@ -12,8 +12,8 @@ def feature_extraction_with_store(
     n: int,
     dataset_name: str,
     content_column: str,
-    force_new_embeddings: bool = False
-) -> np.ndarray:
+    force_new_embeddings: bool = False,
+    additional_data: pd.DataFrame = None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     base_dir = os.path.join("embeddings", dataset_name, model.replace('/', '_'))
     os.makedirs(base_dir, exist_ok=True)
     
@@ -57,7 +57,7 @@ def feature_extraction_with_store(
             all_embeddings = np.array(new_embeddings)
         
         np.save(embeddings_path, all_embeddings)
-        print(str(len(all_embeddings)) + " embeddings have been saved")
+        print(f"{len(all_embeddings)} embeddings have been saved")
     
     # Ensure we have enough embeddings
     if len(all_embeddings) < n:
@@ -66,4 +66,11 @@ def feature_extraction_with_store(
     # Select only the required embeddings
     feature_extract = all_embeddings[:n]
     
-    return feature_extract
+    # Process additional data if provided
+    additional_embeddings = None
+    if additional_data is not None and not additional_data.empty:
+        print(f"Computing embeddings for {len(additional_data)} additional samples")
+        additional_texts = additional_data[content_column].tolist()
+        additional_embeddings = np.array(embeddings.embed_documents(additional_texts))
+    
+    return feature_extract, additional_embeddings
