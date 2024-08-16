@@ -194,15 +194,15 @@ if __name__ == "__main__":
     feature_column = ["Description"]
     label_column = ["Name"]
     models = ['whaleloops/phrase-bert']
-    n = 10_000
+    n = 44266
 
     # SAE hyperparameters
     sae_params = {
-        'learning_rate': 1e-3,
+        'learning_rate': 5e-4,
         'batch_size': 2**10,
-        'num_epochs': 20,
+        'num_epochs': 150,
         'reconstruction_error_threshold': 0.1,
-        'force_retrain': False  # Set this to True when you want to retrain the model
+        'force_retrain': False # Set this to True when you want to retrain the model
     }
 
     # Load additional datasets
