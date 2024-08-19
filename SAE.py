@@ -61,7 +61,7 @@ class SparseAutoencoder(nn.Module):
         dataset = TensorDataset(X)
         
         # Split the dataset into train and validation sets
-        train_size = int(0.75 * len(dataset))
+        train_size = int(0.9 * len(dataset))
         val_size = len(dataset) - train_size
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
         
