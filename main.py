@@ -183,6 +183,7 @@ def run_all(
                 print(f"Exporting Gephi graph for {dataset} with model {model}")
                 gephi_export(feature_extract, dataset, model, mapping, attributes)
 
+
     print("Processing complete for all datasets and models.")
     return all_feature_activations
 
@@ -193,14 +194,14 @@ if __name__ == "__main__":
     datasets = ["data/final_data.csv"]
     feature_column = ["Description"]
     label_column = ["Name"]
-    models = ['whaleloops/phrase-bert']
+    models = ['BAAI/bge-m3'] #'whaleloops/phrase-bert'
     n = 44266
 
     # SAE hyperparameters
     sae_params = {
-        'learning_rate': 5e-4,
-        'batch_size': 2**10,
-        'num_epochs': 150,
+        'learning_rate': 1e-5,
+        'batch_size': 256,
+        'num_epochs': 20,
         'reconstruction_error_threshold': 0.1,
         'force_retrain': False # Set this to True when you want to retrain the model
     }
