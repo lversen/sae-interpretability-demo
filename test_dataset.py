@@ -13,12 +13,16 @@ for d in ds:
 
 data_test = np.array([labels_test, sentences_test]).T
 df_test = pd.DataFrame(data=data_test, columns=["labels", "sentences"])
-df_test = df_test.sample(10_000, ignore_index=True)
+# =============================================================================
+# df_test = df_test.sample(10_000, ignore_index=True)
+# =============================================================================
 print(np.unique(df_test.labels).shape)
 df_test.to_csv("data/stack_exchange_train.csv")
 
 data_validation = np.array([labels_validation, sentences_validation]).T
 df_validation = pd.DataFrame(data=data_validation, columns=["labels", "sentences"])
 df_validation = df_validation.sample(10_000, ignore_index=True)
-print(np.unique(df_validation.labels).shape)
+# =============================================================================
+# print(np.unique(df_validation.labels).shape)
+# =============================================================================
 df_validation.to_csv("data/stack_exchange_val.csv")
