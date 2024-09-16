@@ -1,16 +1,24 @@
+from datasets import load_dataset
 import pandas as pd
+import  numpy as np
+ds = load_dataset("mteb/stackexchange-clustering")
 
-# Read the main dataset
-df = pd.read_csv("data/final_data.csv")
+for d in ds:
+    exec("sentences_" + d + " = np.array([])")
+    exec("labels_" + d + " = np.array([])")
+    for s in ds[d]["sentences"]:
+        exec("sentences_" + d + " = np.append(sentences_" + d + ", s)")
+    for l in ds[d]["labels"]:
+        exec("labels_" + d + " = np.append(labels_" + d + ", l)")
 
-# Filter for Harry Potter entries
-harry_potter_df = df[df['Name'].str.contains('Harry Potter', case=False, na=False)]
+data_test = np.array([labels_test, sentences_test]).T
+df_test = pd.DataFrame(data=data_test, columns=["labels", "sentences"])
+df_test = df_test.sample(10_000, ignore_index=True)
+print(np.unique(df_test.labels).shape)
+df_test.to_csv("data/stack_exchange_train.csv")
 
-# Filter for Star Wars entries
-star_wars_df = df[df['Name'].str.contains('Star Wars:', case=False, na=False)]
-
-# Combine the two filtered DataFrames
-test_df = pd.concat([harry_potter_df, star_wars_df], ignore_index=True)
-
-# Print the shape of the resulting DataFrame to verify
-print(f"Combined DataFrame shape: {test_df.shape}")
+data_validation = np.array([labels_validation, sentences_validation]).T
+df_validation = pd.DataFrame(data=data_validation, columns=["labels", "sentences"])
+df_validation = df_validation.sample(10_000, ignore_index=True)
+print(np.unique(df_validation.labels).shape)
+df_validation.to_csv("data/stack_exchange_val.csv")

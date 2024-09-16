@@ -55,7 +55,7 @@ def gephi_export(feature_extract: np.ndarray, file_name: str, model_name: str, m
     model_name = model_name.replace("/", "_")
     
     # Create the output file path
-    output_file = os.path.join(folder_name, f"{base_file_name}_{model_name}.gexf")
+    output_file = os.path.join(folder_name, f"{base_file_name}_{model_name}_SAE.gexf")
     
     # Call the gephi function with the new file path
     gephi(feature_extract, output_file, model_name, mapping, attributes)

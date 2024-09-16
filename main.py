@@ -10,8 +10,57 @@ from gephi import node_attributes, gephi_export
 from language_classification import language_classifier
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
-from test_dataset import harry_potter_df
 # conda list --export > requirements.txt
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.cluster.hierarchy import linkage
+
+def plot_clustermap(feature_activations, figsize=(20, 20)):
+    # Compute linkage for rows and columns
+    row_linkage = linkage(feature_activations, method='ward')
+    col_linkage = linkage(feature_activations.T, method='ward')
+
+    # Create the clustermap
+    g = sns.clustermap(
+        feature_activations.T,
+        figsize=figsize,
+        row_linkage=col_linkage,
+        col_linkage=row_linkage,
+        cmap='viridis',
+        xticklabels=False,
+        yticklabels=False,
+        cbar_pos=None  # Remove colorbar
+    )
+
+    # Remove axes labels
+    g.ax_heatmap.set_xlabel('')
+    g.ax_heatmap.set_ylabel('')
+
+    # Remove the colorbar
+    g.cax.remove()
+
+    # Adjust layout to remove white spaces
+    plt.tight_layout()
+
+    return g
+
+def plot_minimal_heatmap(feature_activations, figsize=(12*8, 8*8)):
+    # Create a figure and axis
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Plot the heatmap
+    im = ax.imshow(feature_activations.T, aspect='auto', cmap='viridis', interpolation='nearest')
+
+    # Remove all axes
+    ax.axis('off')
+
+    # Remove all white space around the heatmap
+    plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+    plt.margins(0,0)
+    ax.xaxis.set_major_locator(plt.NullLocator())
+    ax.yaxis.set_major_locator(plt.NullLocator())
+
+    return fig, ax
 
 np.set_printoptions(suppress=True)
 
@@ -47,15 +96,18 @@ def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int
     return filtered_df, selected_categories
 
 
-def load_or_train_sae(sae, feature_extract, model_path, learning_rate, batch_size, num_epochs, reconstruction_error_threshold, force_retrain=False):
+def load_or_train_sae(sae, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, num_epochs, reconstruction_error_threshold, force_retrain=False):
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
-    # Convert feature_extract to a PyTorch tensor if it's a numpy array
-    if isinstance(feature_extract, np.ndarray):
-        feature_extract = torch.from_numpy(feature_extract).float()
+    # Convert feature_extract to PyTorch tensors if they're numpy arrays
+    if isinstance(train_feature_extract, np.ndarray):
+        train_feature_extract = torch.from_numpy(train_feature_extract).float()
+    if isinstance(val_feature_extract, np.ndarray):
+        val_feature_extract = torch.from_numpy(val_feature_extract).float()
 
-    # Ensure feature_extract is on the same device as the model
-    feature_extract = feature_extract.to(sae.device)
+    # Ensure feature_extract tensors are on the same device as the model
+    train_feature_extract = train_feature_extract.to(sae.device)
+    val_feature_extract = val_feature_extract.to(sae.device)
 
     if os.path.exists(model_path) and not force_retrain:
         try:
@@ -63,35 +115,28 @@ def load_or_train_sae(sae, feature_extract, model_path, learning_rate, batch_siz
             print(f"Loaded pre-trained SAE model from {model_path}")
 
             with torch.no_grad():
-                _, x_hat, _ = sae(feature_extract[:100])
-            reconstruction_error = torch.mean(
-                (feature_extract[:100] - x_hat) ** 2)
+                _, x_hat, _ = sae(val_feature_extract[:100])
+            reconstruction_error = torch.mean((val_feature_extract[:100] - x_hat) ** 2)
 
             if reconstruction_error > reconstruction_error_threshold:
-                print(f"Loaded model seems untrained or poorly fitted (error: {
-                      reconstruction_error:.4f}). Retraining...")
-                sae.train_and_validate(
-                    feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                print(f"Loaded model seems untrained or poorly fitted (error: {reconstruction_error:.4f}). Retraining...")
+                sae.train_and_validate(train_feature_extract, val_feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
                 torch.save(sae.state_dict(), model_path)
                 print(f"Retrained model saved to {model_path}")
             else:
-                print(
-                    f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
+                print(f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
         except Exception as e:
             print(f"Error loading the model: {e}. Training a new one...")
-            sae.train_and_validate(feature_extract, learning_rate=learning_rate,
-                                   batch_size=batch_size, num_epochs=num_epochs)
+            sae.train_and_validate(train_feature_extract, val_feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
             torch.save(sae.state_dict(), model_path)
             print(f"New model trained and saved to {model_path}")
     else:
         if force_retrain:
             print(f"Force retrain flag is set. Training a new model...")
         else:
-            print(
-                f"No pre-trained model found at {model_path}. Training a new one...")
+            print(f"No pre-trained model found at {model_path}. Training a new one...")
 
-        sae.train_and_validate(feature_extract, learning_rate=learning_rate,
-                               batch_size=batch_size, num_epochs=num_epochs)
+        sae.train_and_validate(train_feature_extract, val_feature_extract, learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
         torch.save(sae.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
 
@@ -99,127 +144,112 @@ def load_or_train_sae(sae, feature_extract, model_path, learning_rate, batch_siz
 
 
 def run_all(
-    datasets: List[str],
+    train_dataset: str,
+    val_dataset: str,
     models: List[str],
-    n: int,
-    feature_column: List[str],
-    label_column: List[str],
+    n_train: int,
+    n_val: int,
+    feature_column: str,
+    label_column: str,
     create_graph: bool = False,
     force_new_embeddings: bool = False,
     classify_language: List[str] = [],
     top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
-    sae_params: Dict[str, Any] = {},
-    additional_dataset: Optional[Dict[str, pd.DataFrame]] = None
-):
+    sae_params: Dict[str, Any] = {}
+) -> Dict[str, np.ndarray]:
     all_feature_activations = {}
+
+    print(f"Processing train dataset: {train_dataset}")
+    print(f"Processing validation dataset: {val_dataset}")
     
-    for i, dataset in enumerate(datasets):
-        print(f"Processing dataset: {dataset}")
-        full_df = pd.read_csv(dataset)
-        print(f"Full dataset shape: {full_df.shape}")
+    train_df = pd.read_csv(train_dataset)
+    val_df = pd.read_csv(val_dataset)
+    print(f"Train dataset shape: {train_df.shape}") 
+    print(f"Validation dataset shape: {val_df.shape}")
 
-        category_column = None
-        if top_n_category:
-            category_info = top_n_category.get(dataset, {})
-            if category_info:
-                category_column = category_info['column']
-                n_top = category_info['n']
-                delimiter = category_info.get('delimiter', ',')
-                full_df, selected_categories = select_and_assign_exact_n_categories(
-                    full_df, category_column, n_top, delimiter)
-                print(f"Filtered dataset shape after selecting and assigning exactly {n_top} categories: {full_df.shape}")
+    for model in models:
+        print(f"Processing model: {model}")
 
-        original_n = n
-        n = min(n, len(full_df))
-        if n < original_n:
-            print(f"Warning: Requested sample size ({original_n}) is larger than the available data ({n}). Using {n} samples.")
+        # Get consistent samples for train and validation sets
+        train_sample_df, train_indices = get_consistent_samples(train_df, n_train, f"{train_dataset}_train", model)
+        val_sample_df, val_indices = get_consistent_samples(val_df, n_val, f"{val_dataset}_val", model)
+        print(f"Train sample shape: {train_sample_df.shape}")
+        print(f"Validation sample shape: {val_sample_df.shape}")
 
-        for model in models:
-            print(f"Processing model: {model}")
+        # Extract features for train and validation sets
+        train_feature_extract = feature_extraction_with_store(
+            train_sample_df, train_df, model, n_train, f"{train_dataset}_train", feature_column,
+            force_new_embeddings=force_new_embeddings
+        )
+        val_feature_extract = feature_extraction_with_store(
+            val_sample_df, val_df, model, n_val, f"{val_dataset}_val", feature_column,
+            force_new_embeddings=force_new_embeddings
+        )
 
-            df, indices = get_consistent_samples(full_df, n, dataset, model)
-            print(f"Sample shape: {df.shape}")
+        # Initialize and train/load SAE
+        D = train_feature_extract.shape[1]
+        F = 2 * D
+        l1_lambda = 5
+        sae = SparseAutoencoder(D, F, l1_lambda)
+        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
+        sae = load_or_train_sae(
+            sae,
+            train_feature_extract,
+            val_feature_extract,
+            model_path=sae_model_path,
+            learning_rate=sae_params.get('learning_rate', 1e-3),
+            batch_size=sae_params.get('batch_size', 40),
+            num_epochs=sae_params.get('num_epochs', 20),
+            reconstruction_error_threshold=sae_params.get('reconstruction_error_threshold', 0.1),
+            force_retrain=sae_params.get('force_retrain', False)
+        )
 
-            additional_df = additional_dataset.get(dataset) if additional_dataset else None
-            
-            feature_extract, additional_features = feature_extraction_with_store(
-                df, full_df, model, n, dataset, feature_column[i],
-                force_new_embeddings=force_new_embeddings,
-                additional_data=additional_df
-            )
+        # Get feature activations (using validation set for consistency)
+        with torch.no_grad():
+            feature_activations = sae.feature_activations(torch.from_numpy(val_feature_extract).float().to(sae.device))
+            all_feature_activations[f"{val_dataset}_{model}"] = feature_activations.cpu().numpy()
 
-            # Initialize and train/load SAE
-            D = feature_extract.shape[1]
-            F = 2 * D
-            l1_lambda = 5
-            sae = SparseAutoencoder(D, F, l1_lambda)
-            sae_model_path = f'models/sae_model_{dataset}_{model}.pth'
-            sae = load_or_train_sae(
-                sae,
-                feature_extract,
-                model_path=sae_model_path,
-                learning_rate=sae_params.get('learning_rate', 1e-3),
-                batch_size=sae_params.get('batch_size', 40),
-                num_epochs=sae_params.get('num_epochs', 20),
-                reconstruction_error_threshold=sae_params.get('reconstruction_error_threshold', 0.1),
-                force_retrain=sae_params.get('force_retrain', False)
-            )
-
-            # Get SAE features
-            sae_feature_vectors = sae.feature_vectors()
-            
-            # Process additional features if available
-            if additional_features is not None:
-                additional_features_tensor = torch.from_numpy(additional_features).float().to(sae.device)
-                additional_feature_activations = sae.feature_activations(additional_features_tensor)
-                all_feature_activations[f"{dataset}_{model}"] = additional_feature_activations.cpu().data.numpy()
-
-            if len(classify_language) != 0:
-                indices = np.array(indices, dtype=np.int32)
-                language_classifier(df, indices, classify_language, dataset)
-
-            if create_graph:
-                mapping, attributes = node_attributes(df, label_column[i], model, 'assigned_category')
-                print(f"Exporting Gephi graph for {dataset} with model {model}")
-                gephi_export(feature_extract, dataset, model, mapping, attributes)
-
+        if create_graph:
+            mapping, attributes = node_attributes(val_sample_df, label_column, model, 'assigned_category')
+            print(f"Exporting Gephi graph for {val_dataset} with model {model}")
+            gephi_export(val_feature_extract, val_dataset, model, mapping, attributes)
 
     print("Processing complete for all datasets and models.")
-    return all_feature_activations
-
+    return val_sample_df, all_feature_activations
 
 if __name__ == "__main__":
-    os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
-
-    datasets = ["data/final_data.csv"]
-    feature_column = ["Description"]
-    label_column = ["Name"]
-    models = ['BAAI/bge-m3'] #'whaleloops/phrase-bert'
-    n = 44266
+    train_dataset = "data/stack_exchange_train.csv"
+    val_dataset = "data/stack_exchange_val.csv"
+    feature_column = "sentences"
+    label_column = "labels"
+    models = ["Alibaba-NLP/gte-large-en-v1.5"]
+    n_train = 10_000
+    n_val = 1000
 
     # SAE hyperparameters
     sae_params = {
-        'learning_rate': 1e-5,
-        'batch_size': 256,
-        'num_epochs': 20,
-        'reconstruction_error_threshold': 0.1,
-        'force_retrain': False # Set this to True when you want to retrain the model
+        'learning_rate': 1e-3,
+        'batch_size': 32,
+        'num_epochs': 40,
+        'reconstruction_error_threshold': 0.5,
+        'force_retrain': False
     }
 
-    # Load additional datasets
-    from test_dataset import test_df
-    additional_dataset = {
-        "data/final_data.csv": test_df,
-        # Add more datasets here if needed
-        # "path/to/another/dataset.csv": another_df,
-    }
-
-    all_feature_activations = run_all(
-        datasets=datasets,
+    df, feature_activations = run_all(
+        train_dataset=train_dataset,
+        val_dataset=val_dataset,
         models=models,
-        n=n,
+        n_train=n_train,
+        n_val=n_val,
         feature_column=feature_column,
         label_column=label_column,
         sae_params=sae_params,
-        additional_dataset=additional_dataset
+        create_graph=False 
     )
+# =============================================================================
+#     for key in feature_activations.keys():
+#         fa = feature_activations[key]
+#         #fig, ax = plot_minimal_heatmap(fa)
+#         g = plot_clustermap(fa)
+#         plt.close()  # Close the figure to free up memory
+# =============================================================================

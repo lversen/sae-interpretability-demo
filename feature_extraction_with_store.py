@@ -2,9 +2,9 @@ import os
 import numpy as np
 import pandas as pd
 import pickle
-from langchain_huggingface import HuggingFaceEmbeddings
+from sentence_transformers import SentenceTransformer
 from typing import List, Tuple, Optional
-
+import torch
 def feature_extraction_with_store(
     df: pd.DataFrame,
     full_df: pd.DataFrame,
@@ -12,16 +12,15 @@ def feature_extraction_with_store(
     n: int,
     dataset_name: str,
     content_column: str,
-    force_new_embeddings: bool = False,
-    additional_data: pd.DataFrame = None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+    force_new_embeddings: bool = False) -> np.ndarray:
     base_dir = os.path.join("embeddings", dataset_name, model.replace('/', '_'))
     os.makedirs(base_dir, exist_ok=True)
     
     embeddings_path = os.path.join(base_dir, "embeddings.npy")
     index_path = os.path.join(base_dir, "index_max.pkl")
-    
+    torch.cuda.empty_cache()
     # Initialize embeddings
-    embeddings = HuggingFaceEmbeddings(model_name=model)
+    embeddings = SentenceTransformer(model, trust_remote_code=True, device="cuda")
     
     # Load or create index
     if os.path.exists(index_path) and not force_new_embeddings:
@@ -49,7 +48,7 @@ def feature_extraction_with_store(
     if new_indices or force_new_embeddings:
         print(f"Computing embeddings for {len(new_indices)} new samples")
         new_texts = full_df.loc[new_indices, content_column].tolist()
-        new_embeddings = embeddings.embed_documents(new_texts)
+        new_embeddings = embeddings.encode(new_texts)
         
         if len(all_embeddings) > 0 and not force_new_embeddings:
             all_embeddings = np.vstack([all_embeddings, new_embeddings])
@@ -66,11 +65,4 @@ def feature_extraction_with_store(
     # Select only the required embeddings
     feature_extract = all_embeddings[:n]
     
-    # Process additional data if provided
-    additional_embeddings = None
-    if additional_data is not None and not additional_data.empty:
-        print(f"Computing embeddings for {len(additional_data)} additional samples")
-        additional_texts = additional_data[content_column].tolist()
-        additional_embeddings = np.array(embeddings.embed_documents(additional_texts))
-    
-    return feature_extract, additional_embeddings
+    return feature_extract
