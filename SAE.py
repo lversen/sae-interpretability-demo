@@ -88,6 +88,7 @@ class SparseAutoencoder(nn.Module):
                 loss = self.loss_j(x, x_hat, f)
                 loss = torch.mean(loss)  # Ensure loss is a scalar
                 loss.backward()
+                print("Batch loss: " + loss.item())
                 optimizer.step()
                 total_train_loss += loss.item()
 

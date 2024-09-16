@@ -177,14 +177,17 @@ def run_all(
         print(f"Validation sample shape: {val_sample_df.shape}")
 
         # Extract features for train and validation sets
+        print(f"Extracting features for {len(train_sample_df)} train samples")
         train_feature_extract = feature_extraction_with_store(
-            train_sample_df, train_df, model, n_train, f"{train_dataset}_train", feature_column,
+            train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", feature_column,
             force_new_embeddings=force_new_embeddings
         )
+        print(f"Extracting features for {len(val_sample_df)} validation samples")
         val_feature_extract = feature_extraction_with_store(
-            val_sample_df, val_df, model, n_val, f"{val_dataset}_val", feature_column,
+            val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", feature_column,
             force_new_embeddings=force_new_embeddings
         )
+
 
         # Initialize and train/load SAE
         D = train_feature_extract.shape[1]
@@ -223,8 +226,9 @@ if __name__ == "__main__":
     feature_column = "sentences"
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
-    n_train = 10_000
-    n_val = 1000
+    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
+    n_train = n_max
+    n_val = 10_000
 
     # SAE hyperparameters
     sae_params = {
@@ -244,7 +248,8 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         sae_params=sae_params,
-        create_graph=False 
+        create_graph=False,
+        force_new_embeddings=False
     )
 # =============================================================================
 #     for key in feature_activations.keys():

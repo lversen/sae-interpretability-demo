@@ -5,6 +5,7 @@ import pickle
 from sentence_transformers import SentenceTransformer
 from typing import List, Tuple, Optional
 import torch
+
 def feature_extraction_with_store(
     df: pd.DataFrame,
     full_df: pd.DataFrame,
@@ -17,8 +18,9 @@ def feature_extraction_with_store(
     os.makedirs(base_dir, exist_ok=True)
     
     embeddings_path = os.path.join(base_dir, "embeddings.npy")
-    index_path = os.path.join(base_dir, "index_max.pkl")
+    index_path = os.path.join(base_dir, "index.pkl")
     torch.cuda.empty_cache()
+    
     # Initialize embeddings
     embeddings = SentenceTransformer(model, trust_remote_code=True, device="cuda")
     
@@ -29,11 +31,17 @@ def feature_extraction_with_store(
     else:
         all_indices = df.index.tolist()
         np.random.shuffle(all_indices)
-        with open(index_path, 'wb') as f:
-            pickle.dump(all_indices, f)
-
-    selected_indices = all_indices[:n]
     
+    # Ensure all_indices has at least n elements
+    if len(all_indices) < n:
+        additional_indices = df.index[~df.index.isin(all_indices)].tolist()
+        np.random.shuffle(additional_indices)
+        all_indices.extend(additional_indices[:n - len(all_indices)])
+    
+    # Save the updated index
+    with open(index_path, 'wb') as f:
+        pickle.dump(all_indices, f)
+
     # Load existing embeddings if available
     if os.path.exists(embeddings_path) and not force_new_embeddings:
         all_embeddings = np.load(embeddings_path)
@@ -42,27 +50,29 @@ def feature_extraction_with_store(
         all_embeddings = np.array([])
         existing_n = 0
     
-    # Determine which embeddings need to be computed
-    new_indices = selected_indices[existing_n:]
+    print(f"Existing embeddings: {existing_n}, Requested embeddings: {n}")
     
-    if new_indices or force_new_embeddings:
+    # Determine which embeddings need to be computed
+    if n > existing_n:
+        new_indices = all_indices[existing_n:n]
         print(f"Computing embeddings for {len(new_indices)} new samples")
         new_texts = full_df.loc[new_indices, content_column].tolist()
         new_embeddings = embeddings.encode(new_texts)
         
-        if len(all_embeddings) > 0 and not force_new_embeddings:
+        if len(all_embeddings) > 0:
             all_embeddings = np.vstack([all_embeddings, new_embeddings])
         else:
-            all_embeddings = np.array(new_embeddings)
+            all_embeddings = new_embeddings
         
         np.save(embeddings_path, all_embeddings)
         print(f"{len(all_embeddings)} embeddings have been saved")
-    
-    # Ensure we have enough embeddings
-    if len(all_embeddings) < n:
-        raise ValueError(f"Not enough embeddings computed. Requested {n}, but only have {len(all_embeddings)}")
+    elif n < existing_n:
+        print(f"Using a subset of {n} embeddings from the existing {existing_n}")
+    else:
+        print(f"Using all {existing_n} existing embeddings")
     
     # Select only the required embeddings
     feature_extract = all_embeddings[:n]
     
+    print(f"Returning {len(feature_extract)} embeddings")
     return feature_extract

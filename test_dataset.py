@@ -21,7 +21,7 @@ df_test.to_csv("data/stack_exchange_train.csv")
 
 data_validation = np.array([labels_validation, sentences_validation]).T
 df_validation = pd.DataFrame(data=data_validation, columns=["labels", "sentences"])
-df_validation = df_validation.sample(10_000, ignore_index=True)
+#df_validation = df_validation.sample(10_000, ignore_index=True)
 # =============================================================================
 # print(np.unique(df_validation.labels).shape)
 # =============================================================================
