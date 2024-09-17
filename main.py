@@ -236,7 +236,7 @@ if __name__ == "__main__":
         'batch_size': 32,
         'num_epochs': 40,
         'reconstruction_error_threshold': 0.5,
-        'force_retrain': False
+        'force_retrain': True
     }
 
     df, feature_activations = run_all(
