@@ -124,17 +124,19 @@ class SparseAutoencoder(nn.Module):
             print(f"Average Train Loss: {avg_train_loss:.4f}, Average Validation Loss: {avg_val_loss:.4f}")
             print(f"Current learning rate: {optimizer.param_groups[0]['lr']:.6f}")
 
-            # Early stopping logic
-            if avg_val_loss < best_val_loss:
-                best_val_loss = avg_val_loss
-                epochs_without_improvement = 0
-                torch.save(self.state_dict(), 'best_model.pth')
-            else:
-                epochs_without_improvement += 1
-                if epochs_without_improvement >= patience:
-                    print(f"Early stopping triggered. No improvement for {patience} epochs.")
-                    self.load_state_dict(torch.load('best_model.pth'))
-                    break
+# =============================================================================
+#             # Early stopping logic
+#             if avg_val_loss < best_val_loss:
+#                 best_val_loss = avg_val_loss
+#                 epochs_without_improvement = 0
+#                 torch.save(self.state_dict(), 'best_model.pth')
+#             else:
+#                 epochs_without_improvement += 1
+#                 if epochs_without_improvement >= patience:
+#                     print(f"Early stopping triggered. No improvement for {patience} epochs.")
+#                     self.load_state_dict(torch.load('best_model.pth'))
+#                     break
+# =============================================================================
 
     def feature_vectors(self):
         return self.decoder.weight/torch.norm(self.decoder.weight, p=2, dim=0)
