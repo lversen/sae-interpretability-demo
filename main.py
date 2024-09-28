@@ -16,6 +16,28 @@ import seaborn as sns
 from scipy.cluster.hierarchy import linkage
 
 
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+def train_and_evaluate_decision_tree(X, y, test_size=0.2, random_state=42):
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    
+    # Create and train the decision tree classifier
+    clf = DecisionTreeClassifier(random_state=random_state)
+    clf.fit(X_train, y_train)
+    
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+    
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test, y_pred)
+    
+    # Generate classification report
+    report = classification_report(y_test, y_pred)
+    
+    return clf, accuracy, report
 def plot_clustermap(feature_activations, figsize=(20, 20)):
     # Compute linkage for rows and columns
     row_linkage = linkage(feature_activations, method='ward')
@@ -169,6 +191,7 @@ def run_all(
     sae_params: Dict[str, Any] = {}
 ) -> Dict[str, np.ndarray]:
     all_feature_activations = {}
+    classification_results = {}
 
     print(f"Processing train dataset: {train_dataset}")
     print(f"Processing validation dataset: {val_dataset}")
@@ -192,25 +215,30 @@ def run_all(
         # Extract features for train and validation sets
         print(f"Extracting features for {len(train_sample_df)} train samples")
         train_feature_extract = feature_extraction_with_store(
-            train_sample_df, train_df, model, len(train_sample_df), f"{
-                train_dataset}_train", feature_column,
+            train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", feature_column,
             force_new_embeddings=force_new_embeddings
         )
-        print(f"Extracting features for {
-              len(val_sample_df)} validation samples")
+        print(f"Extracting features for {len(val_sample_df)} validation samples")
         val_feature_extract = feature_extraction_with_store(
-            val_sample_df, val_df, model, len(val_sample_df), f"{
-                val_dataset}_val", feature_column,
+            val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", feature_column,
             force_new_embeddings=force_new_embeddings
         )
+
+        # Perform decision tree classification on the original embeddings
+        print("Performing decision tree classification on original embeddings")
+        original_clf, original_accuracy, original_report = train_and_evaluate_decision_tree(
+            val_feature_extract, val_sample_df[label_column])
+        classification_results[f"{model}_original"] = {
+            "accuracy": original_accuracy,
+            "report": original_report
+        }
 
         # Initialize and train/load SAE
         D = train_feature_extract.shape[1]
         F = 2 * D
         l1_lambda = 5
         sae = SparseAutoencoder(D, F, l1_lambda)
-        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{
-            model.replace("/", "_")}.pth'
+        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
         sae = load_or_train_sae(
             sae,
             train_feature_extract,
@@ -219,8 +247,7 @@ def run_all(
             learning_rate=sae_params.get('learning_rate', 1e-3),
             batch_size=sae_params.get('batch_size', 40),
             num_epochs=sae_params.get('num_epochs', 20),
-            reconstruction_error_threshold=sae_params.get(
-                'reconstruction_error_threshold', 0.1),
+            reconstruction_error_threshold=sae_params.get('reconstruction_error_threshold', 0.1),
             force_retrain=sae_params.get('force_retrain', False)
         )
 
@@ -228,19 +255,33 @@ def run_all(
         with torch.no_grad():
             feature_activations = sae.feature_activations(
                 torch.from_numpy(val_feature_extract).float().to(sae.device))
-            all_feature_activations[f"{val_dataset}_{
-                model}"] = feature_activations.cpu().numpy()
+            all_feature_activations[f"{val_dataset}_{model}"] = feature_activations.cpu().numpy()
+
+        # Perform decision tree classification on the SAE feature activations
+        print("Performing decision tree classification on SAE feature activations")
+        sae_clf, sae_accuracy, sae_report = train_and_evaluate_decision_tree(
+            all_feature_activations[f"{val_dataset}_{model}"], val_sample_df[label_column])
+        classification_results[f"{model}_sae"] = {
+            "accuracy": sae_accuracy,
+            "report": sae_report
+        }
 
         if create_graph:
             mapping, attributes = node_attributes(
                 val_sample_df, label_column, model, 'assigned_category')
-            print(f"Exporting Gephi graph for {
-                  val_dataset} with model {model}")
+            print(f"Exporting Gephi graph for {val_dataset} with model {model}")
             gephi_export(val_feature_extract, val_dataset,
                          model, mapping, attributes)
 
     print("Processing complete for all datasets and models.")
-    return val_sample_df, all_feature_activations
+    print("\nClassification Results:")
+    for key, result in classification_results.items():
+        print(f"\n{key}:")
+        print(f"Accuracy: {result['accuracy']}")
+        print("Classification Report:")
+        print(result['report'])
+
+    return val_sample_df, all_feature_activations, classification_results
 
 
 if __name__ == "__main__":
@@ -251,7 +292,7 @@ if __name__ == "__main__":
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
     n_train = n_max
-    n_val = 10_000
+    n_val = 20_000
 
     # SAE hyperparameters
     sae_params = {
@@ -262,7 +303,7 @@ if __name__ == "__main__":
         'force_retrain': False
     }
 
-    df, feature_activations = run_all(
+    df, feature_activations, classification_results = run_all(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
         models=models,
@@ -274,6 +315,9 @@ if __name__ == "__main__":
         create_graph=False,
         force_new_embeddings=False
     )
+
+    # You can now analyze the classification_results dictionary
+    # to compare the performance before and after the SAE
 # =============================================================================
 #     for key in feature_activations.keys():
 #         fa = feature_activations[key]
