@@ -22,7 +22,7 @@ from sklearn.metrics import accuracy_score, classification_report
 
 def train_and_evaluate_decision_tree(X, y, test_size=0.2, random_state=42):
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
     
     # Create and train the decision tree classifier
     clf = DecisionTreeClassifier(random_state=random_state)
@@ -292,7 +292,7 @@ if __name__ == "__main__":
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
     n_train = n_max
-    n_val = 20_000
+    n_val = 10_000
 
     # SAE hyperparameters
     sae_params = {
