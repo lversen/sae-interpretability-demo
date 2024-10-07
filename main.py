@@ -223,7 +223,7 @@ def run_all(
             val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", feature_column,
             force_new_embeddings=force_new_embeddings
         )
-
+        """
         # Perform decision tree classification on the original embeddings
         print("Performing decision tree classification on original embeddings")
         original_clf, original_accuracy, original_report = train_and_evaluate_decision_tree(
@@ -232,7 +232,7 @@ def run_all(
             "accuracy": original_accuracy,
             "report": original_report
         }
-
+        """
         # Initialize and train/load SAE
         D = train_feature_extract.shape[1]
         F = 2 * D
@@ -257,6 +257,7 @@ def run_all(
                 torch.from_numpy(val_feature_extract).float().to(sae.device))
             all_feature_activations[f"{val_dataset}_{model}"] = feature_activations.cpu().numpy()
 
+        """     
         # Perform decision tree classification on the SAE feature activations
         print("Performing decision tree classification on SAE feature activations")
         sae_clf, sae_accuracy, sae_report = train_and_evaluate_decision_tree(
@@ -264,7 +265,8 @@ def run_all(
         classification_results[f"{model}_sae"] = {
             "accuracy": sae_accuracy,
             "report": sae_report
-        }
+        } 
+        """
 
         if create_graph:
             mapping, attributes = node_attributes(
@@ -312,7 +314,7 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         sae_params=sae_params,
-        create_graph=False,
+        create_graph=True,
         force_new_embeddings=False
     )
 
