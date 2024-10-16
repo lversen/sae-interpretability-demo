@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['main.py', 'SAE.py', 'feature_extraction_with_store.py', 'sample_handler.py', 'test_dataset.py']
+recent_files = ['main.py', 'SAE.py', 'feature_extraction_with_store.py', 'sample_handler.py', 'test_dataset.py', 'results\\classification_report_Alibaba-NLP_gte-large-en-v1.5_original_stack_exchange_train.txt', 'results\\classification_report_Alibaba-NLP_gte-large-en-v1.5_sae_stack_exchange_train.txt']
 
 [main]
 version = 0.2.0

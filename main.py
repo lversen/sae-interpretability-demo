@@ -1,3 +1,4 @@
+import re
 import os
 import pandas as pd
 import numpy as np
@@ -20,24 +21,20 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 
+
 def train_and_evaluate_decision_tree(X, y, test_size=0.2, random_state=42):
-    # Split the data into training and testing sets
-    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
-    
-    # Create and train the decision tree classifier
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state)
     clf = DecisionTreeClassifier(random_state=random_state)
     clf.fit(X_train, y_train)
-    
-    # Make predictions on the test set
     y_pred = clf.predict(X_test)
-    
-    # Calculate accuracy
     accuracy = accuracy_score(y_test, y_pred)
-    
-    # Generate classification report
     report = classification_report(y_test, y_pred)
-    
     return clf, accuracy, report
+
+    return clf, accuracy, report
+
+
 def plot_clustermap(feature_activations, figsize=(20, 20)):
     # Compute linkage for rows and columns
     row_linkage = linkage(feature_activations, method='ward')
@@ -176,6 +173,14 @@ def load_or_train_sae(sae, train_feature_extract, val_feature_extract, model_pat
     return sae
 
 
+# Add this at the top of the file with other imports
+
+
+def sanitize_filename(filename):
+    # Replace invalid filename characters with underscores
+    return re.sub(r'[<>:"/\\|?*]', '_', filename)
+
+
 def run_all(
     train_dataset: str,
     val_dataset: str,
@@ -204,7 +209,6 @@ def run_all(
     for model in models:
         print(f"Processing model: {model}")
 
-        # Get consistent samples for train and validation sets
         train_sample_df, train_indices = get_consistent_samples(
             train_df, n_train, f"{train_dataset}_train", model)
         val_sample_df, val_indices = get_consistent_samples(
@@ -212,33 +216,36 @@ def run_all(
         print(f"Train sample shape: {train_sample_df.shape}")
         print(f"Validation sample shape: {val_sample_df.shape}")
 
-        # Extract features for train and validation sets
         print(f"Extracting features for {len(train_sample_df)} train samples")
         train_feature_extract = feature_extraction_with_store(
-            train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", feature_column,
+            train_sample_df, train_df, model, len(train_sample_df), f"{
+                train_dataset}_train", feature_column,
             force_new_embeddings=force_new_embeddings
         )
-        print(f"Extracting features for {len(val_sample_df)} validation samples")
+        print(f"Extracting features for {
+              len(val_sample_df)} validation samples")
         val_feature_extract = feature_extraction_with_store(
-            val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", feature_column,
+            val_sample_df, val_df, model, len(val_sample_df), f"{
+                val_dataset}_val", feature_column,
             force_new_embeddings=force_new_embeddings
         )
-        """
+
         # Perform decision tree classification on the original embeddings
         print("Performing decision tree classification on original embeddings")
         original_clf, original_accuracy, original_report = train_and_evaluate_decision_tree(
-            val_feature_extract, val_sample_df[label_column])
+            train_feature_extract, train_sample_df[label_column])
         classification_results[f"{model}_original"] = {
             "accuracy": original_accuracy,
             "report": original_report
         }
-        """
+
         # Initialize and train/load SAE
         D = train_feature_extract.shape[1]
         F = 2 * D
         l1_lambda = 5
         sae = SparseAutoencoder(D, F, l1_lambda)
-        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
+        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{
+            model.replace("/", "_")}.pth'
         sae = load_or_train_sae(
             sae,
             train_feature_extract,
@@ -247,31 +254,32 @@ def run_all(
             learning_rate=sae_params.get('learning_rate', 1e-3),
             batch_size=sae_params.get('batch_size', 40),
             num_epochs=sae_params.get('num_epochs', 20),
-            reconstruction_error_threshold=sae_params.get('reconstruction_error_threshold', 0.1),
+            reconstruction_error_threshold=sae_params.get(
+                'reconstruction_error_threshold', 0.1),
             force_retrain=sae_params.get('force_retrain', False)
         )
 
         # Get feature activations (using validation set for consistency)
         with torch.no_grad():
             feature_activations = sae.feature_activations(
-                torch.from_numpy(val_feature_extract).float().to(sae.device))
-            all_feature_activations[f"{val_dataset}_{model}"] = feature_activations.cpu().numpy()
+                torch.from_numpy(train_feature_extract).float().to(sae.device))
+            all_feature_activations[f"{train_dataset}_{
+                model}"] = feature_activations.cpu().numpy()
 
-        """     
         # Perform decision tree classification on the SAE feature activations
         print("Performing decision tree classification on SAE feature activations")
         sae_clf, sae_accuracy, sae_report = train_and_evaluate_decision_tree(
-            all_feature_activations[f"{val_dataset}_{model}"], val_sample_df[label_column])
+            all_feature_activations[f"{train_dataset}_{model}"], train_sample_df[label_column])
         classification_results[f"{model}_sae"] = {
             "accuracy": sae_accuracy,
             "report": sae_report
-        } 
-        """
+        }
 
         if create_graph:
             mapping, attributes = node_attributes(
                 val_sample_df, label_column, model, 'assigned_category')
-            print(f"Exporting Gephi graph for {val_dataset} with model {model}")
+            print(f"Exporting Gephi graph for {
+                  val_dataset} with model {model}")
             gephi_export(val_feature_extract, val_dataset,
                          model, mapping, attributes)
 
@@ -283,7 +291,45 @@ def run_all(
         print("Classification Report:")
         print(result['report'])
 
-    return val_sample_df, all_feature_activations, classification_results
+    # Save classification results
+    results_list = []
+    for key, result in classification_results.items():
+        model, type_ = key.rsplit('_', 1)
+        results_list.append({
+            'Model': model,
+            'Type': type_,
+            'Accuracy': result['accuracy']
+        })
+
+    results_df = pd.DataFrame(results_list)
+
+    # Create a directory for results if it doesn't exist
+    os.makedirs('results', exist_ok=True)
+
+    # Save the results to a CSV file
+    base_filename = os.path.splitext(os.path.basename(train_dataset))[0]
+    results_file = os.path.join(
+        'results', f'classification_results_{base_filename}.csv')
+    results_df.to_csv(results_file, index=False)
+    print(f"Classification results saved to {results_file}")
+
+    # Save detailed classification reports
+    for key, result in classification_results.items():
+        model, type_ = key.rsplit('_', 1)
+        sanitized_model = sanitize_filename(model)
+        report_filename = f'classification_report_{
+            sanitized_model}_{type_}_{base_filename}.txt'
+        report_file = os.path.join('results', report_filename)
+
+        with open(report_file, 'w') as f:
+            f.write(f"Model: {model}\n")
+            f.write(f"Type: {type_}\n")
+            f.write(f"Accuracy: {result['accuracy']}\n\n")
+            f.write("Classification Report:\n")
+            f.write(result['report'])
+        print(f"Detailed classification report saved to {report_file}")
+
+    return train_sample_df, all_feature_activations, classification_results
 
 
 if __name__ == "__main__":
@@ -294,7 +340,7 @@ if __name__ == "__main__":
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
     n_train = n_max
-    n_val = 10_000
+    n_val = 1000
 
     # SAE hyperparameters
     sae_params = {
@@ -304,8 +350,7 @@ if __name__ == "__main__":
         'reconstruction_error_threshold': 20,
         'force_retrain': False
     }
-
-    df, feature_activations, classification_results = run_all(
+    df = run_all(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
         models=models,
@@ -314,9 +359,23 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         sae_params=sae_params,
-        create_graph=True,
+        create_graph=False,
         force_new_embeddings=False
     )
+# =============================================================================
+#     df, feature_activations, classification_results = run_all(
+#         train_dataset=train_dataset,
+#         val_dataset=val_dataset,
+#         models=models,
+#         n_train=n_train,
+#         n_val=n_val,
+#         feature_column=feature_column,
+#         label_column=label_column,
+#         sae_params=sae_params,
+#         create_graph=False,
+#         force_new_embeddings=False
+#     )
+# =============================================================================
 
     # You can now analyze the classification_results dictionary
     # to compare the performance before and after the SAE
