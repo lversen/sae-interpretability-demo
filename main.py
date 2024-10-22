@@ -189,12 +189,14 @@ def run_all(
     n_val: int,
     feature_column: str,
     label_column: str,
+    perform_classification: bool = True,
     create_graph: bool = False,
+    n_random_labels: Optional[int] = None,
     force_new_embeddings: bool = False,
     classify_language: List[str] = [],
     top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
     sae_params: Dict[str, Any] = {}
-) -> Dict[str, np.ndarray]:
+) -> Dict[str, Any]:
     all_feature_activations = {}
     classification_results = {}
 
@@ -218,34 +220,31 @@ def run_all(
 
         print(f"Extracting features for {len(train_sample_df)} train samples")
         train_feature_extract = feature_extraction_with_store(
-            train_sample_df, train_df, model, len(train_sample_df), f"{
-                train_dataset}_train", feature_column,
+            train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", feature_column,
             force_new_embeddings=force_new_embeddings
         )
-        print(f"Extracting features for {
-              len(val_sample_df)} validation samples")
+        print(f"Extracting features for {len(val_sample_df)} validation samples")
         val_feature_extract = feature_extraction_with_store(
-            val_sample_df, val_df, model, len(val_sample_df), f"{
-                val_dataset}_val", feature_column,
+            val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", feature_column,
             force_new_embeddings=force_new_embeddings
         )
 
-        # Perform decision tree classification on the original embeddings
-        print("Performing decision tree classification on original embeddings")
-        original_clf, original_accuracy, original_report = train_and_evaluate_decision_tree(
-            train_feature_extract, train_sample_df[label_column])
-        classification_results[f"{model}_original"] = {
-            "accuracy": original_accuracy,
-            "report": original_report
-        }
+        if perform_classification and label_column in train_sample_df.columns:
+            # Perform decision tree classification on the original embeddings
+            print("Performing decision tree classification on original embeddings")
+            original_clf, original_accuracy, original_report = train_and_evaluate_decision_tree(
+                train_feature_extract, train_sample_df[label_column])
+            classification_results[f"{model}_original"] = {
+                "accuracy": original_accuracy,
+                "report": original_report
+            }
 
         # Initialize and train/load SAE
         D = train_feature_extract.shape[1]
         F = 2 * D
         l1_lambda = 5
         sae = SparseAutoencoder(D, F, l1_lambda)
-        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{
-            model.replace("/", "_")}.pth'
+        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
         sae = load_or_train_sae(
             sae,
             train_feature_extract,
@@ -254,8 +253,7 @@ def run_all(
             learning_rate=sae_params.get('learning_rate', 1e-3),
             batch_size=sae_params.get('batch_size', 40),
             num_epochs=sae_params.get('num_epochs', 20),
-            reconstruction_error_threshold=sae_params.get(
-                'reconstruction_error_threshold', 0.1),
+            reconstruction_error_threshold=sae_params.get('reconstruction_error_threshold', 0.1),
             force_retrain=sae_params.get('force_retrain', False)
         )
 
@@ -263,71 +261,87 @@ def run_all(
         with torch.no_grad():
             feature_activations = sae.feature_activations(
                 torch.from_numpy(train_feature_extract).float().to(sae.device))
-            all_feature_activations[f"{train_dataset}_{
-                model}"] = feature_activations.cpu().numpy()
+            all_feature_activations[f"{train_dataset}_{model}"] = feature_activations.cpu().numpy()
 
-        # Perform decision tree classification on the SAE feature activations
-        print("Performing decision tree classification on SAE feature activations")
-        sae_clf, sae_accuracy, sae_report = train_and_evaluate_decision_tree(
-            all_feature_activations[f"{train_dataset}_{model}"], train_sample_df[label_column])
-        classification_results[f"{model}_sae"] = {
-            "accuracy": sae_accuracy,
-            "report": sae_report
-        }
+        if perform_classification and label_column in train_sample_df.columns:
+            # Perform decision tree classification on the SAE feature activations
+            print("Performing decision tree classification on SAE feature activations")
+            sae_clf, sae_accuracy, sae_report = train_and_evaluate_decision_tree(
+                all_feature_activations[f"{train_dataset}_{model}"], train_sample_df[label_column])
+            classification_results[f"{model}_sae"] = {
+                "accuracy": sae_accuracy,
+                "report": sae_report
+            }
 
         if create_graph:
+            # For original embeddings
             mapping, attributes = node_attributes(
-                val_sample_df, label_column, model, 'assigned_category')
-            print(f"Exporting Gephi graph for {
-                  val_dataset} with model {model}")
-            gephi_export(val_feature_extract, val_dataset,
-                         model, mapping, attributes)
+                val_sample_df, 
+                label_column, 
+                f"{model}_original", 
+                'assigned_category',
+                n_random_labels=n_random_labels
+            )
+            gephi_export(train_feature_extract, train_dataset, f"{model}_original", mapping, attributes)
 
-    print("Processing complete for all datasets and models.")
-    print("\nClassification Results:")
-    for key, result in classification_results.items():
-        print(f"\n{key}:")
-        print(f"Accuracy: {result['accuracy']}")
-        print("Classification Report:")
-        print(result['report'])
+            # For SAE embeddings
+            mapping, attributes = node_attributes(
+                val_sample_df, 
+                label_column, 
+                f"{model}_sae", 
+                'assigned_category',
+                n_random_labels=n_random_labels
+            )
+            gephi_export(
+                all_feature_activations.cpu().numpy(), 
+                train_dataset, 
+                f"{model}_sae", 
+                mapping, 
+                attributes
+            )
+    if perform_classification and classification_results:
+        print("\nClassification Results:")
+        for key, result in classification_results.items():
+            print(f"\n{key}:")
+            print(f"Accuracy: {result['accuracy']}")
+            print("Classification Report:")
+            print(result['report'])
 
-    # Save classification results
-    results_list = []
-    for key, result in classification_results.items():
-        model, type_ = key.rsplit('_', 1)
-        results_list.append({
-            'Model': model,
-            'Type': type_,
-            'Accuracy': result['accuracy']
-        })
+        # Save classification results
+        results_list = []
+        for key, result in classification_results.items():
+            model, type_ = key.rsplit('_', 1)
+            results_list.append({
+                'Model': model,
+                'Type': type_,
+                'Accuracy': result['accuracy']
+            })
 
-    results_df = pd.DataFrame(results_list)
+        results_df = pd.DataFrame(results_list)
 
-    # Create a directory for results if it doesn't exist
-    os.makedirs('results', exist_ok=True)
+        # Create a directory for results if it doesn't exist
+        os.makedirs('results', exist_ok=True)
 
-    # Save the results to a CSV file
-    base_filename = os.path.splitext(os.path.basename(train_dataset))[0]
-    results_file = os.path.join(
-        'results', f'classification_results_{base_filename}.csv')
-    results_df.to_csv(results_file, index=False)
-    print(f"Classification results saved to {results_file}")
+        # Save the results
+        base_filename = os.path.splitext(os.path.basename(train_dataset))[0]
+        results_file = os.path.join('results', f'classification_results_{base_filename}.csv')
+        results_df.to_csv(results_file, index=False)
+        print(f"Classification results saved to {results_file}")
 
-    # Save detailed classification reports
-    for key, result in classification_results.items():
-        model, type_ = key.rsplit('_', 1)
-        sanitized_model = sanitize_filename(model)
-        report_filename = f'classification_report_{
-            sanitized_model}_{type_}_{base_filename}.txt'
-        report_file = os.path.join('results', report_filename)
+        # Save detailed classification reports
+        for key, result in classification_results.items():
+            model, type_ = key.rsplit('_', 1)
+            sanitized_model = sanitize_filename(model)
+            report_filename = f'classification_report_{sanitized_model}_{type_}_{base_filename}.txt'
+            report_file = os.path.join('results', report_filename)
 
-        with open(report_file, 'w') as f:
-            f.write(f"Model: {model}\n")
-            f.write(f"Type: {type_}\n")
-            f.write(f"Accuracy: {result['accuracy']}\n\n")
-            f.write("Classification Report:\n")
-            f.write(result['report'])
-        print(f"Detailed classification report saved to {report_file}")
+            with open(report_file, 'w') as f:
+                f.write(f"Model: {model}\n")
+                f.write(f"Type: {type_}\n")
+                f.write(f"Accuracy: {result['accuracy']}\n\n")
+                f.write("Classification Report:\n")
+                f.write(result['report'])
+            print(f"Detailed classification report saved to {report_file}")
 
     return train_sample_df, all_feature_activations, classification_results
 
@@ -339,7 +353,7 @@ if __name__ == "__main__":
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = n_max
+    n_train = 100_000
     n_val = 1000
 
     # SAE hyperparameters
@@ -350,7 +364,7 @@ if __name__ == "__main__":
         'reconstruction_error_threshold': 20,
         'force_retrain': False
     }
-    df = run_all(
+    df, feature_activations, classification_results = run_all(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
         models=models,
@@ -359,8 +373,10 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         sae_params=sae_params,
-        create_graph=False,
-        force_new_embeddings=False
+        create_graph=True,
+        n_random_labels=5,
+        force_new_embeddings=False,
+        perform_classification=False
     )
 # =============================================================================
 #     df, feature_activations, classification_results = run_all(
