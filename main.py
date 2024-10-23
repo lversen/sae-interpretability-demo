@@ -7,7 +7,7 @@ from collections import Counter, deque
 import random
 import torch
 from feature_extraction_with_store import feature_extraction_with_store
-from gephi import node_attributes, gephi_export
+from gephi import *
 from language_classification import language_classifier
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
@@ -261,8 +261,9 @@ def run_all(
         with torch.no_grad():
             feature_activations = sae.feature_activations(
                 torch.from_numpy(train_feature_extract).float().to(sae.device))
-            all_feature_activations[f"{train_dataset}_{model}"] = feature_activations.cpu().numpy()
-
+            # Move to CPU and convert to numpy immediately
+            feature_activations = feature_activations.cpu().numpy()
+            all_feature_activations[f"{train_dataset}_{model}"] = feature_activations
         if perform_classification and label_column in train_sample_df.columns:
             # Perform decision tree classification on the SAE feature activations
             print("Performing decision tree classification on SAE feature activations")
@@ -274,31 +275,40 @@ def run_all(
             }
 
         if create_graph:
-            # For original embeddings
-            mapping, attributes = node_attributes(
-                val_sample_df, 
-                label_column, 
-                f"{model}_original", 
-                'assigned_category',
-                n_random_labels=n_random_labels
+            # First, select random labels that will be used for both graphs
+            selected_labels = select_random_labels(
+                train_sample_df,
+                label_column,
+                n_random_labels=n_random_labels,
+                category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
             )
-            gephi_export(train_feature_extract, train_dataset, f"{model}_original", mapping, attributes)
+            
+            # Create graph for original embeddings
+            base_filename = os.path.splitext(os.path.basename(train_dataset))[0]
+            sanitized_model = model.replace('.', '-')  # Replace dots with hyphens in model name
+            original_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_original.gexf"
+            create_gephi_graph(
+                train_feature_extract,
+                train_sample_df,
+                label_column,
+                f"{sanitized_model}_original",
+                original_file_path,
+                selected_labels=selected_labels,
+                category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
+            )
+            
+            # Create graph for SAE embeddings
+            sae_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_sae.gexf"
+            create_gephi_graph(
+                feature_activations,
+                train_sample_df,
+                label_column,
+                f"{sanitized_model}_sae",
+                sae_file_path,
+                selected_labels=selected_labels,
+                category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
+            )
 
-            # For SAE embeddings
-            mapping, attributes = node_attributes(
-                val_sample_df, 
-                label_column, 
-                f"{model}_sae", 
-                'assigned_category',
-                n_random_labels=n_random_labels
-            )
-            gephi_export(
-                all_feature_activations.cpu().numpy(), 
-                train_dataset, 
-                f"{model}_sae", 
-                mapping, 
-                attributes
-            )
     if perform_classification and classification_results:
         print("\nClassification Results:")
         for key, result in classification_results.items():
@@ -353,7 +363,7 @@ if __name__ == "__main__":
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = 100_000
+    n_train = int(n_max/2)
     n_val = 1000
 
     # SAE hyperparameters
@@ -374,7 +384,7 @@ if __name__ == "__main__":
         label_column=label_column,
         sae_params=sae_params,
         create_graph=True,
-        n_random_labels=5,
+        n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False
     )

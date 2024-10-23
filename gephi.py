@@ -6,114 +6,156 @@ from sklearn.neighbors import kneighbors_graph
 import warnings
 import os
 import random
+import torch
 
-def filter_by_random_labels(df: pd.DataFrame, 
-                          title_column: str, 
-                          n_random_labels: Optional[int] = None,
-                          category_column: Optional[str] = None) -> Tuple[pd.DataFrame, Optional[List[str]]]:
+def ensure_numpy_array(data):
     """
-    Filter DataFrame to include only n randomly selected labels.
-    Returns filtered DataFrame and list of selected labels.
+    Ensure the input data is a numpy array, converting from torch tensor if necessary.
+    """
+    if isinstance(data, torch.Tensor):
+        return data.detach().cpu().numpy()
+    return np.asarray(data)
+
+def sanitize_name(name: str) -> str:
+    """
+    Sanitize file names and model names by replacing dots and other problematic characters with underscores or hyphens.
+    """
+    # Replace dots with hyphens (for version numbers)
+    name = name.replace('.', '-')
+    # Replace other problematic characters with underscores
+    name = name.replace('/', '_').replace('\\', '_')
+    return name
+
+def select_random_labels(df: pd.DataFrame, 
+                        title_column: str, 
+                        n_random_labels: Optional[int] = None,
+                        category_column: Optional[str] = None) -> List[str]:
+    """
+    Select random labels that have multiple occurrences.
+    Returns list of selected labels.
     """
     if n_random_labels is None:
-        return df, None
+        return None
         
-    if category_column and category_column in df.columns:
-        all_labels = df[category_column].unique()
+    # Determine which column to use for grouping
+    grouping_column = category_column if category_column and category_column in df.columns else title_column
+    
+    # Count occurrences of each label
+    label_counts = df[grouping_column].value_counts()
+    
+    # Only select from labels that have multiple occurrences
+    valid_labels = label_counts[label_counts > 1].index.tolist()
+    
+    if not valid_labels:
+        warnings.warn("No labels with multiple occurrences found")
+        return None
+        
+    if n_random_labels > len(valid_labels):
+        warnings.warn(f"Requested {n_random_labels} labels but only {len(valid_labels)} valid labels available")
+        selected_labels = valid_labels
     else:
-        all_labels = df[title_column].unique()
-        
-    if n_random_labels > len(all_labels):
-        warnings.warn(f"Requested {n_random_labels} labels but only {len(all_labels)} available")
-        selected_labels = all_labels
-    else:
-        selected_labels = np.random.choice(all_labels, size=n_random_labels, replace=False)
-        
-    if category_column and category_column in df.columns:
-        filtered_df = df[df[category_column].isin(selected_labels)]
-    else:
-        filtered_df = df[df[title_column].isin(selected_labels)]
-        
-    print(f"Selected {len(selected_labels)} random labels: {selected_labels}")
-    return filtered_df, selected_labels
+        selected_labels = np.random.choice(valid_labels, size=n_random_labels, replace=False)
+    
+    return selected_labels.tolist()
 
-def node_attributes(df: pd.DataFrame, 
-                   title_column: str, 
-                   model: str, 
-                   category_column: Optional[str] = None,
-                   n_random_labels: Optional[int] = None) -> Tuple[Dict[int, str], Dict[str, Dict[str, Any]]]:
+def filter_by_labels(df: pd.DataFrame, 
+                    feature_extract: np.ndarray,
+                    labels: List[str],
+                    grouping_column: str) -> Tuple[pd.DataFrame, np.ndarray]:
     """
-    Create node mapping and attributes, optionally filtering by random labels.
+    Filter DataFrame and corresponding feature embeddings by given labels.
     """
-    print("Creating node mapping and attributes")
+    mask = df[grouping_column].isin(labels)
+    filtered_df = df[mask]
+    filtered_feature_extract = feature_extract[mask]
+    return filtered_df, filtered_feature_extract
+
+def create_node_attributes(df: pd.DataFrame,
+                         feature_extract: np.ndarray,
+                         title_column: str, 
+                         model: str, 
+                         selected_labels: Optional[List[str]] = None,
+                         category_column: Optional[str] = None) -> Tuple[Dict[int, str], Dict[str, Dict[str, Any]], np.ndarray]:
+    """
+    Create node mapping and attributes using pre-selected labels.
+    Returns mapping, attributes, and filtered feature embeddings.
+    """
+    # Ensure feature_extract is a numpy array
+    feature_extract = ensure_numpy_array(feature_extract)
+    
     if title_column not in df.columns:
         raise ValueError(f"{title_column} is not a column in the DataFrame")
     
-    # Filter by random labels if specified
-    filtered_df, selected_labels = filter_by_random_labels(
-        df, title_column, n_random_labels, category_column)
+    # Sanitize model name
+    model = sanitize_name(model)
     
-    # Check for duplicate values in the title column
-    if filtered_df[title_column].duplicated().any():
-        warnings.warn(f"Duplicate values found in {title_column}. Adding unique suffixes to ensure uniqueness.")
-        filtered_df[title_column] = filtered_df[title_column] + '_' + filtered_df.groupby(title_column).cumcount().astype(str)
+    # Filter by pre-selected labels if provided
+    if selected_labels:
+        grouping_column = category_column if category_column and category_column in df.columns else title_column
+        filtered_df, filtered_feature_extract = filter_by_labels(df, feature_extract, selected_labels, grouping_column)
+    else:
+        filtered_df, filtered_feature_extract = df.copy(), feature_extract
     
-    # Create a new column for the combined title and model
-    combined_title = filtered_df[title_column].astype(str) + ' ' + model
+    # Create unique node IDs while preserving label information
+    if category_column and category_column in filtered_df.columns:
+        filtered_df['node_id'] = filtered_df.groupby(category_column).cumcount().astype(str)
+        filtered_df['display_title'] = filtered_df[category_column] + '_node_' + filtered_df['node_id']
+    else:
+        filtered_df['node_id'] = filtered_df.groupby(title_column).cumcount().astype(str)
+        filtered_df['display_title'] = filtered_df[title_column] + '_node_' + filtered_df['node_id']
     
-    # Create the mapping
+    # Create mapping and attributes
+    combined_title = filtered_df['display_title'].astype(str) + ' ' + model
     mapping = dict(enumerate(combined_title))
     
-    # Create attributes dictionary
     attributes = {}
     for index, row in filtered_df.iterrows():
-        key = f"{row[title_column]} {model}"
+        key = f"{row['display_title']} {model}"
         attributes[key] = row.to_dict()
         attributes[key]['Model Name'] = model
-        
-    print("Mapping and attributes completed")
-    return mapping, attributes
+        attributes[key]['group'] = row[category_column] if category_column and category_column in filtered_df.columns else row[title_column]
+    
+    return mapping, attributes, filtered_feature_extract
 
-def gephi(feature_extract: np.ndarray, 
-          file_path: str, 
-          model_name: str, 
-          mapping: Dict[int, str], 
-          attributes: Dict[str, Dict[str, Any]],
-          n_neighbors: int = 4):
+def create_gephi_graph(feature_extract: np.ndarray, 
+                      df: pd.DataFrame,
+                      title_column: str,
+                      model_name: str,
+                      file_path: str,
+                      selected_labels: Optional[List[str]] = None,
+                      category_column: Optional[str] = None,
+                      n_neighbors: int = 4):
     """
-    Create and export Gephi graph with specified number of neighbors.
+    Create and export Gephi graph using pre-selected labels.
     """
-    nn = kneighbors_graph(feature_extract, n_neighbors=n_neighbors, mode="distance", metric="l1")
+    # Sanitize model name (but not file extension)
+    model_name = sanitize_name(model_name)
+    
+    # Create node attributes using the same selected labels
+    mapping, attributes, filtered_feature_extract = create_node_attributes(
+        df, feature_extract, title_column, model_name, selected_labels, category_column
+    )
+    
+    # Create the graph
+    nn = kneighbors_graph(filtered_feature_extract, n_neighbors=n_neighbors, mode="distance", metric="l1")
     nn.data = np.exp(-nn.data**2 / np.mean(nn.data)**2)
     
     G = nx.DiGraph(nn)
     H = nx.relabel_nodes(G, mapping)
     nx.set_node_attributes(H, attributes)
     
-    nx.write_gexf(H, file_path)
-    print(f"Graph exported to {file_path}")
-
-def gephi_export(feature_extract: np.ndarray, 
-                file_name: str, 
-                model_name: str, 
-                mapping: Dict[int, str], 
-                attributes: Dict[str, Dict[str, Any]],
-                n_neighbors: int = 4):
-    """
-    Export Gephi graph to a dedicated folder.
-    """
-    # Extract the base file name without extension and path
-    base_file_name = os.path.splitext(os.path.basename(file_name))[0]
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     
-    # Create a folder with the same name as the input file
-    folder_name = f"gephi_exports_{base_file_name}"
-    os.makedirs(folder_name, exist_ok=True)
+    # Split the file path into directory and filename
+    dir_name, file_name = os.path.split(file_path)
+    # Split filename into base name and extension
+    base_name, ext = os.path.splitext(file_name)
+    # Sanitize only the base name
+    sanitized_base_name = sanitize_name(base_name)
+    # Reconstruct the full path with original extension
+    sanitized_file_path = os.path.join(dir_name, sanitized_base_name + ext)
     
-    # Clean up the model name
-    model_name = model_name.replace("/", "_")
-    
-    # Create the output file path
-    output_file = os.path.join(folder_name, f"{base_file_name}_{model_name}.gexf")
-    
-    # Call the gephi function with the new file path
-    gephi(feature_extract, output_file, model_name, mapping, attributes, n_neighbors=n_neighbors)
+    # Export the graph
+    nx.write_gexf(H, sanitized_file_path)
+    print(f"Graph exported to {sanitized_file_path}")
