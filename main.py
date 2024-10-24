@@ -363,7 +363,7 @@ if __name__ == "__main__":
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = int(n_max/2)
+    n_train = 10_000
     n_val = 1000
 
     # SAE hyperparameters
