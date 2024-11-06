@@ -4,15 +4,15 @@ import pickle
 import numpy as np
 import pandas as pd
 def get_consistent_samples(df: pd.DataFrame, n: int, dataset_name: str, model: str, max_n: int = None):
-    print(f"Requested n: {n}")
+
     base_dir = os.path.join("embeddings", dataset_name, model.replace('/', '_'))
     os.makedirs(base_dir, exist_ok=True)
     index_path = os.path.join(base_dir, f"index_max.pkl")
     
     max_n = min(max_n or len(df), len(df))
-    print(f"Max n: {max_n}")
+
     n = min(n, max_n)
-    print(f"Adjusted n: {n}")    
+  
 
     if os.path.exists(index_path):
         with open(index_path, 'rb') as f:
@@ -36,5 +36,5 @@ def get_consistent_samples(df: pd.DataFrame, n: int, dataset_name: str, model: s
     selected_indices = all_indices[:n]
     selected_df = df.loc[selected_indices].reset_index(drop=True)
     
-    print(f"Selected {len(selected_indices)} samples")
+
     return selected_df, selected_indices

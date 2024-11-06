@@ -7,10 +7,11 @@ from torch.utils.data import DataLoader, TensorDataset
 from typing import List, Union
 
 class SparseAutoencoder(nn.Module):
-    def __init__(self, D, F, lambda_l1=1, device='cuda'):
+    def __init__(self, D, F, sae_model_path, lambda_l1=1, device='cuda'):
         super(SparseAutoencoder, self).__init__()
         self.D = D
         self.F = F
+        self.sae_model_path = sae_model_path
         self.lambda_l1 = lambda_l1
         self.device = device
 
@@ -124,19 +125,17 @@ class SparseAutoencoder(nn.Module):
             print(f"Average Train Loss: {avg_train_loss:.4f}, Average Validation Loss: {avg_val_loss:.4f}")
             print(f"Current learning rate: {optimizer.param_groups[0]['lr']:.6f}")
 
-# =============================================================================
-#             # Early stopping logic
-#             if avg_val_loss < best_val_loss:
-#                 best_val_loss = avg_val_loss
-#                 epochs_without_improvement = 0
-#                 torch.save(self.state_dict(), 'best_model.pth')
-#             else:
-#                 epochs_without_improvement += 1
-#                 if epochs_without_improvement >= patience:
-#                     print(f"Early stopping triggered. No improvement for {patience} epochs.")
-#                     self.load_state_dict(torch.load('best_model.pth'))
-#                     break
-# =============================================================================
+            # Early stopping logic
+            if avg_val_loss < best_val_loss:
+                best_val_loss = avg_val_loss
+                epochs_without_improvement = 0
+                torch.save(self.state_dict(), self.sae_model_path)
+            else:
+                epochs_without_improvement += 1
+                if epochs_without_improvement >= patience:
+                    print(f"Early stopping triggered. No improvement for {patience} epochs.")
+                    self.load_state_dict(torch.load(self.sae_model_path))
+                    break
 
     def feature_vectors(self):
         return self.decoder.weight/torch.norm(self.decoder.weight, p=2, dim=0)

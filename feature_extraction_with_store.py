@@ -74,5 +74,5 @@ def feature_extraction_with_store(
     # Select only the required embeddings
     feature_extract = all_embeddings[:n]
     
-    print(f"Returning {len(feature_extract)} embeddings")
+
     return feature_extract

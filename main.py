@@ -1,5 +1,7 @@
 import re
 import os
+import sys
+import subprocess
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
@@ -201,12 +203,11 @@ def run_all(
     classification_results = {}
 
     print(f"Processing train dataset: {train_dataset}")
-    print(f"Processing validation dataset: {val_dataset}")
+
 
     train_df = pd.read_csv(train_dataset)
     val_df = pd.read_csv(val_dataset)
-    print(f"Train dataset shape: {train_df.shape}")
-    print(f"Validation dataset shape: {val_df.shape}")
+
 
     for model in models:
         print(f"Processing model: {model}")
@@ -215,15 +216,14 @@ def run_all(
             train_df, n_train, f"{train_dataset}_train", model)
         val_sample_df, val_indices = get_consistent_samples(
             val_df, n_val, f"{val_dataset}_val", model)
-        print(f"Train sample shape: {train_sample_df.shape}")
-        print(f"Validation sample shape: {val_sample_df.shape}")
 
-        print(f"Extracting features for {len(train_sample_df)} train samples")
+
+
         train_feature_extract = feature_extraction_with_store(
             train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", feature_column,
             force_new_embeddings=force_new_embeddings
         )
-        print(f"Extracting features for {len(val_sample_df)} validation samples")
+
         val_feature_extract = feature_extraction_with_store(
             val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", feature_column,
             force_new_embeddings=force_new_embeddings
@@ -243,8 +243,8 @@ def run_all(
         D = train_feature_extract.shape[1]
         F = 2 * D
         l1_lambda = 5
-        sae = SparseAutoencoder(D, F, l1_lambda)
         sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
+        sae = SparseAutoencoder(D, F, sae_model_path, l1_lambda)
         sae = load_or_train_sae(
             sae,
             train_feature_extract,
@@ -355,6 +355,27 @@ def run_all(
 
     return train_sample_df, all_feature_activations, classification_results
 
+def restart_kernel():
+    """
+    Restarts the current Python kernel/process.
+    
+    This function will:
+    1. Get the current Python executable path
+    2. Get the current script path
+    3. Execute a new process with the same script
+    4. Exit the current process
+    """
+    python = sys.executable
+    script = sys.argv[0]
+    
+    print("Restarting kernel...")
+    try:
+        # Start new process
+        subprocess.Popen([python, script])
+        # Exit current process
+        os._exit(0)
+    except Exception as e:
+        print(f"Error restarting kernel: {e}")
 
 if __name__ == "__main__":
     train_dataset = "data/stack_exchange_train.csv"
@@ -363,16 +384,16 @@ if __name__ == "__main__":
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = 10_000
+    n_train = n_max
     n_val = 1000
 
     # SAE hyperparameters
     sae_params = {
         'learning_rate': 1e-3,
         'batch_size': 32,
-        'num_epochs': 50,
+        'num_epochs': 10,
         'reconstruction_error_threshold': 20,
-        'force_retrain': False
+        'force_retrain': True
     }
     df, feature_activations, classification_results = run_all(
         train_dataset=train_dataset,
@@ -383,32 +404,15 @@ if __name__ == "__main__":
         feature_column=feature_column,
         label_column=label_column,
         sae_params=sae_params,
-        create_graph=True,
+        create_graph=False,
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False
     )
-# =============================================================================
-#     df, feature_activations, classification_results = run_all(
-#         train_dataset=train_dataset,
-#         val_dataset=val_dataset,
-#         models=models,
-#         n_train=n_train,
-#         n_val=n_val,
-#         feature_column=feature_column,
-#         label_column=label_column,
-#         sae_params=sae_params,
-#         create_graph=False,
-#         force_new_embeddings=False
-#     )
-# =============================================================================
+    
+    user_input = input("Restart kernel to release memory? y/n: ")
+    if user_input.lower().strip() == 'y':
+        restart_kernel()
+    else:
+        print("Kernel not restarting, memory will not be released.")        
 
-    # You can now analyze the classification_results dictionary
-    # to compare the performance before and after the SAE
-# =============================================================================
-#     for key in feature_activations.keys():
-#         fa = feature_activations[key]
-#         #fig, ax = plot_minimal_heatmap(fa)
-#         g = plot_clustermap(fa)
-#         plt.close()  # Close the figure to free up memory
-# =============================================================================
