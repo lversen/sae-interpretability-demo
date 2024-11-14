@@ -13,6 +13,7 @@ from gephi import *
 from language_classification import language_classifier
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
+from ST import SparseTransformer
 # conda list --export > requirements.txt
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -121,7 +122,7 @@ def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int
     return filtered_df, selected_categories
 
 
-def load_or_train_sae(sae, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, num_epochs, reconstruction_error_threshold, force_retrain=False):
+def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, num_epochs, reconstruction_error_threshold, force_retrain=False):
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
     # Convert feature_extract to PyTorch tensors if they're numpy arrays
@@ -131,48 +132,45 @@ def load_or_train_sae(sae, train_feature_extract, val_feature_extract, model_pat
         val_feature_extract = torch.from_numpy(val_feature_extract).float()
 
     # Ensure feature_extract tensors are on the same device as the model
-    train_feature_extract = train_feature_extract.to(sae.device)
-    val_feature_extract = val_feature_extract.to(sae.device)
+    train_feature_extract = train_feature_extract.to(model.device)
+    val_feature_extract = val_feature_extract.to(model.device)
 
     if os.path.exists(model_path) and not force_retrain:
         try:
-            sae.load_state_dict(torch.load(model_path, weights_only=True))
-            print(f"Loaded pre-trained SAE model from {model_path}")
+            model.load_state_dict(torch.load(model_path))
+            print(f"Loaded pre-trained model from {model_path}")
 
             with torch.no_grad():
-                _, x_hat, _ = sae(val_feature_extract[:100])
+                _, x_hat, _ = model(val_feature_extract[:100])
             reconstruction_error = torch.mean(
                 (val_feature_extract[:100] - x_hat) ** 2)
 
             if reconstruction_error > reconstruction_error_threshold:
-                print(f"Loaded model seems untrained or poorly fitted (error: {
-                      reconstruction_error:.4f}). Retraining...")
-                sae.train_and_validate(train_feature_extract, val_feature_extract,
+                print(f"Loaded model seems untrained or poorly fitted (error: {reconstruction_error:.4f}). Retraining...")
+                model.train_and_validate(train_feature_extract, val_feature_extract,
                                        learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
-                torch.save(sae.state_dict(), model_path)
+                torch.save(model.state_dict(), model_path)
                 print(f"Retrained model saved to {model_path}")
             else:
-                print(
-                    f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
+                print(f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
         except Exception as e:
             print(f"Error loading the model: {e}. Training a new one...")
-            sae.train_and_validate(train_feature_extract, val_feature_extract,
+            model.train_and_validate(train_feature_extract, val_feature_extract,
                                    learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
-            torch.save(sae.state_dict(), model_path)
+            torch.save(model.state_dict(), model_path)
             print(f"New model trained and saved to {model_path}")
     else:
         if force_retrain:
             print(f"Force retrain flag is set. Training a new model...")
         else:
-            print(
-                f"No pre-trained model found at {model_path}. Training a new one...")
+            print(f"No pre-trained model found at {model_path}. Training a new one...")
 
-        sae.train_and_validate(train_feature_extract, val_feature_extract,
+        model.train_and_validate(train_feature_extract, val_feature_extract,
                                learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
-        torch.save(sae.state_dict(), model_path)
+        torch.save(model.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
 
-    return sae
+    return model
 
 
 # Add this at the top of the file with other imports
@@ -197,17 +195,16 @@ def run_all(
     force_new_embeddings: bool = False,
     classify_language: List[str] = [],
     top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
-    sae_params: Dict[str, Any] = {}
+    model_params: Dict[str, Any] = {},
+    model_type: str = "sae"  # Add model_type parameter with default "sae"
 ) -> Dict[str, Any]:
     all_feature_activations = {}
     classification_results = {}
 
     print(f"Processing train dataset: {train_dataset}")
 
-
     train_df = pd.read_csv(train_dataset)
     val_df = pd.read_csv(val_dataset)
-
 
     for model in models:
         print(f"Processing model: {model}")
@@ -217,61 +214,61 @@ def run_all(
         val_sample_df, val_indices = get_consistent_samples(
             val_df, n_val, f"{val_dataset}_val", model)
 
-
-
         train_feature_extract = feature_extraction_with_store(
-            train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", feature_column,
-            force_new_embeddings=force_new_embeddings
+            train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", 
+            feature_column, force_new_embeddings=force_new_embeddings
         )
 
         val_feature_extract = feature_extraction_with_store(
-            val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", feature_column,
-            force_new_embeddings=force_new_embeddings
+            val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", 
+            feature_column, force_new_embeddings=force_new_embeddings
         )
 
-        if perform_classification and label_column in train_sample_df.columns:
-            # Perform decision tree classification on the original embeddings
-            print("Performing decision tree classification on original embeddings")
-            original_clf, original_accuracy, original_report = train_and_evaluate_decision_tree(
-                train_feature_extract, train_sample_df[label_column])
-            classification_results[f"{model}_original"] = {
-                "accuracy": original_accuracy,
-                "report": original_report
-            }
-
-        # Initialize and train/load SAE
+        # Initialize appropriate model based on model_type
         D = train_feature_extract.shape[1]
-        F = 2 * D
-        l1_lambda = 5
-        sae_model_path = f'models/sae_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
-        sae = SparseAutoencoder(D, F, sae_model_path, l1_lambda)
-        sae = load_or_train_sae(
-            sae,
+        F = 2 * D  # You might want to adjust this for transformer
+        l1_lambda = model_params.get('l1_lambda', 5)
+        model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
+
+        if model_type.lower() == "sae":
+            sparse_model = SparseAutoencoder(D, F, model_path, l1_lambda)
+        elif model_type.lower() == "st":
+            sparse_model = SparseTransformer(
+                D, F, model_path, l1_lambda, 
+                chunk_size=model_params.get('chunk_size', 128)
+        )
+        else:
+            raise ValueError(f"Unknown model type: {model_type}")
+
+
+        Model = load_or_train_model(
+            sparse_model,
             train_feature_extract,
             val_feature_extract,
-            model_path=sae_model_path,
-            learning_rate=sae_params.get('learning_rate', 1e-3),
-            batch_size=sae_params.get('batch_size', 40),
-            num_epochs=sae_params.get('num_epochs', 20),
-            reconstruction_error_threshold=sae_params.get('reconstruction_error_threshold', 0.1),
-            force_retrain=sae_params.get('force_retrain', False)
+            model_path=model_path,
+            learning_rate=model_params.get('learning_rate', 1e-3),
+            batch_size=model_params.get('batch_size', 40),
+            num_epochs=model_params.get('num_epochs', 20),
+            reconstruction_error_threshold=model_params.get('reconstruction_error_threshold', 0.1),
+            force_retrain=model_params.get('force_retrain', False)
         )
 
         # Get feature activations (using validation set for consistency)
         with torch.no_grad():
-            feature_activations = sae.feature_activations(
-                torch.from_numpy(train_feature_extract).float().to(sae.device))
+            feature_activations = Model.feature_activations(
+                torch.from_numpy(train_feature_extract).float().to(Model.device))
             # Move to CPU and convert to numpy immediately
             feature_activations = feature_activations.cpu().numpy()
-            all_feature_activations[f"{train_dataset}_{model}"] = feature_activations
+            all_feature_activations[f"{train_dataset}_{
+                model}"] = feature_activations
         if perform_classification and label_column in train_sample_df.columns:
-            # Perform decision tree classification on the SAE feature activations
-            print("Performing decision tree classification on SAE feature activations")
-            sae_clf, sae_accuracy, sae_report = train_and_evaluate_decision_tree(
+            # Perform decision tree classification on the Model feature activations
+            print("Performing decision tree classification on Model feature activations")
+            Model_clf, Model_accuracy, Model_report = train_and_evaluate_decision_tree(
                 all_feature_activations[f"{train_dataset}_{model}"], train_sample_df[label_column])
-            classification_results[f"{model}_sae"] = {
-                "accuracy": sae_accuracy,
-                "report": sae_report
+            classification_results[f"{model}_" + model_type] = {
+                "accuracy": Model_accuracy,
+                "report": Model_report
             }
 
         if create_graph:
@@ -282,11 +279,14 @@ def run_all(
                 n_random_labels=n_random_labels,
                 category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
             )
-            
+
             # Create graph for original embeddings
-            base_filename = os.path.splitext(os.path.basename(train_dataset))[0]
-            sanitized_model = model.replace('.', '-')  # Replace dots with hyphens in model name
-            original_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_original.gexf"
+            base_filename = os.path.splitext(
+                os.path.basename(train_dataset))[0]
+            # Replace dots with hyphens in model name
+            sanitized_model = model.replace('.', '-')
+            original_file_path = f"gephi_exports_{
+                base_filename}/{base_filename}_{sanitized_model}_original.gexf"
             create_gephi_graph(
                 train_feature_extract,
                 train_sample_df,
@@ -296,15 +296,15 @@ def run_all(
                 selected_labels=selected_labels,
                 category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
             )
-            
-            # Create graph for SAE embeddings
-            sae_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_sae.gexf"
+
+            # Create graph for Model embeddings
+            model_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_" + model_type + " .gexf"
             create_gephi_graph(
                 feature_activations,
                 train_sample_df,
                 label_column,
-                f"{sanitized_model}_sae",
-                sae_file_path,
+                f"{sanitized_model}_" + "model_type",
+                model_file_path,
                 selected_labels=selected_labels,
                 category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
             )
@@ -334,7 +334,8 @@ def run_all(
 
         # Save the results
         base_filename = os.path.splitext(os.path.basename(train_dataset))[0]
-        results_file = os.path.join('results', f'classification_results_{base_filename}.csv')
+        results_file = os.path.join(
+            'results', f'classification_results_{base_filename}.csv')
         results_df.to_csv(results_file, index=False)
         print(f"Classification results saved to {results_file}")
 
@@ -342,7 +343,8 @@ def run_all(
         for key, result in classification_results.items():
             model, type_ = key.rsplit('_', 1)
             sanitized_model = sanitize_filename(model)
-            report_filename = f'classification_report_{sanitized_model}_{type_}_{base_filename}.txt'
+            report_filename = f'classification_report_{
+                sanitized_model}_{type_}_{base_filename}.txt'
             report_file = os.path.join('results', report_filename)
 
             with open(report_file, 'w') as f:
@@ -355,10 +357,11 @@ def run_all(
 
     return train_sample_df, all_feature_activations, classification_results
 
+
 def restart_kernel():
     """
     Restarts the current Python kernel/process.
-    
+
     This function will:
     1. Get the current Python executable path
     2. Get the current script path
@@ -367,7 +370,7 @@ def restart_kernel():
     """
     python = sys.executable
     script = sys.argv[0]
-    
+
     print("Restarting kernel...")
     try:
         # Start new process
@@ -377,6 +380,7 @@ def restart_kernel():
     except Exception as e:
         print(f"Error restarting kernel: {e}")
 
+
 if __name__ == "__main__":
     train_dataset = "data/stack_exchange_train.csv"
     val_dataset = "data/stack_exchange_val.csv"
@@ -384,17 +388,30 @@ if __name__ == "__main__":
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = n_max
+    n_train = 100_000
     n_val = 1000
 
-    # SAE hyperparameters
-    sae_params = {
-        'learning_rate': 1e-3,
-        'batch_size': 32,
-        'num_epochs': 100,
+    # Model parameters
+    model_params = {
+        'learning_rate': 1e-4,  # Lower learning rate
+        'batch_size': 16,       # Smaller batch size
+        'num_epochs': 200,
         'reconstruction_error_threshold': 20,
-        'force_retrain': True
+        'force_retrain': False,
+        'l1_lambda': 5,
+        'chunk_size': 128     # Add chunk size parameter
     }
+# =============================================================================
+#     model_params = {
+#         'learning_rate': 1e-3,
+#         'batch_size': 32,
+#         'num_epochs': 100,
+#         'reconstruction_error_threshold': 20,
+#         'force_retrain': False
+#     }
+# =============================================================================
+
+    # Run with Sparse Transformer
     df, feature_activations, classification_results = run_all(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
@@ -403,16 +420,16 @@ if __name__ == "__main__":
         n_val=n_val,
         feature_column=feature_column,
         label_column=label_column,
-        sae_params=sae_params,
-        create_graph=False,
+        model_params=model_params,
+        create_graph=True,
         n_random_labels=8,
         force_new_embeddings=False,
-        perform_classification=False
+        perform_classification=False,
+        model_type="st"  # Use the transformer model
     )
-    
+
     user_input = input("Restart kernel to release memory? y/n: ")
     if user_input.lower().strip() == 'y':
         restart_kernel()
     else:
-        print("Kernel not restarting, memory will not be released.")        
-
+        print("Kernel not restarting, memory will not be released.")
