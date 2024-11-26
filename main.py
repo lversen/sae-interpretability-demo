@@ -392,24 +392,24 @@ if __name__ == "__main__":
     n_val = 1000
 
     # Model parameters
-    model_params = {
-        'learning_rate': 1e-4,  # Lower learning rate
-        'batch_size': 16,       # Smaller batch size
-        'num_epochs': 200,
-        'reconstruction_error_threshold': 20,
-        'force_retrain': False,
-        'l1_lambda': 5,
-        'chunk_size': 128     # Add chunk size parameter
-    }
 # =============================================================================
 #     model_params = {
-#         'learning_rate': 1e-3,
-#         'batch_size': 32,
-#         'num_epochs': 100,
+#         'learning_rate': 1e-4,  # Lower learning rate
+#         'batch_size': 16,       # Smaller batch size
+#         'num_epochs': 200,
 #         'reconstruction_error_threshold': 20,
-#         'force_retrain': False
+#         'force_retrain': False,
+#         'l1_lambda': 5,
+#         'chunk_size': 128     # Add chunk size parameter
 #     }
 # =============================================================================
+    model_params = {
+        'learning_rate': 1e-3,
+        'batch_size': 32,
+        'num_epochs': 100,
+        'reconstruction_error_threshold': 20,
+        'force_retrain': False
+    }
 
     # Run with Sparse Transformer
     df, feature_activations, classification_results = run_all(
@@ -425,7 +425,7 @@ if __name__ == "__main__":
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="st"  # Use the transformer model
+        model_type="sae"  # Use the transformer model
     )
 
     user_input = input("Restart kernel to release memory? y/n: ")
