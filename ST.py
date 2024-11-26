@@ -5,7 +5,8 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, TensorDataset
 from typing import List, Union
-
+# Cross attention using x and x2
+# X_2 use same datapoints size F
 class SparseTransformer(nn.Module):
     def __init__(self, D, F, sae_model_path, lambda_l1=1, device='cuda', chunk_size=128):
         super(SparseTransformer, self).__init__()
@@ -17,15 +18,19 @@ class SparseTransformer(nn.Module):
         self.chunk_size = chunk_size  # Add chunk size parameter
 
         # Linear projections for Q, K, V
-        self.W_q = nn.Linear(D, F)
-        self.W_k = nn.Linear(D, F)
-        self.W_v = nn.Linear(D, F)
-        self.W_o = nn.Linear(F, D)
+        self.W_q = nn.Linear(D, D)
+        self.W_k = nn.Linear(D, D)
+        self.W_v = nn.Linear(D, D)
+# =============================================================================
+#         self.W_o = nn.Linear(F, D)
+# =============================================================================
         
         nn.init.xavier_uniform_(self.W_q.weight)
         nn.init.xavier_uniform_(self.W_k.weight)
         nn.init.xavier_uniform_(self.W_v.weight)
-        nn.init.xavier_uniform_(self.W_o.weight)
+# =============================================================================
+#         nn.init.xavier_uniform_(self.W_o.weight)
+# =============================================================================
         
         self.to(device)
     

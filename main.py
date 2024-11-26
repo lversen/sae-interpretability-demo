@@ -225,7 +225,7 @@ def run_all(
         )
 
         # Initialize appropriate model based on model_type
-        D = train_feature_extract.shape[1]
+        D = train_feature_extract.shape[1]  # 1024
         F = 2 * D  # You might want to adjust this for transformer
         l1_lambda = model_params.get('l1_lambda', 5)
         model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'

@@ -147,4 +147,4 @@ class SparseAutoencoder(nn.Module):
             x = x.to(self.device)
 
         f = torch.relu(self.encoder(x) + self.b_enc)
-        return f*torch.norm(self.decoder.weight, p=2, dim=0)
+        return f*torch.norm(self.decoder.weight, p=2, dim=0) # batch X F
