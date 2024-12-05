@@ -218,7 +218,7 @@ def run_all(
             train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", 
             feature_column, force_new_embeddings=force_new_embeddings
         )
-
+        return(train_feature_extract)
         val_feature_extract = feature_extraction_with_store(
             val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", 
             feature_column, force_new_embeddings=force_new_embeddings
