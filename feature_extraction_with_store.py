@@ -22,7 +22,7 @@ def feature_extraction_with_store(
     torch.cuda.empty_cache()
     
     # Initialize embeddings
-    embeddings = SentenceTransformer(model, trust_remote_code=True, device="cuda")
+    embeddings = SentenceTransformer(model, trust_remote_code=True, device="cuda", prompts={"clustering": "Identify the topic or theme based on the text: "})
     
     # Load or create index
     if os.path.exists(index_path) and not force_new_embeddings:
