@@ -137,7 +137,7 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
 
     if os.path.exists(model_path) and not force_retrain:
         try:
-            model.load_state_dict(torch.load(model_path))
+            model.load_state_dict(torch.load(model_path, weights_only=False))
             print(f"Loaded pre-trained model from {model_path}")
 
             with torch.no_grad():
@@ -218,7 +218,7 @@ def run_all(
             train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", 
             feature_column, force_new_embeddings=force_new_embeddings
         )
-        return(train_feature_extract)
+
         val_feature_extract = feature_extraction_with_store(
             val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", 
             feature_column, force_new_embeddings=force_new_embeddings
@@ -388,7 +388,7 @@ if __name__ == "__main__":
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = 100_000
+    n_train = n_max
     n_val = 1000
 
     # Model parameters
@@ -410,9 +410,9 @@ if __name__ == "__main__":
         'reconstruction_error_threshold': 20,
         'force_retrain': False
     }
-
+    """"""
     # Run with Sparse Transformer
-    df, feature_activations, classification_results = run_all(
+    run_all(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
         models=models,
