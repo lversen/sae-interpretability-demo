@@ -13,7 +13,7 @@ from gephi import *
 
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
-
+from ST import SparseTransformer
 # conda list --export > requirements.txt
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -281,9 +281,10 @@ def run_all(
         if model_type.lower() == "sae":
             sparse_model = SparseAutoencoder(D, F, model_path, l1_lambda)
         elif model_type.lower() == "st":
-            sparse_model = SparseTransformer(
-                D, F, model_path, l1_lambda, 
-                chunk_size=model_params.get('chunk_size', 128)
+            M = 1000
+            X_cross_i  = np.random.choice(train_feature_extract.shape[0], size=F, replace=False)
+            X_cross = train_feature_extract[X_cross_i]
+            sparse_model = SparseTransformer(X_cross, D, F, M, model_path, l1_lambda
         )
         else:
             raise ValueError(f"Unknown model type: {model_type}")
@@ -461,7 +462,7 @@ if __name__ == "__main__":
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="sae"
+        model_type="st"
     )
 
     user_input = input("Restart kernel to release memory? y/n: ")
