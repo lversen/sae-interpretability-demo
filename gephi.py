@@ -96,13 +96,16 @@ def create_node_attributes(df: pd.DataFrame,
     else:
         filtered_df, filtered_feature_extract = df.copy(), feature_extract
     
+    # Convert title_column to string type
+    filtered_df[title_column] = filtered_df[title_column].astype(str)
+    
     # Create unique node IDs while preserving label information
     if category_column and category_column in filtered_df.columns:
         filtered_df['node_id'] = filtered_df.groupby(category_column).cumcount().astype(str)
-        filtered_df['display_title'] = filtered_df[category_column] + '_node_' + filtered_df['node_id']
+        filtered_df['display_title'] = filtered_df[category_column].astype(str) + '_node_' + filtered_df['node_id']
     else:
         filtered_df['node_id'] = filtered_df.groupby(title_column).cumcount().astype(str)
-        filtered_df['display_title'] = filtered_df[title_column] + '_node_' + filtered_df['node_id']
+        filtered_df['display_title'] = filtered_df[title_column].astype(str) + '_node_' + filtered_df['node_id']
     
     # Create mapping and attributes
     combined_title = filtered_df['display_title'].astype(str) + ' ' + model

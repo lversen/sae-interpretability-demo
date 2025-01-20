@@ -4,16 +4,16 @@ import sys
 import subprocess
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Union
 from collections import Counter, deque
 import random
 import torch
 from feature_extraction_with_store import feature_extraction_with_store
 from gephi import *
-from language_classification import language_classifier
+
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
-from ST import SparseTransformer
+
 # conda list --export > requirements.txt
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -176,6 +176,41 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
 # Add this at the top of the file with other imports
 
 
+def direct_vector_feature_extraction(df: pd.DataFrame, feature_columns: list) -> np.ndarray:
+    """
+    Extract features directly from dataframe columns that already contain vector data.
+    
+    Args:
+        df: DataFrame containing the feature columns
+        feature_columns: List of column names containing the feature values
+        
+    Returns:
+        numpy.ndarray: Feature matrix where each row is a sample and each column is a feature
+    """
+    # Convert specified columns to numpy array
+    feature_matrix = df[feature_columns].values
+    
+    # Ensure the output is float32 for consistency with embeddings
+    return feature_matrix.astype(np.float32)
+
+def get_feature_extraction_fn(data_type: str):
+    """
+    Factory function to return appropriate feature extraction function based on data type.
+    
+    Args:
+        data_type: String indicating the type of data ('text' or 'vector')
+        
+    Returns:
+        function: Appropriate feature extraction function
+    """
+    from feature_extraction_with_store import feature_extraction_with_store
+    
+    if data_type == 'text':
+        return feature_extraction_with_store
+    elif data_type == 'vector':
+        return direct_vector_feature_extraction
+    else:
+        raise ValueError(f"Unknown data type: {data_type}")
 def sanitize_filename(filename):
     # Replace invalid filename characters with underscores
     return re.sub(r'[<>:"/\\|?*]', '_', filename)
@@ -187,8 +222,9 @@ def run_all(
     models: List[str],
     n_train: int,
     n_val: int,
-    feature_column: str,
+    feature_column: Union[str, List[str]],  # Can be string for text or list for vector columns
     label_column: str,
+    data_type: str = 'text',  # New parameter to specify data type
     perform_classification: bool = True,
     create_graph: bool = False,
     n_random_labels: Optional[int] = None,
@@ -196,7 +232,7 @@ def run_all(
     classify_language: List[str] = [],
     top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
     model_params: Dict[str, Any] = {},
-    model_type: str = "sae"  # Add model_type parameter with default "sae"
+    model_type: str = "sae"
 ) -> Dict[str, Any]:
     all_feature_activations = {}
     classification_results = {}
@@ -206,6 +242,9 @@ def run_all(
     train_df = pd.read_csv(train_dataset)
     val_df = pd.read_csv(val_dataset)
 
+    # Get appropriate feature extraction function
+    feature_extraction_fn = get_feature_extraction_fn(data_type)
+
     for model in models:
         print(f"Processing model: {model}")
 
@@ -214,15 +253,24 @@ def run_all(
         val_sample_df, val_indices = get_consistent_samples(
             val_df, n_val, f"{val_dataset}_val", model)
 
-        train_feature_extract = feature_extraction_with_store(
-            train_sample_df, train_df, model, len(train_sample_df), f"{train_dataset}_train", 
-            feature_column, force_new_embeddings=force_new_embeddings
-        )
-
-        val_feature_extract = feature_extraction_with_store(
-            val_sample_df, val_df, model, len(val_sample_df), f"{val_dataset}_val", 
-            feature_column, force_new_embeddings=force_new_embeddings
-        )
+        if data_type == 'text':
+            train_feature_extract = feature_extraction_fn(
+                train_sample_df, train_df, model, len(train_sample_df), 
+                f"{train_dataset}_train", feature_column, 
+                force_new_embeddings=force_new_embeddings
+            )
+            val_feature_extract = feature_extraction_fn(
+                val_sample_df, val_df, model, len(val_sample_df),
+                f"{val_dataset}_val", feature_column,
+                force_new_embeddings=force_new_embeddings
+            )
+        else:  # vector data
+            train_feature_extract = feature_extraction_fn(
+                train_sample_df, feature_column
+            )
+            val_feature_extract = feature_extraction_fn(
+                val_sample_df, feature_column
+            )
 
         # Initialize appropriate model based on model_type
         D = train_feature_extract.shape[1]  # 1024
@@ -382,6 +430,48 @@ def restart_kernel():
 
 
 if __name__ == "__main__":
+    model_params = {
+    'learning_rate': 1e-3,
+    'batch_size': 32,
+    'num_epochs': 100,
+    'reconstruction_error_threshold': 100,
+    'force_retrain': False
+    }
+    train_dataset = "data/mnist_train.csv"
+    val_dataset = "data/mnist_test.csv"
+    # List all feature columns (excluding label column)
+    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
+    label_column = "label"
+    models = ["mnist"]  # Dummy model name for consistency
+    n_train = 10000  # Adjust as needed
+    n_val = 1000
+
+    print("\nProcessing MNIST data...")
+    run_all(
+        train_dataset=train_dataset,
+        val_dataset=val_dataset,
+        models=models,
+        n_train=n_train,
+        n_val=n_val,
+        feature_column=feature_columns,  # Pass list of feature columns
+        label_column=label_column,
+        data_type='vector',  # Specify vector data type
+        model_params=model_params,
+        create_graph=True,
+        n_random_labels=8,
+        force_new_embeddings=False,
+        perform_classification=False,
+        model_type="sae"
+    )
+
+    user_input = input("Restart kernel to release memory? y/n: ")
+    if user_input.lower().strip() == 'y':
+        restart_kernel()
+    else:
+        print("Kernel not restarting, memory will not be released.")
+
+"""
+if __name__ == "__main__":
     train_dataset = "data/stack_exchange_train.csv"
     val_dataset = "data/stack_exchange_val.csv"
     feature_column = "sentences"
@@ -433,3 +523,4 @@ if __name__ == "__main__":
         restart_kernel()
     else:
         print("Kernel not restarting, memory will not be released.")
+"""

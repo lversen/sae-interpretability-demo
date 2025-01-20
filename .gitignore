@@ -4,3 +4,5 @@
 .spyproject/config/backups/workspace.ini.bak
 /.spyproject
 /__pycache__
+/data
+*.gexf
