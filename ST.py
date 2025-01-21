@@ -38,12 +38,16 @@ class SparseTransformer(nn.Module):
         x = self.typecheck(x)
         X = self.typecheck(X)
         
-        Q = self.W_q(x)
-        K = self.W_k(X)
-        V = self.W_v(X.T)
-        f = torch.softmax(torch.matmul(Q, K.T) / self.D)
-        x_hat = torch.matmul(f, V)
-        return(x, x_hat, f)
+        Q = self.W_q(x)  # Shape: [batch_size, M]
+        K = self.W_k(X)  # Shape: [num_cross, M]
+        V = self.W_v(X.T)  # Shape: [F, num_cross]
+        
+        # Compute attention scores and apply softmax along dim=1 (cross attention dimension)
+        attention_scores = torch.matmul(Q, K.T) / self.D
+        f = torch.softmax(attention_scores, dim=1)  # Add dim=1 parameter
+        
+        x_hat = torch.matmul(f, V.T)
+        return x, x_hat, f
     
     def loss_j(self, x, x_hat, f):
         L2_pen = torch.sum((x - x_hat)**2, dim=1)
@@ -138,22 +142,25 @@ class SparseTransformer(nn.Module):
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 epochs_without_improvement = 0
-                torch.save(self.state_dict(), self.sae_model_path)
+                torch.save(self.state_dict(), self.st_model_path)
             else:
                 epochs_without_improvement += 1
                 if epochs_without_improvement >= patience:
                     print(f"Early stopping triggered. No improvement for {patience} epochs.")
-                    self.load_state_dict(torch.load(self.sae_model_path))
+                    self.load_state_dict(torch.load(self.st_model_path))
                     break
 
 
-    def feature_activations(self, x, X):
-        self.typecheck(x)
-        self.typecheck(X)
+    def feature_activations(self, x):
+        x = self.typecheck(x)
+        X = self.X_cross
+        X = self.typecheck(X)
         
         Q = self.W_q(x)
         K = self.W_k(X)
-        V = self.W_v(X)
-        f = torch.softmax(torch.matmul(Q, K.transpose()) / self.D)
-        return f*torch.norm(self.W_v.weight, p=2, dim=0)
-    
+        V = self.W_v(X.T)
+        
+        attention_scores = torch.matmul(Q, K.T) / self.D
+        f = torch.softmax(attention_scores, dim=1)  # Add dim=1 parameter
+        
+        return f * torch.norm(self.W_v.weight, p=2, dim=0)

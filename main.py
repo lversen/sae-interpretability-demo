@@ -282,8 +282,8 @@ def run_all(
             sparse_model = SparseAutoencoder(D, F, model_path, l1_lambda)
         elif model_type.lower() == "st":
             M = 1000
-            X_cross_i  = np.random.choice(train_feature_extract.shape[0], size=F, replace=False)
-            X_cross = train_feature_extract[X_cross_i]
+            X_cross_idx  = np.random.choice(train_feature_extract.shape[0], size=F, replace=False)
+            X_cross = train_feature_extract[X_cross_idx]
             sparse_model = SparseTransformer(X_cross, D, F, M, model_path, l1_lambda
         )
         else:
@@ -407,34 +407,12 @@ def run_all(
     return train_sample_df, all_feature_activations, classification_results
 
 
-def restart_kernel():
-    """
-    Restarts the current Python kernel/process.
-
-    This function will:
-    1. Get the current Python executable path
-    2. Get the current script path
-    3. Execute a new process with the same script
-    4. Exit the current process
-    """
-    python = sys.executable
-    script = sys.argv[0]
-
-    print("Restarting kernel...")
-    try:
-        # Start new process
-        subprocess.Popen([python, script])
-        # Exit current process
-        os._exit(0)
-    except Exception as e:
-        print(f"Error restarting kernel: {e}")
-
 
 if __name__ == "__main__":
     model_params = {
-    'learning_rate': 1e-3,
-    'batch_size': 32,
-    'num_epochs': 100,
+    'learning_rate': 1e-2,
+    'batch_size': 100,
+    'num_epochs': 15,
     'reconstruction_error_threshold': 100,
     'force_retrain': False
     }
@@ -444,7 +422,7 @@ if __name__ == "__main__":
     feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
     label_column = "label"
     models = ["mnist"]  # Dummy model name for consistency
-    n_train = 10000  # Adjust as needed
+    n_train = 100000  # Adjust as needed
     n_val = 1000
 
     print("\nProcessing MNIST data...")
@@ -464,12 +442,6 @@ if __name__ == "__main__":
         perform_classification=False,
         model_type="st"
     )
-
-    user_input = input("Restart kernel to release memory? y/n: ")
-    if user_input.lower().strip() == 'y':
-        restart_kernel()
-    else:
-        print("Kernel not restarting, memory will not be released.")
 
 """
 if __name__ == "__main__":
