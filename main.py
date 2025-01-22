@@ -146,27 +146,30 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
                 (val_feature_extract[:100] - x_hat) ** 2)
 
             if reconstruction_error > reconstruction_error_threshold:
-                print(f"Loaded model seems untrained or poorly fitted (error: {reconstruction_error:.4f}). Retraining...")
+                print(f"Loaded model seems untrained or poorly fitted (error: {
+                      reconstruction_error:.4f}). Retraining...")
                 model.train_and_validate(train_feature_extract, val_feature_extract,
-                                       learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                                         learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
                 torch.save(model.state_dict(), model_path)
                 print(f"Retrained model saved to {model_path}")
             else:
-                print(f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
+                print(
+                    f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
         except Exception as e:
             print(f"Error loading the model: {e}. Training a new one...")
             model.train_and_validate(train_feature_extract, val_feature_extract,
-                                   learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                                     learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
             torch.save(model.state_dict(), model_path)
             print(f"New model trained and saved to {model_path}")
     else:
         if force_retrain:
             print(f"Force retrain flag is set. Training a new model...")
         else:
-            print(f"No pre-trained model found at {model_path}. Training a new one...")
+            print(
+                f"No pre-trained model found at {model_path}. Training a new one...")
 
         model.train_and_validate(train_feature_extract, val_feature_extract,
-                               learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                                 learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
         torch.save(model.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
 
@@ -179,38 +182,41 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
 def direct_vector_feature_extraction(df: pd.DataFrame, feature_columns: list) -> np.ndarray:
     """
     Extract features directly from dataframe columns that already contain vector data.
-    
+
     Args:
         df: DataFrame containing the feature columns
         feature_columns: List of column names containing the feature values
-        
+
     Returns:
         numpy.ndarray: Feature matrix where each row is a sample and each column is a feature
     """
     # Convert specified columns to numpy array
     feature_matrix = df[feature_columns].values
-    
+
     # Ensure the output is float32 for consistency with embeddings
     return feature_matrix.astype(np.float32)
+
 
 def get_feature_extraction_fn(data_type: str):
     """
     Factory function to return appropriate feature extraction function based on data type.
-    
+
     Args:
         data_type: String indicating the type of data ('text' or 'vector')
-        
+
     Returns:
         function: Appropriate feature extraction function
     """
     from feature_extraction_with_store import feature_extraction_with_store
-    
+
     if data_type == 'text':
         return feature_extraction_with_store
     elif data_type == 'vector':
         return direct_vector_feature_extraction
     else:
         raise ValueError(f"Unknown data type: {data_type}")
+
+
 def sanitize_filename(filename):
     # Replace invalid filename characters with underscores
     return re.sub(r'[<>:"/\\|?*]', '_', filename)
@@ -222,7 +228,8 @@ def run_all(
     models: List[str],
     n_train: int,
     n_val: int,
-    feature_column: Union[str, List[str]],  # Can be string for text or list for vector columns
+    # Can be string for text or list for vector columns
+    feature_column: Union[str, List[str]],
     label_column: str,
     data_type: str = 'text',  # New parameter to specify data type
     perform_classification: bool = True,
@@ -255,8 +262,8 @@ def run_all(
 
         if data_type == 'text':
             train_feature_extract = feature_extraction_fn(
-                train_sample_df, train_df, model, len(train_sample_df), 
-                f"{train_dataset}_train", feature_column, 
+                train_sample_df, train_df, model, len(train_sample_df),
+                f"{train_dataset}_train", feature_column,
                 force_new_embeddings=force_new_embeddings
             )
             val_feature_extract = feature_extraction_fn(
@@ -276,19 +283,19 @@ def run_all(
         D = train_feature_extract.shape[1]  # 1024
         F = 2 * D  # You might want to adjust this for transformer
         l1_lambda = model_params.get('l1_lambda', 5)
-        model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
+        print(l1_lambda)
+        model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{
+            model.replace("/", "_")}.pth'
 
         if model_type.lower() == "sae":
             sparse_model = SparseAutoencoder(D, F, model_path, l1_lambda)
         elif model_type.lower() == "st":
-            M = 1000
-            X_cross_idx  = np.random.choice(train_feature_extract.shape[0], size=F, replace=False)
-            X_cross = train_feature_extract[X_cross_idx]
-            sparse_model = SparseTransformer(X_cross, D, F, M, model_path, l1_lambda
-        )
+            M = 100
+            X = train_feature_extract
+            sparse_model = SparseTransformer(X, D, F, M, model_path, l1_lambda
+                                             )
         else:
             raise ValueError(f"Unknown model type: {model_type}")
-
 
         Model = load_or_train_model(
             sparse_model,
@@ -298,7 +305,8 @@ def run_all(
             learning_rate=model_params.get('learning_rate', 1e-3),
             batch_size=model_params.get('batch_size', 40),
             num_epochs=model_params.get('num_epochs', 20),
-            reconstruction_error_threshold=model_params.get('reconstruction_error_threshold', 0.1),
+            reconstruction_error_threshold=model_params.get(
+                'reconstruction_error_threshold', 0.1),
             force_retrain=model_params.get('force_retrain', False)
         )
 
@@ -347,7 +355,8 @@ def run_all(
             )
 
             # Create graph for Model embeddings
-            model_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_" + model_type + " .gexf"
+            model_file_path = f"gephi_exports_{
+                base_filename}/{base_filename}_{sanitized_model}_" + model_type + " .gexf"
             create_gephi_graph(
                 feature_activations,
                 train_sample_df,
@@ -410,11 +419,12 @@ def run_all(
 
 if __name__ == "__main__":
     model_params = {
-    'learning_rate': 1e-2,
-    'batch_size': 100,
-    'num_epochs': 15,
-    'reconstruction_error_threshold': 100,
-    'force_retrain': False
+        'learning_rate': 1e-4,
+        'batch_size': 32,
+        'num_epochs': 1,
+        'reconstruction_error_threshold': 100,
+        'force_retrain': True,
+        'l1_lambda': 5
     }
     train_dataset = "data/mnist_train.csv"
     val_dataset = "data/mnist_test.csv"
@@ -422,11 +432,10 @@ if __name__ == "__main__":
     feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
     label_column = "label"
     models = ["mnist"]  # Dummy model name for consistency
-    n_train = 100000  # Adjust as needed
+    n_train = 2000  # Adjust as needed
     n_val = 1000
 
-    print("\nProcessing MNIST data...")
-    run_all(
+    tsd, afa, cr = run_all(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
         models=models,
@@ -443,57 +452,17 @@ if __name__ == "__main__":
         model_type="st"
     )
 
-"""
-if __name__ == "__main__":
+
+
+    """
     train_dataset = "data/stack_exchange_train.csv"
     val_dataset = "data/stack_exchange_val.csv"
-    feature_column = "sentences"
+    feature_columns = "sentences"
     label_column = "labels"
     models = ["Alibaba-NLP/gte-large-en-v1.5"]
     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = n_max
+    n_train = 10000
     n_val = 1000
 
-    # Model parameters
-# =============================================================================
-#     model_params = {
-#         'learning_rate': 1e-4,  # Lower learning rate
-#         'batch_size': 16,       # Smaller batch size
-#         'num_epochs': 200,
-#         'reconstruction_error_threshold': 20,
-#         'force_retrain': False,
-#         'l1_lambda': 5,
-#         'chunk_size': 128     # Add chunk size parameter
-#     }
-# =============================================================================
-    model_params = {
-        'learning_rate': 1e-3,
-        'batch_size': 32,
-        'num_epochs': 100,
-        'reconstruction_error_threshold': 20,
-        'force_retrain': False
-    }
-    """"""
-    # Run with Sparse Transformer
-    run_all(
-        train_dataset=train_dataset,
-        val_dataset=val_dataset,
-        models=models,
-        n_train=n_train,
-        n_val=n_val,
-        feature_column=feature_column,
-        label_column=label_column,
-        model_params=model_params,
-        create_graph=True,
-        n_random_labels=8,
-        force_new_embeddings=False,
-        perform_classification=False,
-        model_type="sae"  # Use the transformer model
-    )
 
-    user_input = input("Restart kernel to release memory? y/n: ")
-    if user_input.lower().strip() == 'y':
-        restart_kernel()
-    else:
-        print("Kernel not restarting, memory will not be released.")
-"""
+    """
