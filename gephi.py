@@ -66,7 +66,7 @@ def filter_by_labels(df: pd.DataFrame,
     Filter DataFrame and corresponding feature embeddings by given labels.
     """
     mask = df[grouping_column].isin(labels)
-    filtered_df = df[mask]
+    filtered_df = df[mask].copy()  # Create an explicit copy
     filtered_feature_extract = feature_extract[mask]
     return filtered_df, filtered_feature_extract
 
@@ -94,18 +94,16 @@ def create_node_attributes(df: pd.DataFrame,
         grouping_column = category_column if category_column and category_column in df.columns else title_column
         filtered_df, filtered_feature_extract = filter_by_labels(df, feature_extract, selected_labels, grouping_column)
     else:
-        filtered_df, filtered_feature_extract = df.copy(), feature_extract
-    
-    # Convert title_column to string type
-    filtered_df[title_column] = filtered_df[title_column].astype(str)
+        filtered_df = df.copy()  # Create an explicit copy
+        filtered_feature_extract = feature_extract
     
     # Create unique node IDs while preserving label information
     if category_column and category_column in filtered_df.columns:
-        filtered_df['node_id'] = filtered_df.groupby(category_column).cumcount().astype(str)
-        filtered_df['display_title'] = filtered_df[category_column].astype(str) + '_node_' + filtered_df['node_id']
+        filtered_df.loc[:, 'node_id'] = filtered_df.groupby(category_column).cumcount().astype(str)
+        filtered_df.loc[:, 'display_title'] = filtered_df[category_column].astype(str) + '_node_' + filtered_df['node_id']
     else:
-        filtered_df['node_id'] = filtered_df.groupby(title_column).cumcount().astype(str)
-        filtered_df['display_title'] = filtered_df[title_column].astype(str) + '_node_' + filtered_df['node_id']
+        filtered_df.loc[:, 'node_id'] = filtered_df.groupby(title_column).cumcount().astype(str)
+        filtered_df.loc[:, 'display_title'] = filtered_df[title_column].astype(str) + '_node_' + filtered_df['node_id']
     
     # Create mapping and attributes
     combined_title = filtered_df['display_title'].astype(str) + ' ' + model
@@ -127,9 +125,14 @@ def create_gephi_graph(feature_extract: np.ndarray,
                       file_path: str,
                       selected_labels: Optional[List[str]] = None,
                       category_column: Optional[str] = None,
-                      n_neighbors: int = 4):
+                      n_neighbors: int = 4,
+                      min_edge_weight: float = 1e-10):  # Add minimum edge weight threshold
     """
     Create and export Gephi graph using pre-selected labels.
+    
+    Args:
+        ...existing args...
+        min_edge_weight: Minimum edge weight to include in the graph (default: 1e-10)
     """
     # Sanitize model name (but not file extension)
     model_name = sanitize_name(model_name)
@@ -139,10 +142,17 @@ def create_gephi_graph(feature_extract: np.ndarray,
         df, feature_extract, title_column, model_name, selected_labels, category_column
     )
     
-    # Create the graph
+    # Create the k-nearest neighbors graph
     nn = kneighbors_graph(filtered_feature_extract, n_neighbors=n_neighbors, mode="distance", metric="l1")
+    
+    # Convert distances to weights
     nn.data = np.exp(-nn.data**2 / np.mean(nn.data)**2)
     
+    # Filter out edges with weights below threshold
+    nn.data[nn.data < min_edge_weight] = 0
+    nn.eliminate_zeros()  # Remove zero entries from the sparse matrix
+    
+    # Create NetworkX graph
     G = nx.DiGraph(nn)
     H = nx.relabel_nodes(G, mapping)
     nx.set_node_attributes(H, attributes)
@@ -152,13 +162,18 @@ def create_gephi_graph(feature_extract: np.ndarray,
     
     # Split the file path into directory and filename
     dir_name, file_name = os.path.split(file_path)
-    # Split filename into base name and extension
     base_name, ext = os.path.splitext(file_name)
-    # Sanitize only the base name
     sanitized_base_name = sanitize_name(base_name)
-    # Reconstruct the full path with original extension
     sanitized_file_path = os.path.join(dir_name, sanitized_base_name + ext)
     
     # Export the graph
     nx.write_gexf(H, sanitized_file_path)
     print(f"Graph exported to {sanitized_file_path}")
+    
+    # Print graph statistics
+    n_edges = H.number_of_edges()
+    n_nodes = H.number_of_nodes()
+    print(f"Graph statistics:")
+    print(f"Number of nodes: {n_nodes}")
+    print(f"Number of edges: {n_edges}")
+    print(f"Average degree: {n_edges/n_nodes:.2f}")

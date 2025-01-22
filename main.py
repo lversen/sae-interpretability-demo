@@ -137,13 +137,19 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
 
     if os.path.exists(model_path) and not force_retrain:
         try:
-            model.load_state_dict(torch.load(model_path, weights_only=False))
+            model.load_state_dict(torch.load(model_path, weights_only=True))
             print(f"Loaded pre-trained model from {model_path}")
 
+            # Check model quality differently based on model type
             with torch.no_grad():
-                _, x_hat, _ = model(val_feature_extract[:100])
-            reconstruction_error = torch.mean(
-                (val_feature_extract[:100] - x_hat) ** 2)
+                if isinstance(model, SparseAutoencoder):
+                    _, x_hat, _ = model(val_feature_extract[:100])
+                    reconstruction_error = torch.mean(
+                        (val_feature_extract[:100] - x_hat) ** 2)
+                else:  # SparseTransformer
+                    _, x_hat, _, _ = model(val_feature_extract[:100])
+                    reconstruction_error = torch.mean(
+                        (val_feature_extract[:100] - x_hat) ** 2)
 
             if reconstruction_error > reconstruction_error_threshold:
                 print(f"Loaded model seems untrained or poorly fitted (error: {
@@ -281,9 +287,9 @@ def run_all(
 
         # Initialize appropriate model based on model_type
         D = train_feature_extract.shape[1]  # 1024
-        F = 2 * D  # You might want to adjust this for transformer
+        F = 1 * D  # You might want to adjust this for transformer
         l1_lambda = model_params.get('l1_lambda', 5)
-        print(l1_lambda)
+
         model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{
             model.replace("/", "_")}.pth'
 
@@ -416,23 +422,22 @@ def run_all(
     return train_sample_df, all_feature_activations, classification_results
 
 
-
 if __name__ == "__main__":
     model_params = {
-        'learning_rate': 1e-4,
-        'batch_size': 32,
-        'num_epochs': 1,
-        'reconstruction_error_threshold': 100,
+        'learning_rate': 1e-3,
+        'batch_size': 64,
+        'num_epochs': 100,
+        'reconstruction_error_threshold': 0.1,
         'force_retrain': True,
-        'l1_lambda': 5
+        'l1_lambda': 0.01  # Start with this value
     }
-    train_dataset = "data/mnist_train.csv"
-    val_dataset = "data/mnist_test.csv"
-    # List all feature columns (excluding label column)
-    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
-    label_column = "label"
-    models = ["mnist"]  # Dummy model name for consistency
-    n_train = 2000  # Adjust as needed
+    train_dataset = "data/stack_exchange_train.csv"
+    val_dataset = "data/stack_exchange_val.csv"
+    feature_columns = "sentences"
+    label_column = "labels"
+    models = ["Alibaba-NLP/gte-large-en-v1.5"]
+    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
+    n_train = 10000
     n_val = 1000
 
     tsd, afa, cr = run_all(
@@ -443,7 +448,7 @@ if __name__ == "__main__":
         n_val=n_val,
         feature_column=feature_columns,  # Pass list of feature columns
         label_column=label_column,
-        data_type='vector',  # Specify vector data type
+        data_type='text',  # Specify vector data type
         model_params=model_params,
         create_graph=True,
         n_random_labels=8,
@@ -453,16 +458,13 @@ if __name__ == "__main__":
     )
 
 
-
-    """
-    train_dataset = "data/stack_exchange_train.csv"
-    val_dataset = "data/stack_exchange_val.csv"
-    feature_columns = "sentences"
-    label_column = "labels"
-    models = ["Alibaba-NLP/gte-large-en-v1.5"]
-    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = 10000
-    n_val = 1000
-
-
-    """
+# =============================================================================
+#     train_dataset = "data/mnist_train.csv"
+#     val_dataset = "data/mnist_test.csv"
+#     # List all feature columns (excluding label column)
+#     feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
+#     label_column = "label"
+#     models = ["mnist"]  # Dummy model name for consistency
+#     n_train = 10_000  # Adjust as needed
+#     n_val = 1000
+# =============================================================================
