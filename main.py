@@ -295,7 +295,7 @@ def run_all(
         if model_type.lower() == "sae":
             sparse_model = SparseAutoencoder(D, F, model_path, l1_lambda)
         elif model_type.lower() == "st":
-            M = 100
+            M = 10000
             X = train_feature_extract
             sparse_model = SparseTransformer(X, D, F, M, model_path, l1_lambda)
         else:
@@ -429,7 +429,7 @@ if __name__ == "__main__":
     model_params = {
         'learning_rate': 5e-5,
         'batch_size': 4096,
-        'num_epochs': 50,
+        'num_epochs': 500,
         'reconstruction_error_threshold': 100,
         'force_retrain': True,
         'l1_lambda': 5,
@@ -458,7 +458,7 @@ if __name__ == "__main__":
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="sae",
+        model_type="st",
         gephi_subset_size=gephi_subset_size
     )
 

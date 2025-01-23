@@ -2,12 +2,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, TensorDataset
-from typing import List, Union
 
 class SparseTransformer(nn.Module):
-    def __init__(self, X, D, F, M, st_model_path, lambda_l1=1, device='cuda'):
+    def __init__(self, X, D, F, M, st_model_path, lambda_l1=0.1, device='cuda'):
         super(SparseTransformer, self).__init__()
         self.D = D
         self.F = F
@@ -15,77 +13,31 @@ class SparseTransformer(nn.Module):
         self.st_model_path = st_model_path
         self.lambda_l1 = lambda_l1
         self.device = device
-        self.temperature = nn.Parameter(torch.ones(1) * np.sqrt(M))
-
+        # Initialize temperature to a smaller value for sharper attention
+        self.temperature = nn.Parameter(torch.ones(1) * np.sqrt(M/4))
+        
         # Initialize memory bank
         if isinstance(X, np.ndarray):
             X = torch.from_numpy(X.astype(np.float32))
         X_idx = np.random.choice(X.shape[0], size=self.F, replace=False)
         self.register_buffer('memory_bank', X[X_idx])
-
-        # Layernorm for inputs and memory bank
-        self.input_norm = nn.LayerNorm(D)
-        self.memory_norm = nn.LayerNorm(D)
         
-        # Residual projection
-        self.residual_proj = nn.Linear(D, D, bias=False)
-        
-        # Query, Key, Value projections
+        # Initialize weights with constrained L2 norms
         self.W_q = nn.Linear(D, M, bias=True)
         self.W_k = nn.Linear(D, M, bias=True)
         self.W_v = nn.Linear(D, D, bias=True)
         
-        # Initialize weights
-        for layer in [self.W_q, self.W_k, self.W_v, self.residual_proj]:
-            nn.init.orthogonal_(layer.weight)
-            if hasattr(layer, 'bias') and layer.bias is not None:
-                nn.init.zeros_(layer.bias)
+        # Initialize weights with random directions and fixed L2 norms
+        with torch.no_grad():
+            for layer in [self.W_q, self.W_k, self.W_v]:
+                nn.init.orthogonal_(layer.weight)
+                # Set L2 norms between 0.05 and 1
+                norms = 0.05 + 0.95 * torch.rand(layer.weight.size(0))
+                layer.weight.data = layer.weight.data * (norms / torch.norm(layer.weight.data, p=2, dim=1)).unsqueeze(1)
+                if layer.bias is not None:
+                    nn.init.zeros_(layer.bias)  # Initialize biases to zero as per PDF
 
         self.to(device)
-
-    def forward(self, x):
-        if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
-        elif isinstance(x, torch.Tensor) and x.device != self.device:
-            x = x.to(self.device)
-
-        # Normalize input and memory
-        x_normed = self.input_norm(x)
-        memory_normed = self.memory_norm(self.memory_bank)
-        
-        # Project to query, key, value spaces
-        Q = self.W_q(x_normed)  # [batch_size, M]
-        K = self.W_k(memory_normed)  # [F, M]
-        V = self.W_v(memory_normed)  # [F, D]
-
-        # Compute attention scores with temperature scaling
-        attention_scores = torch.matmul(Q, K.T) / self.temperature  # [batch_size, F]
-        
-        # Apply softmax with numerical stability
-        attention_scores = attention_scores - attention_scores.max(dim=1, keepdim=True)[0]
-        f = torch.softmax(attention_scores, dim=1)  # [batch_size, F]
-        
-        # Compute attended values
-        attended = torch.matmul(f, V)  # [batch_size, D]
-        
-        # Add residual connection
-        x_hat = attended + self.residual_proj(x)
-
-        return x, x_hat, f, V
-
-    def compute_losses(self, x, x_hat, f, V):
-        # L2 reconstruction loss
-        L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1))
-        
-        # L1 sparsity penalty on attention weights
-        V_norms = torch.norm(V, p=2, dim=1)  # [F]
-        L1_loss = self.lambda_l1 * torch.mean(torch.sum(f * V_norms[None, :], dim=1))
-        
-        # Temperature regularization
-        temp_reg = 0.01 * torch.abs(self.temperature - np.sqrt(self.M))
-        
-        total_loss = L2_loss + L1_loss + temp_reg
-        return total_loss, L2_loss, L1_loss, temp_reg
 
     def preprocess(self, X):
         if isinstance(X, np.ndarray):
@@ -93,113 +45,123 @@ class SparseTransformer(nn.Module):
         elif isinstance(X, torch.Tensor) and X.device != self.device:
             X = X.to(self.device)
 
+        # Scale dataset by single constant as per PDF
         C = torch.mean(torch.norm(X, p=2, dim=1)) / self.D
         X_normalized = X / C
-
         return X_normalized
-    def train_and_validate(self, X_train, X_val, learning_rate, batch_size, num_epochs=1, patience=5):
-        optimizer = optim.AdamW(self.parameters(), lr=learning_rate, weight_decay=0.01)
-        scheduler = ReduceLROnPlateau(
-            optimizer, mode='min', factor=0.3, patience=patience//2, 
-            verbose=True, min_lr=1e-6
-        )
 
+    def compute_losses(self, x, x_hat, f, V):
+        # L2 reconstruction loss normalized by input dimension
+        L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1)) / self.D
+        
+        # Modified sparsity penalty with minimum activation guarantee
+        V_norms = torch.norm(V, p=2, dim=1)  # [F]
+        feature_usage = torch.mean(f, dim=0)  # Average usage of each feature
+        min_usage = 0.01  # Minimum desired feature usage
+        
+        # L1 sparsity term with feature usage regularization
+        L1_term = torch.mean(torch.sum(f * V_norms[None, :], dim=1))
+        usage_penalty = torch.mean(torch.relu(min_usage - feature_usage)) * 10.0
+        
+        L1_loss = (self.lambda_l1 * L1_term - usage_penalty) / self.D
+        
+        total_loss = L2_loss + L1_loss
+        return total_loss, L2_loss, L1_loss
+
+    def train_and_validate(self, X_train, X_val, learning_rate=1e-4, batch_size=4096, num_epochs=500):
+        # Use Adam with beta1=0.9, beta2=0.999 and small weight decay
+        optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=1e-5)
+        
         X_train = self.preprocess(X_train)
         X_val = self.preprocess(X_val)
-
+        
         train_dataset = TensorDataset(X_train)
         val_dataset = TensorDataset(X_val)
-
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-
+        val_loader = DataLoader(val_dataset, batch_size=batch_size)
+        
+        total_steps = len(train_loader) * num_epochs
+        warmup_steps = total_steps // 20  # First 5% for lambda warmup
+        decay_start = int(0.8 * total_steps)  # Last 20% for learning rate decay
+        
         best_val_loss = float('inf')
-        epochs_without_improvement = 0
-
+        
         for epoch in range(num_epochs):
             self.train()
-            total_train_loss = 0
-            running_sparsity = []
-
-            print(f"\nEpoch {epoch+1}")
-            print(f"{'Batch':<10}{'Loss':<15}{'L2 Loss':<15}{'L1 Loss':<15}{'Temp':<10}{'Sparsity':<15}")
-            print("-" * 80)
-
-            for i, batch in enumerate(train_loader):
-                optimizer.zero_grad()
-                x = batch[0]
-                x, x_hat, f, V = self.forward(x)
+            for i, (batch,) in enumerate(train_loader):
+                step = epoch * len(train_loader) + i
                 
-                # Compute losses
-                total_loss, L2_loss, L1_loss, temp_reg = self.compute_losses(x, x_hat, f, V)
+                # Warmup for lambda_l1
+                if step < warmup_steps:
+                    self.lambda_l1 = 5.0 * (step / warmup_steps)
+                
+                # Learning rate decay in last 20%
+                if step > decay_start:
+                    progress = (step - decay_start) / (total_steps - decay_start)
+                    for param_group in optimizer.param_groups:
+                        param_group['lr'] = learning_rate * (1 - progress)
+                
+                optimizer.zero_grad()
+                x, x_hat, f, V = self.forward(batch)
+                total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, f, V)
                 total_loss.backward()
                 
-                # Clip gradients
+                # Clip gradient norm to 1.0 as per PDF
                 torch.nn.utils.clip_grad_norm_(self.parameters(), 1.0)
                 optimizer.step()
                 
-                total_train_loss += total_loss.item()
-                sparsity = (f < 1e-3).float().mean().item()
-                running_sparsity.append(sparsity)
-
-                if i % (len(train_loader) // 4) == 0:
-                    print(f"{i:<10}{total_loss.item():<15.4f}{L2_loss.item():<15.4f}"
-                          f"{L1_loss.item():<15.4f}{self.temperature.item():<10.4f}"
-                          f"{sparsity:<15.4f}")
-
-            avg_train_loss = total_train_loss / len(train_loader)
-            avg_sparsity = np.mean(running_sparsity)
-
+                # Log training progress
+                if i % (len(train_loader) // 5) == 0:
+                    dead_features = (torch.max(f, dim=0)[0] < 1e-3).float().mean().item()
+                    print(f"Epoch {epoch}, Step {i}, Loss: {total_loss.item():.4f}, "
+                          f"Dead features: {dead_features:.3f}, Lambda: {self.lambda_l1:.3f}")
+            
             # Validation
             self.eval()
-            total_val_loss = 0
-            val_sparsity = []
-            
+            val_loss = 0
             with torch.no_grad():
                 for batch in val_loader:
-                    x = batch[0]
-                    x, x_hat, f, V = self.forward(x)
-                    total_loss, _, _, _ = self.compute_losses(x, x_hat, f, V)
-                    total_val_loss += total_loss.item()
-                    val_sparsity.append((f < 1e-3).float().mean().item())
-
-            avg_val_loss = total_val_loss / len(val_loader)
-            avg_val_sparsity = np.mean(val_sparsity)
-
-            # Print epoch summary
-            print(f"\nEpoch {epoch+1} Summary:")
-            print(f"Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}")
-            print(f"Train Sparsity: {avg_sparsity:.4f}, Val Sparsity: {avg_val_sparsity:.4f}")
-            print(f"Learning rate: {optimizer.param_groups[0]['lr']:.6f}")
-            print(f"Temperature: {self.temperature.item():.4f}")
-
-            scheduler.step(avg_val_loss)
-
-            if avg_val_loss < best_val_loss:
-                best_val_loss = avg_val_loss
-                epochs_without_improvement = 0
+                    x, x_hat, f, V = self.forward(batch[0])
+                    loss, _, _ = self.compute_losses(x, x_hat, f, V)
+                    val_loss += loss.item()
+            
+            val_loss /= len(val_loader)
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
                 torch.save(self.state_dict(), self.st_model_path)
-            else:
-                epochs_without_improvement += 1
-                if epochs_without_improvement >= patience:
-                    print(f"Early stopping after {patience} epochs without improvement.")
-                    self.load_state_dict(torch.load(self.st_model_path, weights_only=True))
-                    break
 
-    def feature_activations(self, x):
+    def forward(self, x):
+        # Forward pass implementation remains largely the same
         if isinstance(x, np.ndarray):
             x = torch.from_numpy(x.astype(np.float32)).to(self.device)
         elif isinstance(x, torch.Tensor) and x.device != self.device:
             x = x.to(self.device)
+            
+        Q = self.W_q(x)
+        K = self.W_k(self.memory_bank)
+        V = self.W_v(self.memory_bank)
+        
+        attention_scores = torch.matmul(Q, K.T) / self.temperature
+        attention_scores = attention_scores - attention_scores.max(dim=1, keepdim=True)[0]
+        f = torch.softmax(attention_scores, dim=1)
+        
+        x_hat = torch.matmul(f, V)
+        
+        return x, x_hat, f, V
 
-        x = self.input_norm(x)
-        memory = self.memory_norm(self.memory_bank)
+    def feature_activations(self, x):
+        """Get feature activations with L2 norm scaling as per PDF"""
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
+        elif isinstance(x, torch.Tensor) and x.device != self.device:
+            x = x.to(self.device)
         
         Q = self.W_q(x)
-        K = self.W_k(memory)
-        V = self.W_v(memory)
-
+        K = self.W_k(self.memory_bank)
+        V = self.W_v(self.memory_bank)
+        
         attention_scores = torch.matmul(Q, K.T) / self.temperature
         f = torch.softmax(attention_scores, dim=1)
-
+        
+        # Scale activations by L2 norm of value vectors
         return f * torch.norm(V, p=2, dim=1)[None, :]
