@@ -136,7 +136,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
 
 # Example usage
 print("Plotting SAE results without threshold:")
-plot_mnist_results('st')  # No threshold
+plot_mnist_results('sae')  # No threshold
 # =============================================================================
 # 
 # print("\nPlotting SAE results with threshold:")
