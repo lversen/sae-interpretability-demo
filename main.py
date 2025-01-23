@@ -234,10 +234,9 @@ def run_all(
     models: List[str],
     n_train: int,
     n_val: int,
-    # Can be string for text or list for vector columns
     feature_column: Union[str, List[str]],
     label_column: str,
-    data_type: str = 'text',  # New parameter to specify data type
+    data_type: str = 'text',
     perform_classification: bool = True,
     create_graph: bool = False,
     n_random_labels: Optional[int] = None,
@@ -245,7 +244,8 @@ def run_all(
     classify_language: List[str] = [],
     top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
     model_params: Dict[str, Any] = {},
-    model_type: str = "sae"
+    model_type: str = "sae",
+    gephi_subset_size: Optional[int] = None  # New parameter
 ) -> Dict[str, Any]:
     all_feature_activations = {}
     classification_results = {}
@@ -255,17 +255,18 @@ def run_all(
     train_df = pd.read_csv(train_dataset)
     val_df = pd.read_csv(val_dataset)
 
-    # Get appropriate feature extraction function
     feature_extraction_fn = get_feature_extraction_fn(data_type)
 
     for model in models:
         print(f"Processing model: {model}")
 
+        # Get full training samples for model training
         train_sample_df, train_indices = get_consistent_samples(
             train_df, n_train, f"{train_dataset}_train", model)
         val_sample_df, val_indices = get_consistent_samples(
             val_df, n_val, f"{val_dataset}_val", model)
 
+        # Extract features and train model as before
         if data_type == 'text':
             train_feature_extract = feature_extraction_fn(
                 train_sample_df, train_df, model, len(train_sample_df),
@@ -277,7 +278,7 @@ def run_all(
                 f"{val_dataset}_val", feature_column,
                 force_new_embeddings=force_new_embeddings
             )
-        else:  # vector data
+        else:
             train_feature_extract = feature_extraction_fn(
                 train_sample_df, feature_column
             )
@@ -285,21 +286,18 @@ def run_all(
                 val_sample_df, feature_column
             )
 
-        # Initialize appropriate model based on model_type
-        D = train_feature_extract.shape[1]  # 1024
-        F = 1 * D  # You might want to adjust this for transformer
+        # Model initialization and training (unchanged)
+        D = train_feature_extract.shape[1]
+        F = 8 * D
         l1_lambda = model_params.get('l1_lambda', 5)
-
-        model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{
-            model.replace("/", "_")}.pth'
+        model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
 
         if model_type.lower() == "sae":
             sparse_model = SparseAutoencoder(D, F, model_path, l1_lambda)
         elif model_type.lower() == "st":
             M = 100
             X = train_feature_extract
-            sparse_model = SparseTransformer(X, D, F, M, model_path, l1_lambda
-                                             )
+            sparse_model = SparseTransformer(X, D, F, M, model_path, l1_lambda)
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 
@@ -311,66 +309,71 @@ def run_all(
             learning_rate=model_params.get('learning_rate', 1e-3),
             batch_size=model_params.get('batch_size', 40),
             num_epochs=model_params.get('num_epochs', 20),
-            reconstruction_error_threshold=model_params.get(
-                'reconstruction_error_threshold', 0.1),
+            reconstruction_error_threshold=model_params.get('reconstruction_error_threshold', 0.1),
             force_retrain=model_params.get('force_retrain', False)
         )
 
-        # Get feature activations (using validation set for consistency)
+        # Get feature activations for the full dataset
         with torch.no_grad():
             feature_activations = Model.feature_activations(
                 torch.from_numpy(train_feature_extract).float().to(Model.device))
-            # Move to CPU and convert to numpy immediately
             feature_activations = feature_activations.cpu().numpy()
-            all_feature_activations[f"{train_dataset}_{
-                model}"] = feature_activations
+            all_feature_activations[f"{train_dataset}_{model}"] = feature_activations
+
         if perform_classification and label_column in train_sample_df.columns:
-            # Perform decision tree classification on the Model feature activations
+            # Classification remains unchanged
             print("Performing decision tree classification on Model feature activations")
             Model_clf, Model_accuracy, Model_report = train_and_evaluate_decision_tree(
                 all_feature_activations[f"{train_dataset}_{model}"], train_sample_df[label_column])
-            classification_results[f"{model}_" + model_type] = {
+            classification_results[f"{model}_{model_type}"] = {
                 "accuracy": Model_accuracy,
                 "report": Model_report
             }
 
         if create_graph:
-            # First, select random labels that will be used for both graphs
+            # Create smaller subset for Gephi export if specified
+            if gephi_subset_size is not None and gephi_subset_size < len(train_sample_df):
+                gephi_df, gephi_indices = get_consistent_samples(
+                    train_sample_df, gephi_subset_size, 
+                    f"{train_dataset}_gephi", model)
+                gephi_feature_extract = train_feature_extract[gephi_indices]
+                gephi_feature_activations = feature_activations[gephi_indices]
+            else:
+                gephi_df = train_sample_df
+                gephi_feature_extract = train_feature_extract
+                gephi_feature_activations = feature_activations
+
             selected_labels = select_random_labels(
-                train_sample_df,
+                gephi_df,
                 label_column,
                 n_random_labels=n_random_labels,
-                category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
+                category_column='assigned_category' if 'assigned_category' in gephi_df.columns else None
             )
 
-            # Create graph for original embeddings
-            base_filename = os.path.splitext(
-                os.path.basename(train_dataset))[0]
-            # Replace dots with hyphens in model name
+            # Create Gephi graphs with the subset
+            base_filename = os.path.splitext(os.path.basename(train_dataset))[0]
             sanitized_model = model.replace('.', '-')
-            original_file_path = f"gephi_exports_{
-                base_filename}/{base_filename}_{sanitized_model}_original.gexf"
+            
+            original_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_original.gexf"
             create_gephi_graph(
-                train_feature_extract,
-                train_sample_df,
+                gephi_feature_extract,
+                gephi_df,
                 label_column,
                 f"{sanitized_model}_original",
                 original_file_path,
                 selected_labels=selected_labels,
-                category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
+                category_column='assigned_category' if 'assigned_category' in gephi_df.columns else None
             )
 
-            # Create graph for Model embeddings
-            model_file_path = f"gephi_exports_{
-                base_filename}/{base_filename}_{sanitized_model}_" + model_type + " .gexf"
+            model_file_path = f"gephi_exports_{base_filename}/{base_filename}_{sanitized_model}_{model_type}.gexf"
             create_gephi_graph(
-                feature_activations,
-                train_sample_df,
+                gephi_feature_activations,
+                gephi_df,
                 label_column,
-                f"{sanitized_model}_" + "model_type",
+                f"{sanitized_model}_{model_type}",
                 model_file_path,
                 selected_labels=selected_labels,
-                category_column='assigned_category' if 'assigned_category' in train_sample_df.columns else None
+                category_column='assigned_category' if 'assigned_category' in gephi_df.columns else None
             )
 
     if perform_classification and classification_results:
@@ -424,21 +427,22 @@ def run_all(
 
 if __name__ == "__main__":
     model_params = {
-        'learning_rate': 1e-3,
-        'batch_size': 64,
-        'num_epochs': 100,
-        'reconstruction_error_threshold': 0.1,
+        'learning_rate': 5e-5,
+        'batch_size': 4096,
+        'num_epochs': 50,
+        'reconstruction_error_threshold': 100,
         'force_retrain': True,
-        'l1_lambda': 0.01  # Start with this value
+        'l1_lambda': 5,
     }
-    train_dataset = "data/stack_exchange_train.csv"
-    val_dataset = "data/stack_exchange_val.csv"
-    feature_columns = "sentences"
-    label_column = "labels"
-    models = ["Alibaba-NLP/gte-large-en-v1.5"]
-    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = 10000
+    train_dataset = "data/mnist_train.csv"
+    val_dataset = "data/mnist_test.csv"
+    # List all feature columns (excluding label column)
+    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
+    label_column = "label"
+    models = ["mnist"]  # Dummy model name for consistency
+    n_train = 60_000  # Adjust as needed
     n_val = 1000
+    gephi_subset_size = 2000
 
     tsd, afa, cr = run_all(
         train_dataset=train_dataset,
@@ -448,23 +452,25 @@ if __name__ == "__main__":
         n_val=n_val,
         feature_column=feature_columns,  # Pass list of feature columns
         label_column=label_column,
-        data_type='text',  # Specify vector data type
+        data_type='vector',  # Specify vector data type
         model_params=model_params,
         create_graph=True,
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="st"
+        model_type="sae",
+        gephi_subset_size=gephi_subset_size
     )
 
 
+
 # =============================================================================
-#     train_dataset = "data/mnist_train.csv"
-#     val_dataset = "data/mnist_test.csv"
-#     # List all feature columns (excluding label column)
-#     feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
-#     label_column = "label"
-#     models = ["mnist"]  # Dummy model name for consistency
-#     n_train = 10_000  # Adjust as needed
+#     train_dataset = "data/stack_exchange_train.csv"
+#     val_dataset = "data/stack_exchange_val.csv"
+#     feature_columns = "sentences"
+#     label_column = "labels"
+#     models = ["Alibaba-NLP/gte-large-en-v1.5"]
+#     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
+#     n_train = n_max
 #     n_val = 1000
 # =============================================================================
