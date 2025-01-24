@@ -122,7 +122,7 @@ def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int
     return filtered_df, selected_categories
 
 
-def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, num_epochs, reconstruction_error_threshold, force_retrain=False):
+def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, reconstruction_error_threshold, force_retrain=False):
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
     # Convert feature_extract to PyTorch tensors if they're numpy arrays
@@ -155,7 +155,7 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
                 print(f"Loaded model seems untrained or poorly fitted (error: {
                       reconstruction_error:.4f}). Retraining...")
                 model.train_and_validate(train_feature_extract, val_feature_extract,
-                                         learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                                         learning_rate=learning_rate, batch_size=batch_size)
                 torch.save(model.state_dict(), model_path)
                 print(f"Retrained model saved to {model_path}")
             else:
@@ -164,7 +164,7 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
         except Exception as e:
             print(f"Error loading the model: {e}. Training a new one...")
             model.train_and_validate(train_feature_extract, val_feature_extract,
-                                     learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                                     learning_rate=learning_rate, batch_size=batch_size)
             torch.save(model.state_dict(), model_path)
             print(f"New model trained and saved to {model_path}")
     else:
@@ -175,7 +175,7 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
                 f"No pre-trained model found at {model_path}. Training a new one...")
 
         model.train_and_validate(train_feature_extract, val_feature_extract,
-                                 learning_rate=learning_rate, batch_size=batch_size, num_epochs=num_epochs)
+                                 learning_rate=learning_rate, batch_size=batch_size)
         torch.save(model.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
 
@@ -308,7 +308,6 @@ def run_all(
             model_path=model_path,
             learning_rate=model_params.get('learning_rate', 1e-3),
             batch_size=model_params.get('batch_size', 40),
-            num_epochs=model_params.get('num_epochs', 20),
             reconstruction_error_threshold=model_params.get('reconstruction_error_threshold', 0.1),
             force_retrain=model_params.get('force_retrain', False)
         )
@@ -429,9 +428,8 @@ if __name__ == "__main__":
     model_params = {
         'learning_rate': 5e-5,
         'batch_size': 4096,
-        'num_epochs': 500,
         'reconstruction_error_threshold': 100,
-        'force_retrain': True,
+        'force_retrain': False,
         'l1_lambda': 5,
     }
     train_dataset = "data/mnist_train.csv"
@@ -458,7 +456,7 @@ if __name__ == "__main__":
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="st",
+        model_type="sae",
         gephi_subset_size=gephi_subset_size
     )
 

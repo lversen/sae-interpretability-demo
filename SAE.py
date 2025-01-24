@@ -5,6 +5,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, TensorDataset
 from typing import List, Union
+from deadfeatures import DeadFeatureTracker
 
 class SparseAutoencoder(nn.Module):
     def __init__(self, n: int, m: int, sae_model_path: str, lambda_l1: float = 1, device: str = 'cuda'):
@@ -19,6 +20,13 @@ class SparseAutoencoder(nn.Module):
         self.W_d = nn.Linear(m, n, bias=False)
         self.b_e = nn.Parameter(torch.zeros(m))
         self.b_d = nn.Parameter(torch.zeros(n))
+        
+        # Initialize feature tracker
+        self.feature_tracker = DeadFeatureTracker(
+            num_features=m,  # m is the number of features
+            window_size=10_000_000,  # As specified in the paper
+            update_interval=10_000  # Update stats every 10k samples
+        )
 
         self.initialize_weights()
         self.to(device)
@@ -82,30 +90,65 @@ class SparseAutoencoder(nn.Module):
         f_x = torch.relu(self.W_e(x) + self.b_e)
         return f_x * torch.norm(self.W_d.weight, p=2, dim=0)
 
-    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, num_epochs=100):
+    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, target_steps=200000):
+        """
+        Train the Sparse Autoencoder targeting a specific number of steps while tracking dead features.
+        
+        Args:
+            X_train: Training data
+            X_val: Validation data
+            learning_rate: Initial learning rate
+            batch_size: Batch size for training
+            target_steps: Target number of training steps (default 200k as per paper)
+        """
         optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999))
         
+        # Preprocess data
         X_train = self.preprocess(X_train)
         X_val = self.preprocess(X_val)
 
+        # Setup data loaders
         train_dataset = TensorDataset(X_train)
         val_dataset = TensorDataset(X_val)
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-        total_steps = len(train_loader) * num_epochs
-        decay_start_step = int(total_steps * 0.8)  # Start decay at 80% of training
+        # Calculate required epochs to reach target steps
+        steps_per_epoch = len(train_loader)
+        num_epochs = max(1, target_steps // steps_per_epoch)
+        actual_total_steps = num_epochs * steps_per_epoch
         
-        total_steps = len(train_loader) * num_epochs
-        warmup_steps = total_steps // 20
+        # Initialize training parameters
+        warmup_steps = actual_total_steps // 20  # First 5% for lambda warmup
+        decay_start_step = int(actual_total_steps * 0.8)  # Start decay at 80% of training
+        step = 0
+        best_val_loss = float('inf')
         final_lambda = 5.0
 
-        best_val_loss = float('inf')
-        step = 0
+        # Initialize feature tracker if not already done
+        if not hasattr(self, 'feature_tracker'):
+            self.feature_tracker = DeadFeatureTracker(
+                num_features=self.m,
+                window_size=10_000_000,  # As specified in paper
+                update_interval=10_000
+            )
 
-        print(f"Training for {total_steps} total steps with {warmup_steps} warmup steps")
-        print(f"{'Epoch':>5} {'Step':>8} {'Train Loss':>12} {'L2 Loss':>12} {'L1 Loss':>12} {'Val Loss':>12} {'λ':>8} {'Sparsity':>10}")
-        print("-" * 80)
+        print("\nTraining Configuration:")
+        print(f"Total Steps: {actual_total_steps}")
+        print(f"Epochs: {num_epochs}")
+        print(f"Steps per Epoch: {steps_per_epoch}")
+        print(f"Batch Size: {batch_size}")
+        print(f"Warmup Steps: {warmup_steps}")
+        print(f"Learning Rate Decay Start: {decay_start_step}")
+        
+        print("\nMetrics:")
+        print("  Loss    - Training loss for current batch")
+        print("  ValLoss - Average validation loss")
+        print("  λ       - Current L1 regularization strength")
+        print("  Dead%   - Percentage of features with no activation in 10M samples")
+        print("  Sparse% - Percentage of non-zero activations")
+        print("  Track%  - Percentage of 10M sample tracking window completed")
+        print(f"\n{'Step':>8} {'Epoch':>5} {'Loss':>8} {'ValLoss':>8} {'λ':>5} {'Dead%':>6} {'Sparse%':>7} {'Track%':>7}")
 
         for epoch in range(num_epochs):
             self.train()
@@ -116,24 +159,30 @@ class SparseAutoencoder(nn.Module):
                 optimizer.zero_grad()
                 x = batch[0]
 
+                # Forward pass
                 x, x_hat, f_x = self.forward(x)
+                
+                # Update feature tracking
+                dead_ratio, stats = self.feature_tracker.update(f_x)
 
+                # Lambda warmup
                 if step < warmup_steps:
                     self.lambda_l1 = (step / warmup_steps) * final_lambda
                 else:
                     self.lambda_l1 = final_lambda
                 
-                current_step = epoch * len(train_loader) + batch_idx
-
-                # Linear learning rate decay in last 20% of training
-                if current_step >= decay_start_step:
-                    progress = (current_step - decay_start_step) / (total_steps - decay_start_step)
+                # Learning rate decay in last 20%
+                if step >= decay_start_step:
+                    progress = (step - decay_start_step) / (actual_total_steps - decay_start_step)
                     new_lr = learning_rate * (1 - progress)  # Linear decay to zero
                     for param_group in optimizer.param_groups:
                         param_group['lr'] = new_lr
+
+                # Compute loss and update
                 total_loss, L2_loss, L1_loss = self.compute_loss(x, x_hat, f_x)
                 total_loss.backward()
                 
+                # Gradient clipping as per paper
                 torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
                 optimizer.step()
 
@@ -141,8 +190,7 @@ class SparseAutoencoder(nn.Module):
                 num_batches += 1
                 step += 1
 
-                sparsity = (f_x < 1e-3).float().mean().item()
-
+                # Periodic validation and logging
                 if num_batches % (len(train_loader) // 5) == 0:
                     self.eval()
                     val_loss = 0.0
@@ -158,25 +206,24 @@ class SparseAutoencoder(nn.Module):
                     
                     avg_val_loss = val_loss / val_batches
                     
-                    print(f"{epoch:5d} {step:8d} {total_loss.item():12.6f} {L2_loss.item():12.6f} "
-                          f"{L1_loss.item():12.6f} {avg_val_loss:12.6f} {self.lambda_l1:8.3f} {sparsity:10.3f}")
+                    # Calculate sparsity and tracking progress
+                    sparsity = (f_x.abs() >= self.feature_tracker.activation_threshold).float().mean().item()
+                    tracking_progress = min(self.feature_tracker.samples_seen / self.feature_tracker.window_size, 1.0)
+                    
+                    print(f"{step:8d} {epoch:5d} {total_loss.item():8.4f} {avg_val_loss:8.4f} {self.lambda_l1:5.2f} "
+                        f"{dead_ratio:6.1%} {sparsity:7.1%} {tracking_progress:7.1%}")
+                    
 
+                    # Save best model
                     if avg_val_loss < best_val_loss:
                         best_val_loss = avg_val_loss
                         torch.save(self.state_dict(), self.sae_model_path)
                     
                     self.train()
 
-            avg_train_loss = epoch_train_loss / num_batches
-            print(f"\nEpoch {epoch} Summary:")
-            print(f"Average Train Loss: {avg_train_loss:.6f}")
-            print(f"Best Validation Loss: {best_val_loss:.6f}")
-            print(f"Current λ: {self.lambda_l1:.3f}")
-            
-            with torch.no_grad():
-                all_features = self.feature_activations(X_val)
-                dead_feature_ratio = (torch.max(all_features, dim=0)[0] < 1e-3).float().mean().item()
-                print(f"Dead Feature Ratio: {dead_feature_ratio:.3f}")
-            
-            if dead_feature_ratio > 0.01:
-                print("Warning: More than 1% dead features detected")
+
+        print(f"\nTraining completed:")
+        print(f"Best validation loss: {best_val_loss:.4f}")
+        print(f"Final dead feature ratio: {dead_ratio:.1%}")
+        print(f"Steps completed: {step}/{actual_total_steps}")
+        print(f"Final λ: {self.lambda_l1:.2f}")

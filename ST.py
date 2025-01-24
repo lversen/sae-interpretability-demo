@@ -68,8 +68,7 @@ class SparseTransformer(nn.Module):
         total_loss = L2_loss + L1_loss
         return total_loss, L2_loss, L1_loss
 
-    def train_and_validate(self, X_train, X_val, learning_rate=1e-4, batch_size=4096, num_epochs=500):
-        # Use Adam with beta1=0.9, beta2=0.999 and small weight decay
+    def train_and_validate(self, X_train, X_val, learning_rate=1e-4, batch_size=4096, target_steps=200000):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=1e-5)
         
         X_train = self.preprocess(X_train)
@@ -77,27 +76,42 @@ class SparseTransformer(nn.Module):
         
         train_dataset = TensorDataset(X_train)
         val_dataset = TensorDataset(X_val)
+        
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_loader = DataLoader(val_dataset, batch_size=batch_size)
         
-        total_steps = len(train_loader) * num_epochs
-        warmup_steps = total_steps // 20  # First 5% for lambda warmup
-        decay_start = int(0.8 * total_steps)  # Last 20% for learning rate decay
+        # Calculate required epochs to reach target steps
+        steps_per_epoch = len(train_loader)
+        num_epochs = max(1, target_steps // steps_per_epoch)
+        actual_total_steps = num_epochs * steps_per_epoch
+        
+        # Timing calculations
+        warmup_steps = actual_total_steps // 20  # First 5% for lambda warmup
+        decay_start = int(0.8 * actual_total_steps)  # Last 20% for learning rate decay
+        final_lambda = 5.0
+        
+        print(f"Training for {actual_total_steps} total steps ({num_epochs} epochs)")
+        print(f"Steps per epoch: {steps_per_epoch}")
+        print(f"Warmup steps: {warmup_steps}")
         
         best_val_loss = float('inf')
+        step = 0
         
         for epoch in range(num_epochs):
             self.train()
+            epoch_train_loss = 0.0
+            num_batches = 0
+            
             for i, (batch,) in enumerate(train_loader):
-                step = epoch * len(train_loader) + i
-                
-                # Warmup for lambda_l1
+                # Lambda warmup
                 if step < warmup_steps:
-                    self.lambda_l1 = 5.0 * (step / warmup_steps)
+                    self.lambda_l1 = final_lambda * (step / warmup_steps)
+                else:
+                    self.lambda_l1 = final_lambda
                 
                 # Learning rate decay in last 20%
                 if step > decay_start:
-                    progress = (step - decay_start) / (total_steps - decay_start)
+                    progress = (step - decay_start) / (actual_total_steps - decay_start)
                     for param_group in optimizer.param_groups:
                         param_group['lr'] = learning_rate * (1 - progress)
                 
@@ -106,29 +120,47 @@ class SparseTransformer(nn.Module):
                 total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, f, V)
                 total_loss.backward()
                 
-                # Clip gradient norm to 1.0 as per PDF
+                # Clip gradient norm to 1.0
                 torch.nn.utils.clip_grad_norm_(self.parameters(), 1.0)
                 optimizer.step()
+                
+                epoch_train_loss += total_loss.item()
+                num_batches += 1
+                step += 1
                 
                 # Log training progress
                 if i % (len(train_loader) // 5) == 0:
                     dead_features = (torch.max(f, dim=0)[0] < 1e-3).float().mean().item()
-                    print(f"Epoch {epoch}, Step {i}, Loss: {total_loss.item():.4f}, "
-                          f"Dead features: {dead_features:.3f}, Lambda: {self.lambda_l1:.3f}")
+                    print(f"Epoch {epoch}, Step {step}, Loss: {total_loss.item():.4f}, "
+                        f"L2 Loss: {L2_loss.item():.4f}, L1 Loss: {L1_loss.item():.4f}, "
+                        f"Dead features: {dead_features:.3f}, Lambda: {self.lambda_l1:.3f}")
             
             # Validation
             self.eval()
             val_loss = 0
+            val_batches = 0
+            
             with torch.no_grad():
                 for batch in val_loader:
                     x, x_hat, f, V = self.forward(batch[0])
                     loss, _, _ = self.compute_losses(x, x_hat, f, V)
                     val_loss += loss.item()
+                    val_batches += 1
             
-            val_loss /= len(val_loader)
-            if val_loss < best_val_loss:
-                best_val_loss = val_loss
+            avg_val_loss = val_loss / val_batches
+            avg_train_loss = epoch_train_loss / num_batches
+            
+            print(f"\nEpoch {epoch} Summary:")
+            print(f"Average Train Loss: {avg_train_loss:.6f}")
+            print(f"Average Val Loss: {avg_val_loss:.6f}")
+            print(f"Current λ: {self.lambda_l1:.3f}")
+            
+            if avg_val_loss < best_val_loss:
+                best_val_loss = avg_val_loss
                 torch.save(self.state_dict(), self.st_model_path)
+                print(f"New best validation loss: {best_val_loss:.6f}")
+                
+            print(f"Best Validation Loss: {best_val_loss:.6f}")
 
     def forward(self, x):
         # Forward pass implementation remains largely the same
