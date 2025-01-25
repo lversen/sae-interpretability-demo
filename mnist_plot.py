@@ -20,7 +20,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
     
     # Setup model parameters
     D = 784  # Input dimension for MNIST
-    F = 2 * D  # Feature dimension 
+    F = 8 * D  # Feature dimension 
     
     if model_type.lower() == 'sae':
         model_path = 'models/sae_model_mnist_train.csv_mnist.pth'
@@ -107,8 +107,8 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
 
     # Plot feature activations
     plt.figure(figsize=(15, 5))
-    vmin = np.min(features_thresholded[features_thresholded > 0]) if np.any(features_thresholded > 0) else 0
-    vmax = np.max(features_thresholded)
+    vmin = 0
+    vmax = 100
     plt.imshow(features_thresholded.T, aspect='auto', cmap='viridis', vmin=vmin, vmax=vmax)
     plt.colorbar(label=f'Feature Activation [min={vmin:.2f}, max={vmax:.2f}]')
     

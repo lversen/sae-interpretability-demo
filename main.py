@@ -287,17 +287,17 @@ def run_all(
             )
 
         # Model initialization and training (unchanged)
-        D = train_feature_extract.shape[1]
-        F = 8 * D
+        n = train_feature_extract.shape[1]
+        m = 8 * n
         l1_lambda = model_params.get('l1_lambda', 5)
         model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
 
         if model_type.lower() == "sae":
-            sparse_model = SparseAutoencoder(D, F, model_path, l1_lambda)
+            sparse_model = SparseAutoencoder(n, m, model_path, l1_lambda)
         elif model_type.lower() == "st":
-            M = 10000
-            X = train_feature_extract
-            sparse_model = SparseTransformer(X, D, F, M, model_path, l1_lambda)
+            a = int(n/2)
+            X_cross = train_feature_extract
+            sparse_model = SparseTransformer(X_cross, n, m, a, model_path, l1_lambda)
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 
@@ -426,9 +426,9 @@ def run_all(
 
 if __name__ == "__main__":
     model_params = {
-        'learning_rate': 5e-5,
+        'learning_rate': 1e-3, # 5e-5 for sae, 1e-3 for st
         'batch_size': 4096,
-        'reconstruction_error_threshold': 100,
+        'reconstruction_error_threshold': 99999999999999999999,
         'force_retrain': False,
         'l1_lambda': 5,
     }
@@ -440,7 +440,7 @@ if __name__ == "__main__":
     models = ["mnist"]  # Dummy model name for consistency
     n_train = 60_000  # Adjust as needed
     n_val = 1000
-    gephi_subset_size = 2000
+    gephi_subset_size = 10000
 
     tsd, afa, cr = run_all(
         train_dataset=train_dataset,
@@ -456,7 +456,7 @@ if __name__ == "__main__":
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="sae",
+        model_type="st",
         gephi_subset_size=gephi_subset_size
     )
 
