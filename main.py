@@ -295,7 +295,7 @@ def run_all(
         if model_type.lower() == "sae":
             sparse_model = SparseAutoencoder(n, m, model_path, l1_lambda)
         elif model_type.lower() == "st":
-            a = int(n/2)
+            a = 1  # Attention dimension
             X_cross = train_feature_extract
             sparse_model = SparseTransformer(X_cross, n, m, a, model_path, l1_lambda)
         else:
@@ -430,15 +430,15 @@ if __name__ == "__main__":
         'batch_size': 4096,
         'reconstruction_error_threshold': 99999999999999999999,
         'force_retrain': False,
-        'l1_lambda': 5,
+        'l1_lambda': 5, # For ST attention dimension also controls sparsity
     }
-    train_dataset = "data/mnist_train.csv"
-    val_dataset = "data/mnist_test.csv"
-    # List all feature columns (excluding label column)
-    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
-    label_column = "label"
-    models = ["mnist"]  # Dummy model name for consistency
-    n_train = 60_000  # Adjust as needed
+    train_dataset = "data/stack_exchange_train.csv"
+    val_dataset = "data/stack_exchange_val.csv"
+    feature_columns = "sentences"
+    label_column = "labels"
+    models = ["Alibaba-NLP/gte-large-en-v1.5"]
+    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
+    n_train = 100_000
     n_val = 1000
     gephi_subset_size = 10000
 
@@ -450,7 +450,7 @@ if __name__ == "__main__":
         n_val=n_val,
         feature_column=feature_columns,  # Pass list of feature columns
         label_column=label_column,
-        data_type='vector',  # Specify vector data type
+        data_type='text',  # Specify vector data type: 'vector' for vector, 'text' for text
         model_params=model_params,
         create_graph=True,
         n_random_labels=8,
@@ -462,13 +462,15 @@ if __name__ == "__main__":
 
 
 
-# =============================================================================
-#     train_dataset = "data/stack_exchange_train.csv"
-#     val_dataset = "data/stack_exchange_val.csv"
-#     feature_columns = "sentences"
-#     label_column = "labels"
-#     models = ["Alibaba-NLP/gte-large-en-v1.5"]
-#     n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-#     n_train = n_max
-#     n_val = 1000
-# =============================================================================
+
+"""
+    train_dataset = "data/mnist_train.csv"
+    val_dataset = "data/mnist_test.csv"
+    # List all feature columns (excluding label column)
+    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
+    label_column = "label"
+    models = ["mnist"]  # Dummy model name for consistency
+    n_train = 60_000  # Adjust as needed
+    n_val = 1000
+    gephi_subset_size = 10000
+"""
