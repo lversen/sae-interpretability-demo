@@ -1,67 +1,10 @@
+from sparsemax import Sparsemax
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from typing import Tuple
-from torch.autograd import Function
-
-class SparsemaxFunction(Function):
-    """Memory-efficient sparsemax implementation."""
-    @staticmethod
-    def forward(ctx, input, dim=-1):
-        """Forward pass computing sparsemax activation."""
-        # Sort input in descending order
-        sorted_input, sorted_indices = torch.sort(input, dim=dim, descending=True)
-        
-        # Compute cumulative sum and threshold
-        cum_sum = torch.cumsum(sorted_input, dim=dim)
-        input_size = input.size(dim)
-        
-        # Create range tensor of appropriate size and device
-        rhos = torch.arange(1, input_size + 1, device=input.device, dtype=torch.long)
-        
-        # Compute thresholds
-        thresh = sorted_input - (cum_sum - 1) / rhos.to(input.dtype)
-        
-        # Find last positive threshold
-        rho = torch.sum((thresh > 0), dim=dim, keepdim=True).to(torch.long)
-        
-        # Compute tau - use advanced indexing with proper types
-        rho_broadcast = rho.expand_as(sorted_input)
-        cumsum_until_rho = torch.gather(cum_sum, dim, (rho_broadcast - 1).clamp(min=0))
-        tau = (cumsum_until_rho - 1) / rho.to(input.dtype)
-        
-        # Compute output using threshold
-        output = torch.clamp(input - tau, min=0)
-        
-        ctx.save_for_backward(output)
-        return output
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        """Backward pass computing gradients."""
-        output, = ctx.saved_tensors
-        
-        # Compute support and number of non-zero elements
-        supp = output > 0
-        supp_size = supp.sum(dim=-1, keepdim=True).to(output.dtype)
-        
-        # Compute gradients
-        grad_input = grad_output.clone()
-        grad_input[supp] -= grad_output[supp].sum(dim=-1, keepdim=True) / supp_size
-        grad_input[~supp] = 0
-        
-        return grad_input, None
-
-class Sparsemax(nn.Module):
-    """Sparsemax activation function."""
-    def __init__(self, dim=-1):
-        super(Sparsemax, self).__init__()
-        self.dim = dim
-    
-    def forward(self, input):
-        return SparsemaxFunction.apply(input, self.dim)
 
 class SparseTransformer(nn.Module):
     def __init__(self, X, D: int, F: int, M: int, st_model_path: str, 
@@ -73,26 +16,89 @@ class SparseTransformer(nn.Module):
         self.st_model_path = st_model_path
         self.lambda_l1 = lambda_l1
         self.device = device
-        
-        # Initialize feature subset
-        X_idx = np.random.choice(X.shape[0], size=self.F, replace=False)
-        self.X_data = X[X_idx]  # Store as regular tensor, not buffer
-        
+
         # Initialize transformations
         self.W_q = nn.Linear(D, M, bias=True)
         self.W_k = nn.Linear(D, M, bias=True)
         self.W_v = nn.Linear(D, D, bias=True)
         
-        # Initialize sparsemax
+        # Initialize sparsemax - using simple implementation
         self.sparsemax = Sparsemax(dim=-1)
         
         # Initialize feature tracking statistics
-        self.feature_usage_count = torch.zeros(self.F)  # Regular tensor, not buffer
+        self.feature_usage_count = torch.zeros(self.F)
         self.samples_seen = 0
         self.usage_history = []
         
         self.initialize_weights()
+        self.initialize_feature_subset(X)
         self.to(device)
+        
+    def initialize_feature_subset(self, X):
+        """Initialize feature subset more carefully."""
+        # Ensure X is on CPU for numpy operations
+        if isinstance(X, torch.Tensor):
+            X = X.cpu().numpy()
+        
+        # Compute mean and std of each sample
+        sample_stats = np.sqrt(np.sum(X * X, axis=1))
+        
+        # Sort by magnitude and take evenly spaced samples
+        sorted_indices = np.argsort(sample_stats)
+        step = len(sorted_indices) / self.F
+        selected_indices = [int(i * step) for i in range(self.F)]
+        
+        self.X_data = X[sorted_indices[selected_indices]]
+
+    def forward(self, x):
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
+        elif isinstance(x, torch.Tensor) and x.device != self.device:
+            x = x.to(self.device)
+            
+        # Ensure X_data is on correct device
+        if isinstance(self.X_data, np.ndarray):
+            self.X_data = torch.from_numpy(self.X_data.astype(np.float32)).to(self.device)
+        elif isinstance(self.X_data, torch.Tensor) and self.X_data.device != self.device:
+            self.X_data = self.X_data.to(self.device)
+            
+        # Compute transformations
+        Q = self.W_q(x)  # [batch_size, M]
+        K = self.W_k(self.X_data)  # [F, M]
+        V = self.W_v(self.X_data)  # [F, D]
+        
+        # Scale Q and K for more stable attention scores
+        Q = Q / np.sqrt(self.M)
+        K = K / np.sqrt(self.M)
+        
+        # Compute attention scores (no additional scaling needed)
+        attention_scores = torch.matmul(Q, K.T)
+        
+        # Apply sparsemax
+        attention_weights = self.sparsemax(attention_scores)
+        
+        # Update feature statistics during training
+        if self.training:
+            self.update_feature_stats(attention_weights)
+        
+        # Compute reconstruction
+        x_hat = torch.matmul(attention_weights, V)
+        
+        return x, x_hat, attention_weights
+
+    def feature_activations(self, x: torch.Tensor) -> torch.Tensor:
+        """Get feature activations with simplified sparsemax attention."""
+        with torch.no_grad():
+            Q = self.W_q(x)
+            K = self.W_k(self.X_data)
+            V = self.W_v(self.X_data)
+            
+            attention_scores = torch.matmul(Q, K.T) / np.sqrt(self.M)
+            attention_weights = self.sparsemax(attention_scores)
+            
+            # Scale by value norms
+            V_norms = torch.norm(V, p=2, dim=1)
+            return attention_weights * V_norms[None, :]
     
     def reset_feature_stats(self):
         """Initialize or reset feature utilization statistics."""
@@ -101,15 +107,25 @@ class SparseTransformer(nn.Module):
         self.usage_history = []
     
     def initialize_weights(self):
-        """Initialize weights as per paper specifications."""
+        """Initialize weights with controlled scaling."""
         with torch.no_grad():
-            for layer in [self.W_q, self.W_k, self.W_v]:
-                nn.init.orthogonal_(layer.weight)
-                target_norms = 0.05 + 0.95 * torch.rand(layer.weight.size(0))
-                current_norms = torch.norm(layer.weight.data, p=2, dim=1)
-                layer.weight.data = layer.weight.data * (target_norms / current_norms).unsqueeze(1)
-                if layer.bias is not None:
-                    nn.init.zeros_(layer.bias)
+            # Initialize all weights with small uniform values
+            bound = 0.01  # Small initial bound
+            
+            # Query transformation
+            nn.init.uniform_(self.W_q.weight, -bound, bound)
+            if self.W_q.bias is not None:
+                nn.init.zeros_(self.W_q.bias)
+            
+            # Key transformation (same scale as query)
+            nn.init.uniform_(self.W_k.weight, -bound, bound)
+            if self.W_k.bias is not None:
+                nn.init.zeros_(self.W_k.bias)
+            
+            # Value transformation (can be slightly larger)
+            nn.init.uniform_(self.W_v.weight, -bound*2, bound*2)
+            if self.W_v.bias is not None:
+                nn.init.zeros_(self.W_v.bias)
 
     def update_feature_stats(self, attention_weights: torch.Tensor):
         """Update feature utilization statistics."""
@@ -137,38 +153,7 @@ class SparseTransformer(nn.Module):
             'attention_sparsity': (attention_weights == 0).float().mean().item()
         }
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Forward pass with sparsemax attention."""
-        if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
-        elif isinstance(x, torch.Tensor) and x.device != self.device:
-            x = x.to(self.device)
-            
-        # Ensure X_data is on the correct device
-        if isinstance(self.X_data, np.ndarray):
-            self.X_data = torch.from_numpy(self.X_data.astype(np.float32)).to(self.device)
-        elif isinstance(self.X_data, torch.Tensor) and self.X_data.device != self.device:
-            self.X_data = self.X_data.to(self.device)
-            
-        # Compute query, key, and value vectors
-        Q = self.W_q(x)
-        K = self.W_k(self.X_data)
-        V = self.W_v(self.X_data)
-        
-        # Compute attention scores with scaling
-        attention_scores = torch.matmul(Q, K.T) / np.sqrt(self.M)
-        
-        # Apply sparsemax
-        attention_weights = self.sparsemax(attention_scores)
-        
-        # Update feature statistics during training
-        if self.training:
-            stats = self.update_feature_stats(attention_weights)
-        
-        # Compute reconstruction
-        x_hat = torch.matmul(attention_weights, V)
-        
-        return x, x_hat, attention_weights
+
 
     def compute_losses(self, x: torch.Tensor, x_hat: torch.Tensor, f: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Compute losses with explicit sparsity monitoring."""
@@ -292,16 +277,3 @@ class SparseTransformer(nn.Module):
         C = torch.mean(torch.norm(X, p=2, dim=1)) / self.D
         return X / C
 
-    def feature_activations(self, x: torch.Tensor) -> torch.Tensor:
-        """Get feature activations with sparsemax attention."""
-        with torch.no_grad():
-            Q = self.W_q(x)
-            K = self.W_k(self.X_data)
-            V = self.W_v(self.X_data)
-            
-            attention_scores = torch.matmul(Q, K.T) / np.sqrt(self.M)
-            attention_weights = self.sparsemax(attention_scores)
-            
-            # Scale by value norms
-            V_norms = torch.norm(V, p=2, dim=1)
-            return attention_weights * V_norms[None, :]
