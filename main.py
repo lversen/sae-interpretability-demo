@@ -426,7 +426,7 @@ def run_all(
 
 if __name__ == "__main__":
     model_params = {
-        'learning_rate': 1e-3, # 5e-5 for sae, 1e-3 for st
+        'learning_rate': 5e-5, # 5e-5 for sae, 1e-3 for st
         'batch_size': 4096,
         'reconstruction_error_threshold': 99999999999999999999,
         'force_retrain': False,
