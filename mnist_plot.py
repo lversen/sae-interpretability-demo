@@ -13,7 +13,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
         model_type (str): Type of model ('sae' or 'st')
         activation_threshold (float, optional): If provided, threshold activations as fraction of max value
     """
-    # Load more MNIST samples for ST to work with
+    # Load MNIST samples
     df = pd.read_csv('data/mnist_train.csv')
     X_full = df.iloc[:2000, 1:].values.astype(np.float32)  # Get 2000 samples for ST initialization
     samples = df.iloc[:20]  # Keep 20 samples for visualization
@@ -21,21 +21,26 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
     # Setup model parameters
     D = 784  # Input dimension for MNIST
     F = 8 * D  # Feature dimension 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     if model_type.lower() == 'sae':
         model_path = 'models/sae_model_mnist_train.csv_mnist.pth'
         model = SparseAutoencoder(D, F, model_path)
     elif model_type.lower() == 'st':
         model_path = 'models/st_model_mnist_train.csv_mnist.pth'
-        M = 100  # Attention dimension
-        model = SparseTransformer(X_full, D, F, M, model_path)
-        
-        # Load model state with parameter conversion
-        state_dict = torch.load(model_path, weights_only=True)
-        model.load_state_dict(state_dict)  # Uses the overridden load_state_dict method
+        M = int(D/2)  # Attention dimension
+        model = SparseTransformer(
+            X=X_full,
+            D=D,
+            F=F,
+            M=M,
+            st_model_path=model_path,
+            num_heads=8  # Number of attention heads
+        )
     else:
         raise ValueError("model_type must be 'sae' or 'st'")
 
+    model.load_state_dict(torch.load(model_path))
     model.eval()
 
     # Get reconstructions for visualization samples
@@ -43,20 +48,16 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
     X_tensor = torch.from_numpy(X).to(model.device)
     
     with torch.no_grad():
-        features = None
         if model_type.lower() == 'sae':
             _, reconstructions, features = model(X_tensor)
             features = features.cpu().numpy()
             reconstructions = reconstructions.cpu().numpy()
-        else:
+        else:  # ST model
             X_full_tensor = torch.from_numpy(X_full).to(model.device)
-            _, reconstructions, features, V = model(X_tensor)
-            features = features.cpu().numpy()
+            _, reconstructions, attention_weights = model(X_tensor)
+            features = attention_weights.cpu().numpy()
             reconstructions = reconstructions.cpu().numpy()
 
-        if features is None:
-            raise ValueError("Failed to get features from model")
-        
         # Apply threshold if specified
         if activation_threshold is not None:
             max_activation = np.max(features)
@@ -70,9 +71,17 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
             if model_type.lower() == 'sae':
                 reconstructions = model.decoder(features_tensor).cpu().numpy() + model.b_dec.cpu().numpy()
             else:
-                X_full_tensor = torch.from_numpy(X_full).to(model.device)
-                V = model.W_v(X_full_tensor)  # Get value vectors
-                reconstructions = torch.matmul(features_tensor, V).cpu().numpy()
+                # For ST, recompute reconstructions using thresholded attention weights
+                query = model.input_proj(X_tensor)
+                key = model.input_proj(model.X_data)
+                value = model.input_proj(model.X_data)
+                
+                query = model.norm_q(query)
+                key = model.norm_kv(key)
+                value = model.norm_kv(value)
+                
+                attn_output = torch.matmul(features_tensor, value)
+                reconstructions = model.output_proj(attn_output).cpu().numpy()
         else:
             features_thresholded = features
 
@@ -107,8 +116,8 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
 
     # Plot feature activations
     plt.figure(figsize=(15, 5))
-    vmin = 0
-    vmax = 100
+    vmin = np.min(features_thresholded[features_thresholded > 0]) if np.any(features_thresholded > 0) else 0
+    vmax = np.max(features_thresholded)
     plt.imshow(features_thresholded.T, aspect='auto', cmap='viridis', vmin=vmin, vmax=vmax)
     plt.colorbar(label=f'Feature Activation [min={vmin:.2f}, max={vmax:.2f}]')
     
@@ -135,10 +144,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
         print(f"Percentage of activations above threshold: {100 * np.mean(features > threshold_value):.2f}%")
 
 # Example usage
-print("Plotting SAE results without threshold:")
-plot_mnist_results('sae')  # No threshold
-# =============================================================================
-# 
-# print("\nPlotting SAE results with threshold:")
-# plot_mnist_results('st', activation_threshold=0.1)  # With threshold
-# =============================================================================
+if __name__ == "__main__":
+    print("Plotting SAE results without threshold:")
+    plot_mnist_results('st')  # No threshold
+    

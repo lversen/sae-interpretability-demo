@@ -123,6 +123,9 @@ def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int
 
 
 def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, reconstruction_error_threshold, force_retrain=False):
+    """
+    Load or train a model with support for both SAE and ST model types.
+    """
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
     # Convert feature_extract to PyTorch tensors if they're numpy arrays
@@ -137,50 +140,57 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
 
     if os.path.exists(model_path) and not force_retrain:
         try:
-            model.load_state_dict(torch.load(model_path, weights_only=True))
+            model.load_state_dict(torch.load(model_path))
             print(f"Loaded pre-trained model from {model_path}")
 
             # Check model quality differently based on model type
             with torch.no_grad():
                 if isinstance(model, SparseAutoencoder):
                     _, x_hat, _ = model(val_feature_extract[:100])
-                    reconstruction_error = torch.mean(
-                        (val_feature_extract[:100] - x_hat) ** 2)
+                    reconstruction_error = torch.mean((val_feature_extract[:100] - x_hat) ** 2)
                 else:  # SparseTransformer
-                    _, x_hat, _, _ = model(val_feature_extract[:100])
-                    reconstruction_error = torch.mean(
-                        (val_feature_extract[:100] - x_hat) ** 2)
+                    # ST model returns x, x_hat, attention_weights
+                    _, x_hat, _ = model(val_feature_extract[:100])
+                    reconstruction_error = torch.mean((val_feature_extract[:100] - x_hat) ** 2)
 
             if reconstruction_error > reconstruction_error_threshold:
-                print(f"Loaded model seems untrained or poorly fitted (error: {
-                      reconstruction_error:.4f}). Retraining...")
-                model.train_and_validate(train_feature_extract, val_feature_extract,
-                                         learning_rate=learning_rate, batch_size=batch_size)
+                print(f"Loaded model seems untrained or poorly fitted (error: {reconstruction_error:.4f}). Retraining...")
+                model.train_and_validate(
+                    train_feature_extract,
+                    val_feature_extract,
+                    learning_rate=learning_rate,
+                    batch_size=batch_size
+                )
                 torch.save(model.state_dict(), model_path)
                 print(f"Retrained model saved to {model_path}")
             else:
-                print(
-                    f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
+                print(f"Loaded model appears to be well-trained (error: {reconstruction_error:.4f})")
         except Exception as e:
             print(f"Error loading the model: {e}. Training a new one...")
-            model.train_and_validate(train_feature_extract, val_feature_extract,
-                                     learning_rate=learning_rate, batch_size=batch_size)
+            model.train_and_validate(
+                train_feature_extract,
+                val_feature_extract,
+                learning_rate=learning_rate,
+                batch_size=batch_size
+            )
             torch.save(model.state_dict(), model_path)
             print(f"New model trained and saved to {model_path}")
     else:
         if force_retrain:
             print(f"Force retrain flag is set. Training a new model...")
         else:
-            print(
-                f"No pre-trained model found at {model_path}. Training a new one...")
+            print(f"No pre-trained model found at {model_path}. Training a new one...")
 
-        model.train_and_validate(train_feature_extract, val_feature_extract,
-                                 learning_rate=learning_rate, batch_size=batch_size)
+        model.train_and_validate(
+            train_feature_extract,
+            val_feature_extract,
+            learning_rate=learning_rate,
+            batch_size=batch_size
+        )
         torch.save(model.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
 
     return model
-
 
 # Add this at the top of the file with other imports
 
@@ -295,9 +305,18 @@ def run_all(
         if model_type.lower() == "sae":
             sparse_model = SparseAutoencoder(n, m, model_path, l1_lambda)
         elif model_type.lower() == "st":
-            a = 1  # Attention dimension
+            a = 512  # Attention dimension
             X_cross = train_feature_extract
-            sparse_model = SparseTransformer(X_cross, n, m, a, model_path, l1_lambda)
+            # Initialize with multiple heads
+            sparse_model = SparseTransformer(
+                X=X_cross,
+                D=n,
+                F=m,
+                M=a,  # Should be divisible by num_heads
+                st_model_path='path/to/model.pth',
+                lambda_l1=l1_lambda,
+                num_heads=8  # New parameter for number of attention heads
+            )
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 
@@ -425,23 +444,26 @@ def run_all(
 
 
 if __name__ == "__main__":
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    torch.set_float32_matmul_precision('medium')
     model_params = {
-        'learning_rate': 5e-5, # 5e-5 for sae, 1e-3 for st
-        'batch_size': 4096,
-        'reconstruction_error_threshold': 99999999999999999999,
+        'learning_rate': 1e-3, # 5e-5 for sae, 1e-3 for st
+        'batch_size': 1024,
+        'reconstruction_error_threshold': 999999999,
         'force_retrain': False,
-        'l1_lambda': 5, # For ST attention dimension also controls sparsity
+        'l1_lambda': 1, # For ST attention dimension also controls sparsity
     }
-    train_dataset = "data/stack_exchange_train.csv"
-    val_dataset = "data/stack_exchange_val.csv"
-    feature_columns = "sentences"
-    label_column = "labels"
-    models = ["Alibaba-NLP/gte-large-en-v1.5"]
-    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = 100_000
-    n_val = 1000
-    gephi_subset_size = 10000
 
+    train_dataset = "data/mnist_train.csv"
+    val_dataset = "data/mnist_test.csv"
+    # List all feature columns (excluding label column)
+    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
+    label_column = "label"
+    models = ["mnist"]  # Dummy model name for consistency
+    n_train = 30_000  # Adjust as needed
+    n_val = 10000
+    gephi_subset_size = 10000
     tsd, afa, cr = run_all(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
@@ -450,7 +472,7 @@ if __name__ == "__main__":
         n_val=n_val,
         feature_column=feature_columns,  # Pass list of feature columns
         label_column=label_column,
-        data_type='text',  # Specify vector data type: 'vector' for vector, 'text' for text
+        data_type='vector',  # Specify vector data type: 'vector' for vector, 'text' for text
         model_params=model_params,
         create_graph=True,
         n_random_labels=8,
@@ -464,13 +486,13 @@ if __name__ == "__main__":
 
 
 """
-    train_dataset = "data/mnist_train.csv"
-    val_dataset = "data/mnist_test.csv"
-    # List all feature columns (excluding label column)
-    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
-    label_column = "label"
-    models = ["mnist"]  # Dummy model name for consistency
-    n_train = 60_000  # Adjust as needed
+    train_dataset = "data/stack_exchange_train.csv"
+    val_dataset = "data/stack_exchange_val.csv"
+    feature_columns = "sentences"
+    label_column = "labels"
+    models = ["Alibaba-NLP/gte-large-en-v1.5"]
+    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
+    n_train = 100_000
     n_val = 1000
     gephi_subset_size = 10000
 """

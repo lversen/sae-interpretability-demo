@@ -15,12 +15,12 @@ mnist_test = datasets.MNIST(root='./data', train=False, download=True)
 
 # Process training data
 print("Processing training data...")
-X_train = pd.DataFrame(mnist_train.data.numpy().reshape(-1, 28*28))
+X_train = pd.DataFrame((mnist_train.data.float() / 255.0).view(-1, 28*28).numpy())
 y_train = pd.DataFrame(mnist_train.targets.numpy(), columns=['label'])
 
 # Process test data
 print("Processing test data...")
-X_test = pd.DataFrame(mnist_test.data.numpy().reshape(-1, 28*28))
+X_test = pd.DataFrame((mnist_test.data.float() / 255.0).view(-1, 28*28).numpy())
 y_test = pd.DataFrame(mnist_test.targets.numpy(), columns=['label'])
 
 # Combine features and labels
