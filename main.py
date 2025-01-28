@@ -35,7 +35,6 @@ def train_and_evaluate_decision_tree(X, y, test_size=0.2, random_state=42):
     report = classification_report(y_test, y_pred)
     return clf, accuracy, report
 
-    return clf, accuracy, report
 
 
 def plot_clustermap(feature_activations, figsize=(20, 20)):

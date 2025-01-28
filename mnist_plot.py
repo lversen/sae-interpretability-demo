@@ -28,7 +28,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
         model = SparseAutoencoder(D, F, model_path)
     elif model_type.lower() == 'st':
         model_path = 'models/st_model_mnist_train.csv_mnist.pth'
-        M = int(D/2)  # Attention dimension
+        M = 512 # Attention dimension
         model = SparseTransformer(
             X=X_full,
             D=D,
@@ -56,7 +56,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
             X_full_tensor = torch.from_numpy(X_full).to(model.device)
             _, reconstructions, attention_weights = model(X_tensor)
             features = attention_weights.cpu().numpy()
-            reconstructions = reconstructions.cpu().numpy()
+            reconstructions = reconstructions.cpu().numpy()/np.max(reconstructions.cpu().numpy(), axis=0)
 
         # Apply threshold if specified
         if activation_threshold is not None:
@@ -82,6 +82,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
                 
                 attn_output = torch.matmul(features_tensor, value)
                 reconstructions = model.output_proj(attn_output).cpu().numpy()
+
         else:
             features_thresholded = features
 
@@ -91,7 +92,7 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
     
     # Fixed range for MNIST digits
     vmin_digits = 0
-    vmax_digits = 255
+    vmax_digits = 1
     
     for i in range(10):
         # Plot original digit
@@ -118,7 +119,8 @@ def plot_mnist_results(model_type='sae', activation_threshold=None):
     plt.figure(figsize=(15, 5))
     vmin = np.min(features_thresholded[features_thresholded > 0]) if np.any(features_thresholded > 0) else 0
     vmax = np.max(features_thresholded)
-    plt.imshow(features_thresholded.T, aspect='auto', cmap='viridis', vmin=vmin, vmax=vmax)
+    print(np.shape(features_thresholded))
+    plt.imshow(features_thresholded.T, aspect='auto', cmap='viridis', vmin=vmin, vmax=vmax/4)
     plt.colorbar(label=f'Feature Activation [min={vmin:.2f}, max={vmax:.2f}]')
     
     title = f'{model_type.upper()} Feature Activations'
