@@ -62,11 +62,11 @@ class SparseAutoencoder(nn.Module):
         
         # Sparsity penalty
         W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)  # Column L2 norms
-        L1_penalty = self.lambda_l1 * torch.mean(torch.sum(f_x * W_d_norms, dim=1))
+        L1_penalty = self.lambda_l1 * torch.sum(f_x * W_d_norms, dim=1)
         
         # Normalize by input dimension as per paper
-        total_loss = (L2_loss + L1_penalty) / self.n
-        return total_loss, L2_loss / self.n, L1_penalty / self.n
+        total_loss = (L2_loss + L1_penalty)
+        return total_loss, L2_loss, L1_penalty
 
     def preprocess(self, X):
         if isinstance(X, np.ndarray):

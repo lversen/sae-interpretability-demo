@@ -125,7 +125,7 @@ class SparseTransformer(nn.Module):
         L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1)) / self.D
         
         # L1 regularization on attention weights with scaling
-        L1_loss = self.lambda_l1 * torch.mean(torch.sum(attention_weights, dim=-1)) / self.F
+        L1_loss = self.lambda_l1 * torch.mean(torch.sum(attention_weights, dim=-1))
         
         total_loss = L2_loss + L1_loss
         return total_loss, L2_loss, L1_loss
