@@ -28,18 +28,18 @@ class SparseTransformer(nn.Module):
         self.device = device
         self.num_heads = num_heads
         self.activation_threshold = activation_threshold
-
+        self.idx = np.random.choice(np.shape(self.X)[0], size=self.m, replace=False)
         # Ensure a is divisible by num_heads
         if a % num_heads != 0:
             new_a = ((a // num_heads) + 1) * num_heads
             print(f"Warning: Adjusting attention dimension from {a} to {new_a} to be divisible by {num_heads} heads")
             self.a = new_a
         self.embed_dim = self.a*num_heads
-        self.attention = nn.MultiheadAttention(self.embed_dim, num_heads, batch_first=True)
+        self.attention = nn.MultiheadAttention(self.embed_dim, num_heads, vdim=n, batch_first=True)
         
         self.W_q = nn.Linear(a, n)
         self.W_k = nn.Linear(a, n)
-        self.W_v = nn.Linear(a, n)
+        self.W_v = nn.Linear(n, n)
         
         # Initialize feature tracking
         self.feature_tracker = DeadFeatureTracker(
@@ -58,40 +58,53 @@ class SparseTransformer(nn.Module):
             x = x.to(self.device)
         return(x)
     def forward(self, x):
-        X_idx = np.random.choice(np.shape(self.X)[0], size=self.m, replace=False)
-        X_cross = self.X[X_idx]
+        if self.training:
+            # Sample once per epoch (add epoch tracking to class)
+            if not hasattr(self, "current_epoch"):
+                self.current_epoch = 0
+                self.X_idx = np.random.choice(np.shape(self.X)[0], size=self.m, replace=False)
+            X_cross = self.X[self.X_idx]
+        else:
+            # Use fixed indices for inference
+            X_cross = self.X[self.idx]
+            X_cross = self.type_check(X_cross)
         X_cross = self.type_check(X_cross)
         x = self.type_check(x)
             
         # Project inputs to attention dimension
         Q = torch.matmul(x, self.W_q.weight)
         K = torch.matmul(X_cross, self.W_k.weight)
-        self.V = torch.matmul(X_cross, self.W_v.weight)
+        V = torch.matmul(X_cross, self.W_v.weight)
 
+        # Layer normalization for Q, K, V
+        Q = nn.functional.layer_norm(Q, (Q.size(-1),))
+        K = nn.functional.layer_norm(K, (K.size(-1),))
+        V = nn.functional.layer_norm(V, (V.size(-1),))
         
+        # Scale Q to prevent dot products from growing too large
+        Q = Q / torch.sqrt(torch.tensor(self.a, dtype=torch.float32, device=self.device))
         # Apply attention and get weights
         attention_output, attention_weights = self.attention(
             query=Q,
             key=K,
-            value=self.V,
+            value=V,
             need_weights=True
         )
         
         f = attention_weights
-        x_hat = torch.matmul(f, self.V)
+        x_hat = torch.matmul(f, V)
+
         if self.training:
             dead_ratio, _ = self.feature_tracker.update(f)
-        return x, x_hat, f
+        return x, x_hat, f, V
 
-    def compute_losses(self, x: torch.Tensor, x_hat: torch.Tensor, f: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def compute_losses(self, x: torch.Tensor, x_hat: torch.Tensor, f: torch.Tensor, V: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Compute losses with improved regularization."""
         # L2 reconstruction loss with normalization
-        #L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1))
-        print(np.shape(torch.norm(f, dim=1)))
-        print(np.shape(torch.norm(self.V, dim=1)))
+        L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1))
         # L1 regularization on attention weights with scaling
-        #L1_loss = self.lambda_l1 * torch.sum(torch.norm(f), dim=-1)
-        
+        L1_loss = self.lambda_l1 * torch.sum(torch.norm(f, dim=0)*torch.norm(V, dim=1), dim=-1)
+
         total_loss = L2_loss + L1_loss
         return total_loss, L2_loss, L1_loss
 
@@ -100,8 +113,8 @@ class SparseTransformer(nn.Module):
         with torch.no_grad():
             if isinstance(x, np.ndarray):
                 x = torch.from_numpy(x.astype(np.float32)).to(self.device)
-            self.forward(x)  # Ensure cached values are updated
-            return self.cached_attention_weights * self.cached_V_norms[None, :]
+            x, x_hat, f, V = self.forward(x)
+            return f*torch.norm(V, dim=1)
 
     def preprocess(self, X, normalize: bool = True):
         """Preprocess input data using optional L2 normalization."""
@@ -114,7 +127,7 @@ class SparseTransformer(nn.Module):
             X = X.to(self.device)
 
         if normalize:
-            C = torch.mean(torch.norm(X, p=2, dim=1)) / self.n
+            C = torch.mean(torch.norm(X, p=2, dim=1)) / np.sqrt(self.n)
             X_normalized = X / C
             return X_normalized
     def gini_coefficient(self, tensor: torch.Tensor) -> float:
@@ -126,7 +139,7 @@ class SparseTransformer(nn.Module):
                         target_steps: int = 200000, grad_clip: float = 1.0, log_freq: Optional[int] = None):
         """Train with improved scheduling, mixed precision, and time estimation."""
         scaler = GradScaler()  # For mixed precision training
-        optimizer = optim.Adam(self.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999))
         
         # Preprocess data (ensure it's on the CPU if using pin_memory)
         X_train = self.preprocess(X_train, normalize=True).cpu()  # Move to CPU for pin_memory
@@ -179,8 +192,8 @@ class SparseTransformer(nn.Module):
                 
                 optimizer.zero_grad()
                 with autocast():  # Mixed precision
-                    x, x_hat, f = self.forward(batch)
-                    total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, f)
+                    x, x_hat, f, V = self.forward(batch)
+                    total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, f, V)
                 scaler.scale(total_loss).backward()  # Scale loss for mixed precision
                 torch.nn.utils.clip_grad_norm_(self.parameters(), grad_clip)
                 scaler.step(optimizer)
@@ -201,8 +214,8 @@ class SparseTransformer(nn.Module):
                     with torch.no_grad():
                         for val_batch in val_loader:
                             val_x = val_batch[0].to(self.device)  # Move validation batch to GPU
-                            val_x, val_x_hat, val_f = self.forward(val_x)
-                            val_total_loss, _, _ = self.compute_losses(val_x, val_x_hat, val_f)
+                            val_x, val_x_hat, val_f, val_V = self.forward(val_x)
+                            val_total_loss, _, _ = self.compute_losses(val_x, val_x_hat, val_f, val_V)
                             val_loss += val_total_loss.item()
                             val_batches += 1
                     

@@ -314,7 +314,7 @@ def run_all(
                 a=a,  # Should be divisible by num_heads
                 st_model_path='path/to/model.pth',
                 lambda_l1=l1_lambda,
-                num_heads=1  # New parameter for number of attention heads
+                num_heads=1
             )
         else:
             raise ValueError(f"Unknown model type: {model_type}")
@@ -447,11 +447,11 @@ if __name__ == "__main__":
     torch.backends.cudnn.allow_tf32 = True
     torch.set_float32_matmul_precision('medium')
     model_params = {
-        'learning_rate': 1e-3, # 5e-5 for sae, 1e-3 for st
+        'learning_rate':1e-3, # 5e-5 for sae, 1e-3 for st
         'batch_size': 4096,
         'reconstruction_error_threshold': 999999999,
         'force_retrain': True,
-        'l1_lambda': 1, # For ST attention dimension also controls sparsity
+        'l1_lambda': 0, # For ST attention dimension also controls sparsity
     }
 
     train_dataset = "data/mnist_train.csv"
