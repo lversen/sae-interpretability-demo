@@ -74,7 +74,7 @@ class SparseAutoencoder(nn.Module):
         elif isinstance(X, torch.Tensor) and X.device != self.device:
             X = X.to(self.device)
 
-        C = torch.mean(torch.norm(X, p=2, dim=1)) / self.n
+        C = torch.mean(torch.norm(X, p=2, dim=1)) / np.sqrt(self.n)
         X_normalized = X / C
         return X_normalized
 
