@@ -4,25 +4,29 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from typing import Tuple
+from typing import Tuple, Optional
 from deadfeatures import DeadFeatureTracker
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
+from torch.cuda.amp import GradScaler, autocast
 
 class SparseTransformer(nn.Module):
     def __init__(self, X, D: int, F: int, M: int, st_model_path: str, 
-                 lambda_l1: float = 5.0, num_heads: int = 8, device: str = 'cuda'):
+                 lambda_l1: float = 5.0, num_heads: int = 8, device: str = 'cuda',
+                 window_size: int = 10_000_000, update_interval: int = 10_000,
+                 activation_threshold: float = 1e-3):
         super(SparseTransformer, self).__init__()
         
         # Ensure model directory exists
         os.makedirs(os.path.dirname(st_model_path), exist_ok=True)
         self.D = D  # Input dimension
         self.F = F  # Feature dimension
-        self.M = M  # Attention dimension - must be divisible by num_heads
+        self.M = M  # Attention dimension
         self.st_model_path = st_model_path
         self.lambda_l1 = lambda_l1
         self.device = device
         self.num_heads = num_heads
+        self.activation_threshold = activation_threshold
 
         # Ensure M is divisible by num_heads
         if M % num_heads != 0:
@@ -30,59 +34,58 @@ class SparseTransformer(nn.Module):
             print(f"Warning: Adjusting attention dimension from {M} to {new_M} to be divisible by {num_heads} heads")
             self.M = new_M
 
-        # Initialize the MultiheadAttention
-        self.attention = nn.MultiheadAttention(
-            embed_dim=self.M,
-            num_heads=num_heads,
-            dropout=0.0,  # No dropout for sparse attention
-            bias=True,
-            batch_first=True
-        )
-
-        # Transformations for input dimension matching
-        self.input_proj = nn.Linear(D, self.M)  # Project input to attention dimension
-        self.output_proj = nn.Linear(self.M, D)  # Project back to input dimension
+        # Initialize layers
+        self.input_proj = nn.Linear(D, self.M)
+        self.output_proj = nn.Linear(self.M, D)
+        self.attention = nn.MultiheadAttention(self.M, num_heads, batch_first=True)
         
+        # Initialize weights properly
+        self._init_weights()
         # Layer normalization for better stability
         self.norm_q = nn.LayerNorm(self.M)
         self.norm_kv = nn.LayerNorm(self.M)
-        self.activation_threshold = 1e-3
+        
         # Initialize feature tracking
         self.feature_tracker = DeadFeatureTracker(
             num_features=self.F,
             activation_threshold=self.activation_threshold,
-            window_size=10_000_000,
-            update_interval=10_000
+            window_size=window_size,
+            update_interval=update_interval
         )
         
+        # Initialize feature subset and move to device
         self.initialize_feature_subset(X)
         self.to(device)
         
-    def initialize_feature_subset(self, X):
-        """Initialize feature subset using random selection."""
-        if isinstance(X, torch.Tensor):
-            X = X.cpu().numpy()
-            
-        n_samples = len(X)
-        selected_indices = np.random.choice(
-            n_samples, 
-            size=min(self.F, n_samples), 
-            replace=False
-        )
+    def _init_weights(self):
+        # Linear layers: Kaiming Normal
+        nn.init.kaiming_normal_(self.input_proj.weight, mode='fan_in', nonlinearity='linear')
+        nn.init.kaiming_normal_(self.output_proj.weight, mode='fan_in', nonlinearity='linear')
         
-        self.X_data = X[selected_indices]
+        # Smaller initialization for attention weights (PyTorch doesn't expose these directly)
+        # Workaround: Re-initialize MultiheadAttention parameters
+        for name, param in self.attention.named_parameters():
+            if 'weight' in name:
+                nn.init.normal_(param, mean=0.0, std=0.02)  # Transformer-style init
+            elif 'bias' in name:
+                nn.init.constant_(param, 0.0)
+        
+        # Initialize feature subset (X_data) with small values
+        if hasattr(self, 'X_data'):
+            nn.init.normal_(self.X_data, mean=0.0, std=0.01)
+
+    def initialize_feature_subset(self, X):
+        """Initialize with small random values, not input data."""
+        self.X_data = nn.Parameter(
+            torch.randn((self.F, self.D), device=self.device) * 0.01  # Small initial values
+        )
 
     def forward(self, x):
+        """Forward pass with caching for attention weights and value norms."""
         if isinstance(x, np.ndarray):
             x = torch.from_numpy(x.astype(np.float32)).to(self.device)
         elif isinstance(x, torch.Tensor) and x.device != self.device:
             x = x.to(self.device)
-            
-        # Ensure X_data is on correct device
-        if isinstance(self.X_data, np.ndarray):
-            self.X_data = torch.from_numpy(self.X_data.astype(np.float32)).to(self.device)
-        elif isinstance(self.X_data, torch.Tensor) and self.X_data.device != self.device:
-            self.X_data = self.X_data.to(self.device)
             
         # Project inputs to attention dimension
         query = self.input_proj(x)
@@ -102,86 +105,83 @@ class SparseTransformer(nn.Module):
             need_weights=True
         )
         
+        # Cache attention weights and value norms for feature activations
+        self.cached_attention_weights = attention_weights
+        self.cached_V_norms = torch.norm(value, p=2, dim=-1)
+        print(np.shape(self.cached_V_norms))
+        print(np.shape(self.cached_V_norms[None, :]))
+        print(np.shape(torch.norm(value, p=2, dim=0)))
         # Project back to input dimension
         x_hat = self.output_proj(attn_output)
         
         # Update feature tracking during training
+        f = attention_weights * self.cached_V_norms[None, :]
         if self.training:
-            V_norms = torch.norm(value, p=2, dim=-1)
-            feature_acts = attention_weights * V_norms[None, :]
-            dead_ratio, _ = self.feature_tracker.update(feature_acts)
-        
-        return x, x_hat, attention_weights
+            dead_ratio, _ = self.feature_tracker.update(f)
+        return x, x_hat, f
 
-    def compute_losses(self, x: torch.Tensor, x_hat: torch.Tensor, attention_weights: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def compute_losses(self, x: torch.Tensor, x_hat: torch.Tensor, f: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Compute losses with improved regularization."""
         # L2 reconstruction loss with normalization
-        L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1)) / self.D
+        L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1))
         
         # L1 regularization on attention weights with scaling
-        L1_loss = self.lambda_l1 * torch.mean(torch.sum(attention_weights, dim=-1)) / self.F
+        L1_loss = self.lambda_l1 * torch.sum(f, dim=-1)
         
         total_loss = L2_loss + L1_loss
         return total_loss, L2_loss, L1_loss
 
     def feature_activations(self, x: torch.Tensor) -> torch.Tensor:
-        """Get feature activations."""
+        """Get feature activations using cached values."""
         with torch.no_grad():
             if isinstance(x, np.ndarray):
                 x = torch.from_numpy(x.astype(np.float32)).to(self.device)
-                
-            # Project to attention dimension
-            query = self.input_proj(x)
-            key = self.input_proj(self.X_data)
-            value = self.input_proj(self.X_data)
-            
-            # Apply normalization
-            query = self.norm_q(query)
-            key = self.norm_kv(key)
-            value = self.norm_kv(value)
-            
-            # Get attention weights
-            _, attention_weights = self.attention(
-                query=query,
-                key=key,
-                value=value,
-                need_weights=True
-            )
-            
-            # Scale by value norms
-            V_norms = torch.norm(value, p=2, dim=-1)
-            return attention_weights * V_norms[None, :]
+            self.forward(x)  # Ensure cached values are updated
+            return self.cached_attention_weights * self.cached_V_norms[None, :]
 
-    def preprocess(self, X):
-        """Preprocess input data using L2 normalization."""
+    def preprocess(self, X, normalize: bool = True):
+        """Preprocess input data using optional L2 normalization."""
+        if not isinstance(X, (np.ndarray, torch.Tensor)):
+            raise ValueError("Input data must be a numpy array or torch tensor.")
+        
         if isinstance(X, np.ndarray):
             X = torch.from_numpy(X.astype(np.float32)).to(self.device)
         elif isinstance(X, torch.Tensor) and X.device != self.device:
             X = X.to(self.device)
 
-        C = torch.mean(torch.norm(X, p=2, dim=1)) / self.D
-        X_normalized = X / C
-        return X_normalized
-
-    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, target_steps=200000):
-        """Train with improved scheduling and time estimation."""
-        # Create directory for model path if it doesn't exist
-        os.makedirs(os.path.dirname(self.st_model_path), exist_ok=True)
+        if normalize:
+            C = torch.mean(torch.norm(X, p=2, dim=1)) / self.D
+            X_normalized = X / C
+            return X_normalized
+    def gini_coefficient(self, tensor: torch.Tensor) -> float:
+        sorted_vals, _ = torch.sort(tensor.flatten().abs())
+        n = sorted_vals.shape[0]
+        idx = torch.arange(1, n+1, device=tensor.device)
+        return (torch.sum(sorted_vals * idx) / (n * torch.sum(sorted_vals)) - (n + 1) / (2 * n)).item()
+    def train_and_validate(self, X_train, X_val, learning_rate: float = 1e-3, batch_size: int = 4096, 
+                        target_steps: int = 200000, grad_clip: float = 1.0, log_freq: Optional[int] = None):
+        """Train with improved scheduling, mixed precision, and time estimation."""
+        scaler = GradScaler()  # For mixed precision training
         optimizer = optim.Adam(self.parameters(), lr=learning_rate)
         
-        # Preprocess data
-        X_train = self.preprocess(X_train)
-        X_val = self.preprocess(X_val)
+        # Preprocess data (ensure it's on the CPU if using pin_memory)
+        X_train = self.preprocess(X_train, normalize=True).cpu()  # Move to CPU for pin_memory
+        X_val = self.preprocess(X_val, normalize=True).cpu()      # Move to CPU for pin_memory
         
         train_dataset = TensorDataset(X_train)
         val_dataset = TensorDataset(X_val)
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=batch_size)
+        
+        # Use pin_memory=True only if data is on CPU
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size, pin_memory=True)
         
         steps_per_epoch = len(train_loader)
         num_epochs = max(1, target_steps // steps_per_epoch)
         total_steps = num_epochs * steps_per_epoch
         warmup_steps = total_steps // 20
+        
+        if log_freq is None:
+            log_freq = steps_per_epoch // 5
         
         print("\nTraining Configuration:")
         print(f"Total Steps: {total_steps}")
@@ -189,21 +189,20 @@ class SparseTransformer(nn.Module):
         print(f"Batch Size: {batch_size}")
         print(f"Initial Learning Rate: {learning_rate}")
         print(f"Number of Attention Heads: {self.num_heads}")
+        print(f"Gradient Clipping: {grad_clip}")
         
         best_val_loss = float('inf')
         step = 0
         l1 = self.lambda_l1
         
-        # Initialize timing variables
         start_time = time.time()
-        last_print_time = start_time
         times_per_step = []
         
         for epoch in range(num_epochs):
             self.train()
             for batch in train_loader:
                 step_start_time = time.time()
-                batch = batch[0]
+                batch = batch[0].to(self.device)  # Move batch to GPU
                 
                 # Warmup phase
                 if step < warmup_steps:
@@ -215,11 +214,13 @@ class SparseTransformer(nn.Module):
                     self.lambda_l1 = l1
                 
                 optimizer.zero_grad()
-                x, x_hat, attention_weights = self.forward(batch)
-                total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, attention_weights)
-                total_loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.parameters(), 1.0)
-                optimizer.step()
+                with autocast():  # Mixed precision
+                    x, x_hat, f = self.forward(batch)
+                    total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, f)
+                scaler.scale(total_loss).backward()  # Scale loss for mixed precision
+                torch.nn.utils.clip_grad_norm_(self.parameters(), grad_clip)
+                scaler.step(optimizer)
+                scaler.update()
                 
                 # Update timing statistics
                 step_time = time.time() - step_start_time
@@ -228,22 +229,22 @@ class SparseTransformer(nn.Module):
                     times_per_step.pop(0)
                 
                 # Logging and validation
-                if step % (steps_per_epoch // 5) == 0:
+                if step % log_freq == 0:
                     self.eval()
                     val_loss = 0.0
                     val_batches = 0
                     
                     with torch.no_grad():
                         for val_batch in val_loader:
-                            val_x = val_batch[0]
-                            val_x, val_x_hat, val_attn = self.forward(val_x)
-                            val_total_loss, _, _ = self.compute_losses(val_x, val_x_hat, val_attn)
+                            val_x = val_batch[0].to(self.device)  # Move validation batch to GPU
+                            val_x, val_x_hat, val_f = self.forward(val_x)
+                            val_total_loss, _, _ = self.compute_losses(val_x, val_x_hat, val_f)
                             val_loss += val_total_loss.item()
                             val_batches += 1
                     
                     avg_val_loss = val_loss / val_batches
                     dead_ratio = len(self.feature_tracker.get_dead_features()) / self.F if self.feature_tracker.samples_seen >= self.feature_tracker.window_size else 0.0
-                    sparsity = (attention_weights <= self.activation_threshold).float().mean().item()
+                    sparsity = (f <= self.activation_threshold).float().mean().item()
                     tracking_progress = min(self.feature_tracker.samples_seen / self.feature_tracker.window_size, 1.0)
                     
                     # Calculate time estimates
@@ -256,7 +257,8 @@ class SparseTransformer(nn.Module):
                     # Format time strings
                     elapsed_str = str(timedelta(seconds=int(elapsed_time)))
                     remaining_str = str(timedelta(seconds=int(estimated_remaining_time)))
-                    
+                    # During training logging:
+                    gini = self.gini_coefficient(f)
                     print(
                         f"Step: {step:6d}/{total_steps} ({step/total_steps:3.1%}) | "
                         f"Epoch: {epoch:3d} | "
@@ -265,8 +267,9 @@ class SparseTransformer(nn.Module):
                         f"L1 λ: {self.lambda_l1:4.2f} | "
                         f"Dead: {dead_ratio:5.1%} | "
                         f"Sparse: {sparsity:5.1%} | "
+                        f"Sparsity Gini: {gini:.3f} | "
                         f"Fill: {tracking_progress:5.1%} | "
-                        f"Time: {elapsed_str} elapsed, {remaining_str} remaining"
+                        f"Time remaining: {remaining_str}"
                     )
                     
                     if avg_val_loss < best_val_loss:

@@ -297,7 +297,7 @@ def run_all(
 
         # Model initialization and training (unchanged)
         n = train_feature_extract.shape[1]
-        m = 8 * n
+        m = 100 #/8*n for sae(embedding)
         l1_lambda = model_params.get('l1_lambda', 5)
         model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
 
@@ -309,12 +309,12 @@ def run_all(
             # Initialize with multiple heads
             sparse_model = SparseTransformer(
                 X=X_cross,
-                D=n,
-                F=m,
-                M=a,  # Should be divisible by num_heads
+                n=n,
+                m=m,
+                a=a,  # Should be divisible by num_heads
                 st_model_path='path/to/model.pth',
                 lambda_l1=l1_lambda,
-                num_heads=8  # New parameter for number of attention heads
+                num_heads=1  # New parameter for number of attention heads
             )
         else:
             raise ValueError(f"Unknown model type: {model_type}")
@@ -448,9 +448,9 @@ if __name__ == "__main__":
     torch.set_float32_matmul_precision('medium')
     model_params = {
         'learning_rate': 1e-3, # 5e-5 for sae, 1e-3 for st
-        'batch_size': 1024,
+        'batch_size': 4096,
         'reconstruction_error_threshold': 999999999,
-        'force_retrain': False,
+        'force_retrain': True,
         'l1_lambda': 1, # For ST attention dimension also controls sparsity
     }
 
@@ -460,7 +460,7 @@ if __name__ == "__main__":
     feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
     label_column = "label"
     models = ["mnist"]  # Dummy model name for consistency
-    n_train = 30_000  # Adjust as needed
+    n_train = 60_000  # Adjust as needed
     n_val = 10000
     gephi_subset_size = 10000
     tsd, afa, cr = run_all(

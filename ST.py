@@ -11,121 +11,86 @@ from datetime import timedelta
 from torch.cuda.amp import GradScaler, autocast
 
 class SparseTransformer(nn.Module):
-    def __init__(self, X, D: int, F: int, M: int, st_model_path: str, 
-                 lambda_l1: float = 5.0, num_heads: int = 8, device: str = 'cuda',
+    def __init__(self, X, n: int, m: int, a: int, st_model_path: str, 
+                 lambda_l1: float = 5.0, num_heads: int = 1, device: str = 'cuda',
                  window_size: int = 10_000_000, update_interval: int = 10_000,
                  activation_threshold: float = 1e-3):
         super(SparseTransformer, self).__init__()
         
         # Ensure model directory exists
         os.makedirs(os.path.dirname(st_model_path), exist_ok=True)
-        self.D = D  # Input dimension
-        self.F = F  # Feature dimension
-        self.M = M  # Attention dimension
+        self.X = X
+        self.n = n  # Input dimension
+        self.m = m  # Feature dimension
+        self.a = a  # Attention dimension
         self.st_model_path = st_model_path
         self.lambda_l1 = lambda_l1
         self.device = device
         self.num_heads = num_heads
         self.activation_threshold = activation_threshold
 
-        # Ensure M is divisible by num_heads
-        if M % num_heads != 0:
-            new_M = ((M // num_heads) + 1) * num_heads
-            print(f"Warning: Adjusting attention dimension from {M} to {new_M} to be divisible by {num_heads} heads")
-            self.M = new_M
-
-        # Initialize layers
-        self.input_proj = nn.Linear(D, self.M)
-        self.output_proj = nn.Linear(self.M, D)
-        self.attention = nn.MultiheadAttention(self.M, num_heads, batch_first=True)
+        # Ensure a is divisible by num_heads
+        if a % num_heads != 0:
+            new_a = ((a // num_heads) + 1) * num_heads
+            print(f"Warning: Adjusting attention dimension from {a} to {new_a} to be divisible by {num_heads} heads")
+            self.a = new_a
+        self.embed_dim = self.a*num_heads
+        self.attention = nn.MultiheadAttention(self.embed_dim, num_heads, batch_first=True)
         
-        # Initialize weights properly
-        self._init_weights()
-        # Layer normalization for better stability
-        self.norm_q = nn.LayerNorm(self.M)
-        self.norm_kv = nn.LayerNorm(self.M)
+        self.W_q = nn.Linear(a, n)
+        self.W_k = nn.Linear(a, n)
+        self.W_v = nn.Linear(a, n)
         
         # Initialize feature tracking
         self.feature_tracker = DeadFeatureTracker(
-            num_features=self.F,
+            num_features=self.m,
             activation_threshold=self.activation_threshold,
             window_size=window_size,
             update_interval=update_interval
         )
-        
-        # Initialize feature subset and move to device
-        self.initialize_feature_subset(X)
+
         self.to(device)
-        
-    def _init_weights(self):
-        # Linear layers: Kaiming Normal
-        nn.init.kaiming_normal_(self.input_proj.weight, mode='fan_in', nonlinearity='linear')
-        nn.init.kaiming_normal_(self.output_proj.weight, mode='fan_in', nonlinearity='linear')
-        
-        # Smaller initialization for attention weights (PyTorch doesn't expose these directly)
-        # Workaround: Re-initialize MultiheadAttention parameters
-        for name, param in self.attention.named_parameters():
-            if 'weight' in name:
-                nn.init.normal_(param, mean=0.0, std=0.02)  # Transformer-style init
-            elif 'bias' in name:
-                nn.init.constant_(param, 0.0)
-        
-        # Initialize feature subset (X_data) with small values
-        if hasattr(self, 'X_data'):
-            nn.init.normal_(self.X_data, mean=0.0, std=0.01)
 
-    def initialize_feature_subset(self, X):
-        """Initialize with small random values, not input data."""
-        self.X_data = nn.Parameter(
-            torch.randn((self.F, self.D), device=self.device) * 0.01  # Small initial values
-        )
-
-    def forward(self, x):
-        """Forward pass with caching for attention weights and value norms."""
+    def type_check(self, x):
         if isinstance(x, np.ndarray):
             x = torch.from_numpy(x.astype(np.float32)).to(self.device)
         elif isinstance(x, torch.Tensor) and x.device != self.device:
             x = x.to(self.device)
+        return(x)
+    def forward(self, x):
+        X_idx = np.random.choice(np.shape(self.X)[0], size=self.m, replace=False)
+        X_cross = self.X[X_idx]
+        X_cross = self.type_check(X_cross)
+        x = self.type_check(x)
             
         # Project inputs to attention dimension
-        query = self.input_proj(x)
-        key = self.input_proj(self.X_data)
-        value = self.input_proj(self.X_data)
-        
-        # Apply layer normalization
-        query = self.norm_q(query)
-        key = self.norm_kv(key)
-        value = self.norm_kv(value)
+        Q = torch.matmul(x, self.W_q.weight)
+        K = torch.matmul(X_cross, self.W_k.weight)
+        self.V = torch.matmul(X_cross, self.W_v.weight)
+
         
         # Apply attention and get weights
-        attn_output, attention_weights = self.attention(
-            query=query,
-            key=key,
-            value=value,
+        attention_output, attention_weights = self.attention(
+            query=Q,
+            key=K,
+            value=self.V,
             need_weights=True
         )
         
-        # Cache attention weights and value norms for feature activations
-        self.cached_attention_weights = attention_weights
-        self.cached_V_norms = torch.norm(value, p=2, dim=-1)
-        
-        # Project back to input dimension
-        x_hat = self.output_proj(attn_output)
-        
-        # Update feature tracking during training
+        f = attention_weights
+        x_hat = torch.matmul(f, self.V)
         if self.training:
-            feature_acts = attention_weights * self.cached_V_norms[None, :]
-            dead_ratio, _ = self.feature_tracker.update(feature_acts)
-        
-        return x, x_hat, attention_weights
+            dead_ratio, _ = self.feature_tracker.update(f)
+        return x, x_hat, f
 
-    def compute_losses(self, x: torch.Tensor, x_hat: torch.Tensor, attention_weights: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def compute_losses(self, x: torch.Tensor, x_hat: torch.Tensor, f: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Compute losses with improved regularization."""
         # L2 reconstruction loss with normalization
-        L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1)) / self.D
-        
+        #L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1))
+        print(np.shape(torch.norm(f, dim=1)))
+        print(np.shape(torch.norm(self.V, dim=1)))
         # L1 regularization on attention weights with scaling
-        L1_loss = self.lambda_l1 * torch.mean(torch.sum(attention_weights, dim=-1))
+        #L1_loss = self.lambda_l1 * torch.sum(torch.norm(f), dim=-1)
         
         total_loss = L2_loss + L1_loss
         return total_loss, L2_loss, L1_loss
@@ -149,10 +114,9 @@ class SparseTransformer(nn.Module):
             X = X.to(self.device)
 
         if normalize:
-            C = torch.mean(torch.norm(X, p=2, dim=1)) / self.D
+            C = torch.mean(torch.norm(X, p=2, dim=1)) / self.n
             X_normalized = X / C
             return X_normalized
-            return X
     def gini_coefficient(self, tensor: torch.Tensor) -> float:
         sorted_vals, _ = torch.sort(tensor.flatten().abs())
         n = sorted_vals.shape[0]
@@ -215,8 +179,8 @@ class SparseTransformer(nn.Module):
                 
                 optimizer.zero_grad()
                 with autocast():  # Mixed precision
-                    x, x_hat, attention_weights = self.forward(batch)
-                    total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, attention_weights)
+                    x, x_hat, f = self.forward(batch)
+                    total_loss, L2_loss, L1_loss = self.compute_losses(x, x_hat, f)
                 scaler.scale(total_loss).backward()  # Scale loss for mixed precision
                 torch.nn.utils.clip_grad_norm_(self.parameters(), grad_clip)
                 scaler.step(optimizer)
@@ -237,14 +201,14 @@ class SparseTransformer(nn.Module):
                     with torch.no_grad():
                         for val_batch in val_loader:
                             val_x = val_batch[0].to(self.device)  # Move validation batch to GPU
-                            val_x, val_x_hat, val_attn = self.forward(val_x)
-                            val_total_loss, _, _ = self.compute_losses(val_x, val_x_hat, val_attn)
+                            val_x, val_x_hat, val_f = self.forward(val_x)
+                            val_total_loss, _, _ = self.compute_losses(val_x, val_x_hat, val_f)
                             val_loss += val_total_loss.item()
                             val_batches += 1
                     
                     avg_val_loss = val_loss / val_batches
-                    dead_ratio = len(self.feature_tracker.get_dead_features()) / self.F if self.feature_tracker.samples_seen >= self.feature_tracker.window_size else 0.0
-                    sparsity = (attention_weights <= self.activation_threshold).float().mean().item()
+                    dead_ratio = len(self.feature_tracker.get_dead_features()) / self.m if self.feature_tracker.samples_seen >= self.feature_tracker.window_size else 0.0
+                    sparsity = (f <= self.activation_threshold).float().mean().item()
                     tracking_progress = min(self.feature_tracker.samples_seen / self.feature_tracker.window_size, 1.0)
                     
                     # Calculate time estimates
@@ -258,7 +222,7 @@ class SparseTransformer(nn.Module):
                     elapsed_str = str(timedelta(seconds=int(elapsed_time)))
                     remaining_str = str(timedelta(seconds=int(estimated_remaining_time)))
                     # During training logging:
-                    gini = self.gini_coefficient(attention_weights)
+                    gini = self.gini_coefficient(f)
                     print(
                         f"Step: {step:6d}/{total_steps} ({step/total_steps:3.1%}) | "
                         f"Epoch: {epoch:3d} | "
