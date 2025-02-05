@@ -202,7 +202,7 @@ class SparseTransformer(nn.Module):
                 # Update timing statistics
                 step_time = time.time() - step_start_time
                 times_per_step.append(step_time)
-                if len(times_per_step) > 10000:  # Keep last 100 steps for moving average
+                if len(times_per_step) > 1_000_000:  # Keep last 100 steps for moving average
                     times_per_step.pop(0)
                 
                 # Logging and validation

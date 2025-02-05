@@ -312,7 +312,7 @@ def run_all(
                 n=n,
                 m=m,
                 a=a,  # Should be divisible by num_heads
-                st_model_path='path/to/model.pth',
+                st_model_path=model_path,
                 lambda_l1=l1_lambda,
                 num_heads=1
             )
