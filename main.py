@@ -149,7 +149,7 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
                     reconstruction_error = torch.mean((val_feature_extract[:100] - x_hat) ** 2)
                 else:  # SparseTransformer
                     # ST model returns x, x_hat, attention_weights
-                    _, x_hat, _ = model(val_feature_extract[:100])
+                    _, x_hat, _, _ = model(val_feature_extract[:100])
                     reconstruction_error = torch.mean((val_feature_extract[:100] - x_hat) ** 2)
 
             if reconstruction_error > reconstruction_error_threshold:
@@ -297,14 +297,14 @@ def run_all(
 
         # Model initialization and training (unchanged)
         n = train_feature_extract.shape[1]
-        m = 100 #/8*n for sae(embedding)
+        m = 8*n #/8*n for sae(embedding)
         l1_lambda = model_params.get('l1_lambda', 5)
         model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
 
         if model_type.lower() == "sae":
             sparse_model = SparseAutoencoder(n, m, model_path, l1_lambda)
         elif model_type.lower() == "st":
-            a = 512  # Attention dimension
+            a = 64  # Attention dimension
             X_cross = train_feature_extract
             # Initialize with multiple heads
             sparse_model = SparseTransformer(
@@ -447,21 +447,21 @@ if __name__ == "__main__":
     torch.backends.cudnn.allow_tf32 = True
     torch.set_float32_matmul_precision('medium')
     model_params = {
-        'learning_rate':1e-3, # 5e-5 for sae, 1e-3 for st
+        'learning_rate':5e-5, # 5e-5 for sae, 1e-3 for st
         'batch_size': 4096,
         'reconstruction_error_threshold': 999999999,
         'force_retrain': True,
-        'l1_lambda': 0, # For ST attention dimension also controls sparsity
+        'l1_lambda': 0.01, # For ST attention dimension affects
     }
-
-    train_dataset = "data/mnist_train.csv"
-    val_dataset = "data/mnist_test.csv"
-    # List all feature columns (excluding label column)
-    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
-    label_column = "label"
-    models = ["mnist"]  # Dummy model name for consistency
-    n_train = 60_000  # Adjust as needed
-    n_val = 10000
+    train_dataset = "data/stack_exchange_train.csv"
+    val_dataset = "data/stack_exchange_val.csv"
+    feature_columns = "sentences"
+    label_column = "labels"
+    models = ["Alibaba-NLP/gte-large-en-v1.5"]
+    train_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
+    val_max = pd.read_csv("data/stack_exchange_val.csv").shape[0]
+    n_train = 10_000
+    n_val = 1000
     gephi_subset_size = 10000
     tsd, afa, cr = run_all(
         train_dataset=train_dataset,
@@ -471,9 +471,9 @@ if __name__ == "__main__":
         n_val=n_val,
         feature_column=feature_columns,  # Pass list of feature columns
         label_column=label_column,
-        data_type='vector',  # Specify vector data type: 'vector' for vector, 'text' for text
+        data_type='text',  # Specify vector data type: 'vector' for vector, 'text' for text
         model_params=model_params,
-        create_graph=True,
+        create_graph=False,
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
@@ -483,15 +483,15 @@ if __name__ == "__main__":
 
 
 
-
 """
-    train_dataset = "data/stack_exchange_train.csv"
-    val_dataset = "data/stack_exchange_val.csv"
-    feature_columns = "sentences"
-    label_column = "labels"
-    models = ["Alibaba-NLP/gte-large-en-v1.5"]
-    n_max = pd.read_csv("data/stack_exchange_train.csv").shape[0]
-    n_train = 100_000
-    n_val = 1000
+
+    train_dataset = "data/mnist_train.csv"
+    val_dataset = "data/mnist_test.csv"
+    # List all feature columns (excluding label column)
+    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
+    label_column = "label"
+    models = ["mnist"]  # Dummy model name for consistency
+    n_train = 60_000  # Adjust as needed
+    n_val = 10000
     gephi_subset_size = 10000
 """

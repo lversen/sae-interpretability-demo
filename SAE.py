@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, TensorDataset
 from typing import List, Union
@@ -58,15 +59,12 @@ class SparseAutoencoder(nn.Module):
         Compute loss and return scalar value for backpropagation
         """
         # L2 reconstruction term
-        L2_loss = torch.mean(torch.sum((x - x_hat)**2, dim=1))
-        
-        # Sparsity penalty
+        L2_loss = F.mse_loss(x_hat, x, reduce="mean")
         W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)  # Column L2 norms
-        L1_penalty = self.lambda_l1 * torch.sum(f_x * W_d_norms, dim=1)
+        L1_loss = self.lambda_l1 * F.l1_loss(f_x*W_d_norms, torch.zeros_like(f_x*W_d_norms), reduction='sum')
+        total_loss = L2_loss + L1_loss
         
-        # Normalize by input dimension as per paper
-        total_loss = (L2_loss + L1_penalty)
-        return total_loss, L2_loss, L1_penalty
+        return total_loss, L2_loss, L1_loss
 
     def preprocess(self, X):
         if isinstance(X, np.ndarray):
@@ -90,7 +88,7 @@ class SparseAutoencoder(nn.Module):
         f_x = torch.relu(self.W_e(x) + self.b_e)
         return f_x * torch.norm(self.W_d.weight, p=2, dim=0)
 
-    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, target_steps=200000):
+    def train_and_validate(self, X_train, X_val, learning_rate=5e-5, batch_size=4096, target_steps=200000):
         """
         Train the Sparse Autoencoder targeting a specific number of steps while tracking dead features.
         
@@ -101,7 +99,7 @@ class SparseAutoencoder(nn.Module):
             batch_size: Batch size for training
             target_steps: Target number of training steps (default 200k as per paper)
         """
-        optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999))
+        optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=0)
         
         # Preprocess data
         X_train = self.preprocess(X_train)
