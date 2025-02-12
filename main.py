@@ -123,7 +123,7 @@ def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int
 
 def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, reconstruction_error_threshold, force_retrain=False):
     """
-    Load or train a model with support for both SAE and ST model types.
+    Load or train a model with consistent preprocessing and loss computation for both SAE and ST models.
     """
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
@@ -142,15 +142,24 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
             model.load_state_dict(torch.load(model_path))
             print(f"Loaded pre-trained model from {model_path}")
 
-            # Check model quality differently based on model type
+            # Check model quality with proper preprocessing and loss computation
             with torch.no_grad():
                 if isinstance(model, SparseAutoencoder):
-                    _, x_hat, _ = model(val_feature_extract[:100])
-                    reconstruction_error = torch.mean((val_feature_extract[:100] - x_hat) ** 2)
+                    # Preprocess validation data
+                    val_preprocessed = model.preprocess(val_feature_extract[:100])
+                    # Get model outputs
+                    x, x_hat, f_x = model(val_preprocessed)
+                    # Compute loss using model's loss function
+                    total_loss, reconstruction_error, _ = model.compute_loss(x, x_hat, f_x)
                 else:  # SparseTransformer
-                    # ST model returns x, x_hat, attention_weights
-                    _, x_hat, _, _ = model(val_feature_extract[:100])
-                    reconstruction_error = torch.mean((val_feature_extract[:100] - x_hat) ** 2)
+                    # Preprocess validation data
+                    C = model.preprocess(val_feature_extract[:100])
+                    val_preprocessed = val_feature_extract[:100] / C
+                    
+                    # Get model outputs
+                    x, x_hat, f, v = model(val_preprocessed)
+                    # Compute loss using model's loss function
+                    total_loss, reconstruction_error, _ = model.compute_loss(x, x_hat, f, v)
 
             if reconstruction_error > reconstruction_error_threshold:
                 print(f"Loaded model seems untrained or poorly fitted (error: {reconstruction_error:.4f}). Retraining...")
@@ -443,16 +452,47 @@ def run_all(
 
 
 if __name__ == "__main__":
-    torch.backends.cuda.matmul.allow_tf32 = True
-    torch.backends.cudnn.allow_tf32 = True
-    torch.set_float32_matmul_precision('medium')
+
     model_params = {
-        'learning_rate':5e-5, # 5e-5 for sae, 1e-3 for st
+        'learning_rate': 5e-5, # 5e-5 for sae, 1e-3 for st
         'batch_size': 4096,
         'reconstruction_error_threshold': 999999999,
         'force_retrain': True,
-        'l1_lambda': 0.01, # For ST attention dimension affects
+        'l1_lambda': 5, # For ST attention dimension affects
     }
+    train_dataset = "data/mnist_train.csv"
+    val_dataset = "data/mnist_test.csv"
+    # List all feature columns (excluding label column)
+    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
+    label_column = "label"
+    models = ["mnist"]  # Dummy model name for consistency
+    n_train = 60_000  # Adjust as needed
+    n_val = 10000
+    gephi_subset_size = 10000
+    tsd, afa, cr = run_all(
+        train_dataset=train_dataset,
+        val_dataset=val_dataset,
+        models=models,
+        n_train=n_train,
+        n_val=n_val,
+        feature_column=feature_columns,  # Pass list of feature columns
+        label_column=label_column,
+        data_type='vector',  # Specify vector data type: 'vector' for vector, 'text' for text
+        model_params=model_params,
+        create_graph=False,
+        n_random_labels=8,
+        force_new_embeddings=False,
+        perform_classification=False,
+        model_type="st",
+        gephi_subset_size=gephi_subset_size
+    )
+    FA = afa["data/mnist_train.csv_mnist"]
+    print(np.shape(FA[FA!=0]))
+    print(np.shape(FA[FA==0]))
+
+
+"""
+
     train_dataset = "data/stack_exchange_train.csv"
     val_dataset = "data/stack_exchange_val.csv"
     feature_columns = "sentences"
@@ -463,35 +503,5 @@ if __name__ == "__main__":
     n_train = 10_000
     n_val = 1000
     gephi_subset_size = 10000
-    tsd, afa, cr = run_all(
-        train_dataset=train_dataset,
-        val_dataset=val_dataset,
-        models=models,
-        n_train=n_train,
-        n_val=n_val,
-        feature_column=feature_columns,  # Pass list of feature columns
-        label_column=label_column,
-        data_type='text',  # Specify vector data type: 'vector' for vector, 'text' for text
-        model_params=model_params,
-        create_graph=False,
-        n_random_labels=8,
-        force_new_embeddings=False,
-        perform_classification=False,
-        model_type="st",
-        gephi_subset_size=gephi_subset_size
-    )
 
-
-
-"""
-
-    train_dataset = "data/mnist_train.csv"
-    val_dataset = "data/mnist_test.csv"
-    # List all feature columns (excluding label column)
-    feature_columns = [str(i) for i in range(784)]  # MNIST is 28x28=784 pixels
-    label_column = "label"
-    models = ["mnist"]  # Dummy model name for consistency
-    n_train = 60_000  # Adjust as needed
-    n_val = 10000
-    gephi_subset_size = 10000
 """

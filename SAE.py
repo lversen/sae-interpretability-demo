@@ -2,7 +2,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, TensorDataset
 from typing import List, Union
@@ -55,16 +54,28 @@ class SparseAutoencoder(nn.Module):
         return x, x_hat, f_x
 
     def compute_loss(self, x, x_hat, f_x):
-        """
-        Compute loss and return scalar value for backpropagation
-        """
-        # L2 reconstruction term
-        L2_loss = F.mse_loss(x_hat, x, reduce="mean")
-        W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)  # Column L2 norms
-        L1_loss = self.lambda_l1 * F.l1_loss(f_x*W_d_norms, torch.zeros_like(f_x*W_d_norms), reduction='sum')
-        total_loss = L2_loss + L1_loss
-        
-        return total_loss, L2_loss, L1_loss
+            """
+            Compute loss according to the paper's specification:
+            L = (1/|X|) * Σ ||x - x̂||₂² + λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
+            
+            Args:
+                x: Input tensor of shape [batch_size, n] where n is input dimension
+                x_hat: Reconstructed input of shape [batch_size, n]
+                f_x: Feature activations of shape [batch_size, m] where m is number of features
+            """
+            # L2 reconstruction term: (1/|X|) * Σ ||x - x̂||₂²
+            # First compute L2 norm of difference vectors, then square, then average
+            L2_loss = torch.mean(torch.norm(x - x_hat, p=2, dim=1)**2)
+            
+            # Get L2 norms of decoder weight columns: shape [m]
+            W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)
+            
+            # Sparsity penalty: sum over features (m), average over batch
+            L1_penalty = self.lambda_l1 * torch.mean(torch.sum(f_x * W_d_norms, dim=1))
+            
+            total_loss = L2_loss + L1_penalty
+            
+            return total_loss, L2_loss, L1_penalty
 
     def preprocess(self, X):
         if isinstance(X, np.ndarray):
@@ -73,8 +84,7 @@ class SparseAutoencoder(nn.Module):
             X = X.to(self.device)
 
         C = torch.mean(torch.norm(X, p=2, dim=1)) / np.sqrt(self.n)
-        X_normalized = X / C
-        return X_normalized
+        return(C)
 
     def feature_vectors(self):
         return self.W_d.weight / torch.norm(self.W_d.weight, p=2, dim=0)
@@ -88,7 +98,7 @@ class SparseAutoencoder(nn.Module):
         f_x = torch.relu(self.W_e(x) + self.b_e)
         return f_x * torch.norm(self.W_d.weight, p=2, dim=0)
 
-    def train_and_validate(self, X_train, X_val, learning_rate=5e-5, batch_size=4096, target_steps=200000):
+    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, target_steps=10_000):
         """
         Train the Sparse Autoencoder targeting a specific number of steps while tracking dead features.
         
@@ -102,8 +112,9 @@ class SparseAutoencoder(nn.Module):
         optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=0)
         
         # Preprocess data
-        X_train = self.preprocess(X_train)
-        X_val = self.preprocess(X_val)
+        C = self.preprocess(X_train)
+        X_train /= C
+        X_val /= C
 
         # Setup data loaders
         train_dataset = TensorDataset(X_train)
@@ -121,7 +132,7 @@ class SparseAutoencoder(nn.Module):
         decay_start_step = int(actual_total_steps * 0.8)  # Start decay at 80% of training
         step = 0
         best_val_loss = float('inf')
-        final_lambda = 5.0
+        final_lambda = self.lambda_l1
 
         # Initialize feature tracker if not already done
         if not hasattr(self, 'feature_tracker'):
@@ -208,8 +219,15 @@ class SparseAutoencoder(nn.Module):
                     sparsity = (f_x.abs() >= self.feature_tracker.activation_threshold).float().mean().item()
                     tracking_progress = min(self.feature_tracker.samples_seen / self.feature_tracker.window_size, 1.0)
                     
-                    print(f"{step:8d} {epoch:5d} {total_loss.item():8.4f} {avg_val_loss:8.4f} {self.lambda_l1:5.2f} "
-                        f"{dead_ratio:6.1%} {sparsity:7.1%} {tracking_progress:7.1%}")
+
+                    print(f"Step: {step:6d}/{actual_total_steps} ({step/actual_total_steps:3.1%}) | "
+                          f"Epoch: {epoch:3d} | LR: {
+                              optimizer.param_groups[0]['lr']:.2e} | "
+                          f"Train: {total_loss.item():8.4f} | Val: {
+                        val_loss:8.4f} | "
+                        f"L1_loss: {L1_loss:4.2f} | L2_loss: {
+                              L2_loss:4.2f} | "
+                        f"L1 λ: {self.lambda_l1:4.2f} | Sparse: {sparsity:5.1%} | ")
                     
 
                     # Save best model
