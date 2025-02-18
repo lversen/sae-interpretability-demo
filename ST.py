@@ -29,17 +29,16 @@ class SparseTransformer(nn.Module):
         self.activation_threshold = activation_threshold
         self.memory_update_freq = 1
         self.steps = 0
-        """
-        # Layer normalization
-        self.norm_q = nn.LayerNorm(n)
-        self.norm_k = nn.LayerNorm(n)
-        self.norm_v = nn.LayerNorm(n)
-        """
-
+        self.total_steps = 0
         # Projections
         self.W_q = nn.Linear(n, a)
         self.W_k = nn.Linear(n, a)
         self.W_v = nn.Linear(n, n)
+        
+        # Normalization layers
+        self.norm_q = nn.LayerNorm(a)
+        self.norm_k = nn.LayerNorm(a)
+        self.norm_v = nn.LayerNorm(n)
 
         # Feature tracking
         self.feature_tracker = DeadFeatureTracker(
@@ -86,12 +85,13 @@ class SparseTransformer(nn.Module):
         attn_weight = torch.softmax(attn_weight, dim=-1)
         attn_weight = torch.dropout(attn_weight, dropout_p, train=True)
         return attn_weight @ value, attn_weight, value
+
     def forward(self, x):
         # Update memory indices periodically during training
-        if self.training and self.steps % self.memory_update_freq == 0:
+        if self.training and self.steps > self.total_steps // 20 and self.steps % (self.total_steps // 100) == 0:
             with torch.no_grad():
                 self.memory_indices = torch.randint(0, self.X.shape[0], 
-                                                  (self.m,), device=self.device)
+                                                    (self.m,), device=self.device)
                 print("X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED")
         self.steps += 1
         
@@ -103,17 +103,17 @@ class SparseTransformer(nn.Module):
         # Type conversion for input x
         x = self.type_check(x)  # Shape: [N, n]
         
-
         # Project to attention space
-        q = self.W_q(x)  # Shape: [N, a]
-        k = self.W_k(X_cross)  # Shape: [m, a]
-        v = self.W_v(X_cross)  # Shape: [m, n]
+        q = self.norm_q(self.W_q(x))  # Shape: [N, a]
+        k = self.norm_k(self.W_k(X_cross))  # Shape: [m, a]
+        v = self.norm_v(self.W_v(X_cross))  # Shape: [m, n]
         
         x_hat, f, V = self.scaled_dot_product_attention(q, k, v, dropout_p=0)
         if self.training:
             self.feature_tracker.update(f)
         
         return x, x_hat, f, V
+
     def compute_loss(self, x: torch.Tensor, x_hat: torch.Tensor, 
                     f: torch.Tensor, v:torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -187,6 +187,7 @@ class SparseTransformer(nn.Module):
         steps_per_epoch = len(train_loader)
         num_epochs = max(1, target_steps // steps_per_epoch)
         actual_total_steps = num_epochs * steps_per_epoch
+        self.total_steps = actual_total_steps
         self.memory_update_freq = int(actual_total_steps/100)
         # Initialize training parameters
         warmup_steps = actual_total_steps // 20  # First 5% for lambda warmup
@@ -296,10 +297,6 @@ class SparseTransformer(nn.Module):
                               L2_loss:4.2f} | "
                         f"L1 λ: {self.lambda_l1:4.2f} | Sparse: {sparsity:5.1%} | ")
 
-                    # Save best model
-                    if avg_val_loss < best_val_loss:
-                        best_val_loss = avg_val_loss
-                        torch.save(self.state_dict(), self.st_model_path)
 
                     self.train()
 
@@ -308,6 +305,7 @@ class SparseTransformer(nn.Module):
         print(f"Final dead feature ratio: {dead_ratio:.1%}")
         print(f"Steps completed: {step}/{actual_total_steps}")
         print(f"Final λ: {self.lambda_l1:.2f}")
+        torch.save(self.state_dict(), self.st_model_path)
 # =============================================================================
 #     def train_and_validate(self, X_train, X_val, learning_rate: float = 1e-3,
 #                           batch_size: int = 4096, target_steps: int = 1000,

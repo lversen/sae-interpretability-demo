@@ -306,7 +306,7 @@ def run_all(
 
         # Model initialization and training (unchanged)
         n = train_feature_extract.shape[1]
-        m = 8*n #/8*n for sae(embedding)
+        m = 100 #/8*n for sae(embedding)
         l1_lambda = model_params.get('l1_lambda', 5)
         model_path = f'models/{model_type}_model_{os.path.basename(train_dataset)}_{model.replace("/", "_")}.pth'
 
@@ -454,7 +454,7 @@ def run_all(
 if __name__ == "__main__":
 
     model_params = {
-        'learning_rate': 5e-5, # 5e-5 for sae, 1e-3 for st
+        'learning_rate': 1e-3, # 5e-5 for sae, 1e-3 for st
         'batch_size': 4096,
         'reconstruction_error_threshold': 999999999,
         'force_retrain': True,
