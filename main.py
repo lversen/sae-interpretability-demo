@@ -146,7 +146,8 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
             with torch.no_grad():
                 if isinstance(model, SparseAutoencoder):
                     # Preprocess validation data
-                    val_preprocessed = model.preprocess(val_feature_extract[:100])
+                    C = model.preprocess(val_feature_extract[:100])
+                    val_preprocessed = val_feature_extract[:100] / C
                     # Get model outputs
                     x, x_hat, f_x = model(val_preprocessed)
                     # Compute loss using model's loss function
