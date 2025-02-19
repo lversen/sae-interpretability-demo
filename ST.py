@@ -88,7 +88,7 @@ class SparseTransformer(nn.Module):
 
     def forward(self, x):
         # Update memory indices periodically during training
-        if self.training and self.steps > self.total_steps // 20 and self.steps % (self.total_steps // 100) == 0:
+        if self.training and self.steps > self.total_steps // 20 and self.steps < self.total_steps * 0.8 and self.steps % self.memory_update_freq == 0:
             with torch.no_grad():
                 self.memory_indices = torch.randint(0, self.X.shape[0], 
                                                     (self.m,), device=self.device)
@@ -188,7 +188,7 @@ class SparseTransformer(nn.Module):
         num_epochs = max(1, target_steps // steps_per_epoch)
         actual_total_steps = num_epochs * steps_per_epoch
         self.total_steps = actual_total_steps
-        self.memory_update_freq = int(actual_total_steps/100)
+        self.memory_update_freq = int(self.total_steps/100)
         # Initialize training parameters
         warmup_steps = actual_total_steps // 20  # First 5% for lambda warmup
         # Start decay at 80% of training
@@ -266,7 +266,7 @@ class SparseTransformer(nn.Module):
                 step += 1
 
                 # Periodic validation and logging
-                if num_batches % (len(train_loader) // 5) == 0:
+                if num_batches % (len(train_loader) // 1) == 0:
                     self.eval()
                     val_loss = 0.0
                     val_batches = 0

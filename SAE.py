@@ -98,7 +98,7 @@ class SparseAutoencoder(nn.Module):
         f_x = torch.relu(self.W_e(x) + self.b_e)
         return f_x * torch.norm(self.W_d.weight, p=2, dim=0)
 
-    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, target_steps=10_000):
+    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, target_steps=200_000):
         """
         Train the Sparse Autoencoder targeting a specific number of steps while tracking dead features.
         
@@ -200,7 +200,7 @@ class SparseAutoencoder(nn.Module):
                 step += 1
 
                 # Periodic validation and logging
-                if num_batches % (len(train_loader) // 5) == 0:
+                if num_batches % (len(train_loader) // 1) == 0:
                     self.eval()
                     val_loss = 0.0
                     val_batches = 0
@@ -229,12 +229,6 @@ class SparseAutoencoder(nn.Module):
                               L2_loss:4.2f} | "
                         f"L1 λ: {self.lambda_l1:4.2f} | Sparse: {sparsity:5.1%} | ")
                     
-
-                    # Save best model
-                    if avg_val_loss < best_val_loss:
-                        best_val_loss = avg_val_loss
-                        torch.save(self.state_dict(), self.sae_model_path)
-                    
                     self.train()
 
 
@@ -243,3 +237,4 @@ class SparseAutoencoder(nn.Module):
         print(f"Final dead feature ratio: {dead_ratio:.1%}")
         print(f"Steps completed: {step}/{actual_total_steps}")
         print(f"Final λ: {self.lambda_l1:.2f}")
+        torch.save(self.state_dict(), self.sae_model_path)

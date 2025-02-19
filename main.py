@@ -454,10 +454,10 @@ def run_all(
 if __name__ == "__main__":
 
     model_params = {
-        'learning_rate': 1e-3, # 5e-5 for sae, 1e-3 for st
+        'learning_rate': 5e-5, # 5e-5 for sae, 1e-3 for st
         'batch_size': 4096,
         'reconstruction_error_threshold': 999999999,
-        'force_retrain': True,
+        'force_retrain': False,
         'l1_lambda': 5, # For ST attention dimension affects
     }
     train_dataset = "data/mnist_train.csv"
@@ -483,7 +483,7 @@ if __name__ == "__main__":
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="st",
+        model_type="sae",
         gephi_subset_size=gephi_subset_size
     )
     FA = afa["data/mnist_train.csv_mnist"]
