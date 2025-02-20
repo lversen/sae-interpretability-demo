@@ -17,7 +17,7 @@ class SparseTransformer(nn.Module):
     def __init__(self, X, n: int, m: int, a: int, st_model_path: str,
                  lambda_l1: float = 5.0, num_heads: int = 1, device: str = 'cuda',
                  window_size: int = 10_000_000, update_interval: int = 1_000,
-                 activation_threshold: float = 1e-4):
+                 activation_threshold: float = 1e-3):
         super().__init__()
         
         # Core attributes

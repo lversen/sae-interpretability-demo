@@ -10,7 +10,7 @@ import random
 import torch
 from feature_extraction_with_store import feature_extraction_with_store
 from gephi import *
-
+from plot_v import *
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
 from ST import SparseTransformer
@@ -121,9 +121,22 @@ def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int
     return filtered_df, selected_categories
 
 
-def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, learning_rate, batch_size, reconstruction_error_threshold, force_retrain=False):
+def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, 
+                    learning_rate, batch_size, reconstruction_error_threshold, 
+                    force_retrain=False, visualize_v=False):
     """
     Load or train a model with consistent preprocessing and loss computation for both SAE and ST models.
+    
+    Args:
+        model: The model to load or train
+        train_feature_extract: Training data
+        val_feature_extract: Validation data
+        model_path: Path to save/load model
+        learning_rate: Learning rate for training
+        batch_size: Batch size for training
+        reconstruction_error_threshold: Threshold for model retraining
+        force_retrain: Whether to force retraining
+        visualize_v: Whether to visualize V matrix (only for ST model with MNIST)
     """
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
@@ -198,6 +211,13 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
         )
         torch.save(model.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
+
+    # Visualize V matrix if requested and appropriate
+    if visualize_v and isinstance(model, SparseTransformer) and train_feature_extract.shape[1] == 784:
+        print("\nVisualizing V matrix columns...")
+        plot_v_matrix_columns(model)
+        print("\nVisualizing V matrix statistics...")
+        plot_v_matrix_stats(model)
 
     return model
 
@@ -432,7 +452,8 @@ def run_all(
                 learning_rate=model_params.get('learning_rate', 1e-3),
                 batch_size=model_params.get('batch_size', 4096),
                 reconstruction_error_threshold=model_params.get('reconstruction_error_threshold', 999999999),
-                force_retrain=model_params.get('force_retrain', False)
+                force_retrain=model_params.get('force_retrain', False),
+                visualize_v=True
             )
             with torch.no_grad():
                 st_activations = st_model.feature_activations(
@@ -502,16 +523,7 @@ def run_all(
                     )
                     print(f"Created {model_suffix} graph at {file_path}")
 
-    # Print summary statistics
-    print("\nSummary of feature activations:")
-    for key, features in all_feature_activations.items():
-        non_zero = np.count_nonzero(features)
-        total = features.size
-        sparsity = (1 - non_zero/total) * 100
-        print(f"\n{key}:")
-        print(f"Shape: {features.shape}")
-        print(f"Non-zero elements: {non_zero:,}")
-        print(f"Sparsity: {sparsity:.2f}%")
+
 
     return train_sample_df, all_feature_activations, classification_results
 
@@ -549,24 +561,15 @@ if __name__ == "__main__":
         label_column=label_column,
         data_type='vector',
         model_params=model_params,
-        create_graph=True,
+        create_graph=False,
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="both",  # This will train and visualize both SAE and ST
+        model_type="st",  # This will train and visualize both SAE and ST
         gephi_subset_size=gephi_subset_size
     )
 
-    # Print shapes of feature activations for comparison
-    print("\nFeature Activation Shapes:")
-    for key, features in afa.items():
-        non_zero = np.count_nonzero(features)
-        total = features.size
-        sparsity = (1 - non_zero/total) * 100
-        print(f"\n{key}:")
-        print(f"Shape: {features.shape}")
-        print(f"Non-zero elements: {non_zero:,}")
-        print(f"Sparsity: {sparsity:.2f}%")
+
 
 
 """
