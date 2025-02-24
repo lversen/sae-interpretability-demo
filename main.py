@@ -10,7 +10,7 @@ import random
 import torch
 from feature_extraction_with_store import feature_extraction_with_store
 from gephi import *
-from plot_v import *
+from plot_decoder import *
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
 from ST import SparseTransformer
@@ -123,7 +123,7 @@ def select_and_assign_exact_n_categories(df: pd.DataFrame, category: str, n: int
 
 def load_or_train_model(model, train_feature_extract, val_feature_extract, model_path, 
                     learning_rate, batch_size, reconstruction_error_threshold, 
-                    force_retrain=False, visualize_v=False):
+                    force_retrain=False, visualize_decoder=False):
     """
     Load or train a model with consistent preprocessing and loss computation for both SAE and ST models.
     
@@ -149,6 +149,7 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
     # Ensure feature_extract tensors are on the same device as the model
     train_feature_extract = train_feature_extract.to(model.device)
     val_feature_extract = val_feature_extract.to(model.device)
+
 
     if os.path.exists(model_path) and not force_retrain:
         try:
@@ -211,13 +212,21 @@ def load_or_train_model(model, train_feature_extract, val_feature_extract, model
         )
         torch.save(model.state_dict(), model_path)
         print(f"New model trained and saved to {model_path}")
-
+    n_cols = 100
     # Visualize V matrix if requested and appropriate
-    if visualize_v and isinstance(model, SparseTransformer) and train_feature_extract.shape[1] == 784:
+    if visualize_decoder and isinstance(model, SparseTransformer) and train_feature_extract.shape[1] == 784:
         print("\nVisualizing V matrix columns...")
-        plot_v_matrix_columns(model)
+        plot_decoder_matrix_columns(model, train_feature_extract, num_cols=n_cols)
         print("\nVisualizing V matrix statistics...")
-        plot_v_matrix_stats(model)
+        plot_decoder_matrix_stats(model, train_feature_extract)
+
+
+    if visualize_decoder and isinstance(model, SparseAutoencoder) and train_feature_extract.shape[1] == 784:
+        print("\nVisualizing Decoder matrix columns...")
+        plot_decoder_matrix_columns(model, train_feature_extract, num_cols=n_cols)
+        print("\nVisualizing Decoder matrix statistics...")
+        plot_decoder_matrix_stats(model, train_feature_extract)
+
 
     return model
 
@@ -331,7 +340,8 @@ def run_all(
     top_n_category: Optional[Dict[str, Dict[str, Any]]] = None,
     model_params: Dict[str, Any] = {},
     model_type: str = "both",  # Changed to support both models
-    gephi_subset_size: Optional[int] = None
+    gephi_subset_size: Optional[int] = None,
+    visualize_decoder: bool = False
 ) -> Dict[str, Any]:
     """
     Run the complete analysis pipeline with support for both SAE and ST models.
@@ -422,7 +432,8 @@ def run_all(
                 learning_rate=model_params.get('learning_rate', 5e-5),
                 batch_size=model_params.get('batch_size', 4096),
                 reconstruction_error_threshold=model_params.get('reconstruction_error_threshold', 999999999),
-                force_retrain=model_params.get('force_retrain', False)
+                force_retrain=model_params.get('force_retrain', False),
+                visualize_decoder=visualize_decoder
             )
             with torch.no_grad():
                 sae_activations = sae_model.feature_activations(
@@ -442,7 +453,7 @@ def run_all(
                 a=a,
                 st_model_path=st_model_path,
                 lambda_l1=l1_lambda,
-                num_heads=1
+                num_heads=1,
             )
             st_model = load_or_train_model(
                 st_model,
@@ -453,7 +464,7 @@ def run_all(
                 batch_size=model_params.get('batch_size', 4096),
                 reconstruction_error_threshold=model_params.get('reconstruction_error_threshold', 999999999),
                 force_retrain=model_params.get('force_retrain', False),
-                visualize_v=True
+                visualize_decoder=visualize_decoder
             )
             with torch.no_grad():
                 st_activations = st_model.feature_activations(
@@ -548,7 +559,7 @@ if __name__ == "__main__":
     # Sample sizes
     n_train = 60_000  # Full MNIST training set
     n_val = 10_000    # Full MNIST test set
-    gephi_subset_size = 10000  # Size of subset for visualization
+    gephi_subset_size = 1000  # Size of subset for visualization
     
     # Run the analysis with both SAE and ST models
     tsd, afa, cr = run_all(
@@ -565,8 +576,9 @@ if __name__ == "__main__":
         n_random_labels=8,
         force_new_embeddings=False,
         perform_classification=False,
-        model_type="st",  # This will train and visualize both SAE and ST
-        gephi_subset_size=gephi_subset_size
+        model_type="both",  # "st" for Sparse Transformer, "sae" for Sparse Autoencoder, "both" for both
+        gephi_subset_size=gephi_subset_size,
+        visualize_decoder=True
     )
 
 

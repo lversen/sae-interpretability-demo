@@ -20,7 +20,7 @@ class SparseTransformer(nn.Module):
                  activation_threshold: float = 1e-3):
         super().__init__()
         
-        # Core attributes
+        # Model parameters
         self.n, self.m, self.a = n, m, a
         self.st_model_path = st_model_path
         self.lambda_l1 = lambda_l1

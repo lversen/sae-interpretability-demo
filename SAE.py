@@ -31,6 +31,7 @@ class SparseAutoencoder(nn.Module):
         self.initialize_weights()
         self.to(device)
 
+
     def initialize_weights(self):
         with torch.no_grad():
             W_d = torch.randn(self.n, self.m)

@@ -1,60 +1,61 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from ST import SparseTransformer
+from SAE import SparseAutoencoder
 
-def get_feature_matrix(model):
+def plot_decoder_matrix_columns(model,  X, num_cols=10, figsize=(15, 3), fixed_indices=None):
     """
-    Extract the feature matrix from either an SAE or ST model.
+    Plot columns from the V matrix of a Sparse Transformer model or the decoder matrix of a Sparse Autoencoder model trained on MNIST.
     
     Args:
-        model: Either a SparseAutoencoder or SparseTransformer model
-        
-    Returns:
-        numpy.ndarray: The feature matrix (decoder weights for SAE, V matrix for ST)
-    """
-    with torch.no_grad():
-        if hasattr(model, 'W_d'):  # SAE model
-            feature_matrix = model.W_d.weight.cpu().numpy().T
-        else:  # ST model
-            # Get random batch to generate V matrix
-            if not hasattr(model, 'X') or model.X is None:
-                raise ValueError("ST model doesn't have stored data (X attribute)")
-            
-            random_indices = torch.randint(0, model.X.shape[0], (64,))
-            x = model.X[random_indices].to(model.device)
-            
-            # Forward pass to get V matrix
-            _, _, _, V = model(x)
-            feature_matrix = V.cpu().numpy()
-            
-    return feature_matrix
-
-def plot_feature_matrix_columns(model, num_cols=10, figsize=(15, 3), input_shape=(28, 28)):
-    """
-    Plot columns from the feature matrix of either an SAE or ST model.
-    
-    Args:
-        model: Either a SparseAutoencoder or SparseTransformer model
+        model: The trained Sparse Transformer or Sparse Autoencoder model
         num_cols: Number of columns to plot
         figsize: Figure size for the plot
-        input_shape: Shape to reshape features into (e.g., (28, 28) for MNIST)
+        fixed_indices: Fixed indices to use for selecting data
     """
-    # Get feature matrix
-    feature_matrix = get_feature_matrix(model)
     
+        
+    with torch.no_grad():
+        # Get fixed batch
+        if fixed_indices is None:
+            fixed_indices = np.arange(4096)  # Default fixed indices if not provided
+        x = X[fixed_indices].to(model.device)
+        
+        # Forward pass to get V matrix or decoder matrix
+        if isinstance(model, SparseTransformer):
+            _, _, _, V = model(x)
+        elif isinstance(model, SparseAutoencoder):
+            model(x)
+            V = model.W_d.weight.T
+        else:
+            raise ValueError("Unsupported model type")
+        
+        # Move V to CPU and convert to numpy
+        V = V.cpu().numpy()
+        
+    # Ensure num_cols does not exceed the number of columns in V
+    num_cols = min(num_cols, V.shape[0])
+
+    # Determine grid size
+    n_rows = int(np.ceil(np.sqrt(num_cols)))
+    n_cols = int(np.ceil(num_cols / n_rows))
+
     # Create figure
-    fig, axes = plt.subplots(1, num_cols, figsize=figsize)
-    model_type = "SAE" if hasattr(model, 'W_d') else "ST"
-    fig.suptitle(f'Selected Features from {model_type} Model Reshaped as {input_shape} Images')
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize)
+    fig.suptitle('Selected Columns from Decoder Matrix Reshaped as MNIST Images')
+    
+    # Flatten axes array for easy iteration
+    axes = axes.flatten()
     
     # Select evenly spaced columns to display
-    step = feature_matrix.shape[0] // num_cols
-    selected_indices = np.arange(0, feature_matrix.shape[0], step)[:num_cols]
+    step = V.shape[0] // num_cols
+    selected_indices = np.arange(0, V.shape[0], step)[:num_cols]
     
     # Plot each selected column
     for i, idx in enumerate(selected_indices):
-        # Reshape column to specified input shape
-        img = feature_matrix[idx].reshape(input_shape)
+        # Reshape column to 28x28 image
+        img = V[idx].reshape(28, 28)
         
         # Normalize to [0, 1] for visualization
         img = (img - img.min()) / (img.max() - img.min())
@@ -62,133 +63,59 @@ def plot_feature_matrix_columns(model, num_cols=10, figsize=(15, 3), input_shape
         # Plot
         axes[i].imshow(img, cmap='gray')
         axes[i].axis('off')
-        axes[i].set_title(f'Feature {idx}')
     
-    plt.tight_layout()
+    # Hide any unused subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+    
+    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
     plt.show()
 
-def plot_feature_matrix_stats(model, threshold=1e-3):
+def plot_decoder_matrix_stats(model, X, fixed_indices=None):
     """
-    Plot statistics about the feature matrix.
+    Plot statistics about the V matrix or decoder matrix.
     
     Args:
-        model: Either a SparseAutoencoder or SparseTransformer model
-        threshold: Threshold for considering values as zero when computing sparsity
+        model: The trained Sparse Transformer or Sparse Autoencoder model
+        fixed_indices: Fixed indices to use for selecting data
     """
-    # Get feature matrix
-    feature_matrix = get_feature_matrix(model)
-    model_type = "SAE" if hasattr(model, 'W_d') else "ST"
+    with torch.no_grad():
+        # Get fixed batch
+        if fixed_indices is None:
+            fixed_indices = np.arange(64)  # Default fixed indices if not provided
+        x = X[fixed_indices].to(model.device)
+        
+        # Forward pass to get V matrix or decoder matrix
+        if isinstance(model, SparseTransformer):
+            _, _, _, V = model(x)
+        elif isinstance(model, SparseAutoencoder):
+            model(x)
+            V = model.W_d.weight.T
+        else:
+            raise ValueError("Unsupported model type")
+        
+        # Move V to CPU and convert to numpy
+        V = V.cpu().numpy()
     
     # Calculate statistics
-    norms = np.linalg.norm(feature_matrix, axis=1)
-    sparsity = np.mean(np.abs(feature_matrix) <= threshold)
+    norms = np.linalg.norm(V, axis=1)
+    sparsity = np.mean(np.abs(V) <= 1e-3)
     
     # Create figure with two subplots
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
     
-    # Plot histogram of feature norms
+    # Plot histogram of column norms
     ax1.hist(norms, bins=50)
-    ax1.set_title(f'Distribution of {model_type} Feature Matrix Norms')
+    ax1.set_title('Distribution of V Matrix Column Norms')
     ax1.set_xlabel('L2 Norm')
     ax1.set_ylabel('Count')
     
-    # Plot heatmap of feature matrix values
-    im = ax2.imshow(feature_matrix, aspect='auto', cmap='viridis')
-    ax2.set_title(f'{model_type} Feature Matrix Values (Sparsity: {sparsity:.2%})')
+    # Plot heatmap of V matrix values with discrete colormap
+    im = ax2.imshow(np.abs(V), aspect='auto', cmap='coolwarm', interpolation='nearest')
+    ax2.set_title(f'V Matrix Values (Sparsity: {sparsity:.2%})')
     ax2.set_xlabel('Input Dimension')
     ax2.set_ylabel('Feature Index')
     plt.colorbar(im, ax=ax2)
-    
-    plt.tight_layout()
-    plt.show()
-
-def compare_feature_matrices(sae_model, st_model, num_cols=5, figsize=(15, 6), input_shape=(28, 28)):
-    """
-    Compare feature matrices from SAE and ST models side by side.
-    
-    Args:
-        sae_model: SparseAutoencoder model
-        st_model: SparseTransformer model
-        num_cols: Number of columns to plot per model
-        figsize: Figure size for the plot
-        input_shape: Shape to reshape features into (e.g., (28, 28) for MNIST)
-    """
-    # Get feature matrices
-    sae_features = get_feature_matrix(sae_model)
-    st_features = get_feature_matrix(st_model)
-    
-    # Create figure
-    fig, axes = plt.subplots(2, num_cols, figsize=figsize)
-    fig.suptitle('Comparison of SAE and ST Features')
-    
-    # Select evenly spaced columns to display
-    sae_step = sae_features.shape[0] // num_cols
-    st_step = st_features.shape[0] // num_cols
-    sae_indices = np.arange(0, sae_features.shape[0], sae_step)[:num_cols]
-    st_indices = np.arange(0, st_features.shape[0], st_step)[:num_cols]
-    
-    # Plot SAE features
-    for i, idx in enumerate(sae_indices):
-        img = sae_features[idx].reshape(input_shape)
-        img = (img - img.min()) / (img.max() - img.min())
-        axes[0, i].imshow(img, cmap='gray')
-        axes[0, i].axis('off')
-        axes[0, i].set_title(f'SAE Feature {idx}')
-    
-    # Plot ST features
-    for i, idx in enumerate(st_indices):
-        img = st_features[idx].reshape(input_shape)
-        img = (img - img.min()) / (img.max() - img.min())
-        axes[1, i].imshow(img, cmap='gray')
-        axes[1, i].axis('off')
-        axes[1, i].set_title(f'ST Feature {idx}')
-    
-    plt.tight_layout()
-    plt.show()
-
-def plot_feature_matrix_activation_patterns(model, input_data, threshold=1e-3, figsize=(12, 4)):
-    """
-    Analyze and plot feature activation patterns for either model type.
-    
-    Args:
-        model: Either a SparseAutoencoder or SparseTransformer model
-        input_data: Input data tensor to analyze activations
-        threshold: Threshold for considering activations as non-zero
-        figsize: Figure size for the plot
-    """
-    # Move input data to model's device if needed
-    if isinstance(input_data, np.ndarray):
-        input_data = torch.from_numpy(input_data).float()
-    input_data = input_data.to(model.device)
-    
-    # Get activations
-    with torch.no_grad():
-        if hasattr(model, 'W_d'):  # SAE model
-            _, _, activations = model(input_data)
-        else:  # ST model
-            _, _, activations, _ = model(input_data)
-    
-    activations = activations.cpu().numpy()
-    model_type = "SAE" if hasattr(model, 'W_d') else "ST"
-    
-    # Calculate statistics
-    activation_freqs = np.mean(np.abs(activations) > threshold, axis=0)
-    avg_activation = np.mean(np.abs(activations), axis=0)
-    
-    # Create figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
-    
-    # Plot activation frequencies
-    ax1.hist(activation_freqs, bins=50)
-    ax1.set_title(f'{model_type} Feature Activation Frequencies')
-    ax1.set_xlabel('Fraction of Samples')
-    ax1.set_ylabel('Number of Features')
-    
-    # Plot average activation strengths
-    ax2.hist(avg_activation, bins=50)
-    ax2.set_title(f'{model_type} Average Feature Activation Strengths')
-    ax2.set_xlabel('Average Activation')
-    ax2.set_ylabel('Number of Features')
     
     plt.tight_layout()
     plt.show()
