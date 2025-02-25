@@ -46,13 +46,14 @@ class SparseTransformer(nn.Module):
         self.total_steps = 0
         self.memory_update_freq = 1
         
-        # Initialize projection matrices
-        self.input_proj = nn.Linear(n, a, bias=False)
-        self.output_proj = nn.Linear(a, n, bias=False)
+        self.W_q = nn.Linear(n, a)
+        self.W_k = nn.Linear(n, a)
+        self.W_v = nn.Linear(n, n)
         
         # Normalization layers
         self.norm_q = nn.LayerNorm(a)
-        self.norm_kv = nn.LayerNorm(a)
+        self.norm_k = nn.LayerNorm(a)
+        self.norm_v = nn.LayerNorm(n)
         
         # Initialize feature tracker
         self.feature_tracker = DeadFeatureTracker(
@@ -78,7 +79,8 @@ class SparseTransformer(nn.Module):
         """
         with torch.no_grad():
             # Initialize input projection normally
-            nn.init.xavier_normal_(self.input_proj.weight)
+            nn.init.xavier_normal_(self.W_q.weight)
+            nn.init.xavier_normal_(self.W_k.weight)
             
             # Initialize output projection similar to SAE decoder
             output_weight = torch.randn(self.n, self.a)
@@ -92,7 +94,7 @@ class SparseTransformer(nn.Module):
             output_weight = output_weight * target_norms
             
             # Assign to model parameters
-            self.output_proj.weight.data = output_weight
+            self.W_v.weight.data = output_weight
     
     def type_check(self, x):
         """Ensure data is on the correct device and has the right type"""
@@ -101,46 +103,31 @@ class SparseTransformer(nn.Module):
         return x.to(self.device) if x.device != self.device else x
     
     def scaled_dot_product_attention(self, query, key, value, attn_mask=None, dropout_p=0.0,
-            is_causal=False, scale=None):
-        """
-        Compute scaled dot-product attention
-        
-        Returns:
-            Tuple of (output, attention weights, value vectors)
-        """
-        # Get dimensions
-        batch_size, seq_len_q, d_k = query.size()
-        seq_len_k = key.size(1)
-        
-        # Compute scale factor
-        scale_factor = 1 / math.sqrt(d_k) if scale is None else scale
-        
-        # Compute attention scores
-        attn_scores = torch.matmul(query, key.transpose(-2, -1)) * scale_factor
-        
-        # Apply mask if provided
+            is_causal=False, scale=None, enable_gqa=False) -> torch.Tensor:
+        L, S = query.size(-2), key.size(-2)
+        scale_factor = 1 / math.sqrt(query.size(-1)) if scale is None else scale
+        attn_bias = torch.zeros(L, S, dtype=query.dtype, device=query.device)
+        if is_causal:
+            assert attn_mask is None
+            temp_mask = torch.ones(L, S, dtype=torch.bool).tril(diagonal=0)
+            attn_bias.masked_fill_(temp_mask.logical_not(), float("-inf"))
+            attn_bias.to(query.dtype)
+
         if attn_mask is not None:
             if attn_mask.dtype == torch.bool:
-                attn_scores.masked_fill_(~attn_mask, float('-inf'))
+                attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
             else:
-                attn_scores += attn_mask
-        
-        # Apply causal mask if requested
-        if is_causal:
-            causal_mask = torch.ones(seq_len_q, seq_len_k, dtype=torch.bool, device=query.device).tril()
-            attn_scores.masked_fill_(~causal_mask, float('-inf'))
-        
-        # Normalize scores to get attention weights
-        attn_weights = torch.softmax(attn_scores, dim=-1)
-        
-        # Apply dropout if specified
-        if dropout_p > 0 and self.training:
-            attn_weights = torch.dropout(attn_weights, dropout_p, self.training)
-        
-        # Compute output
-        output = torch.matmul(attn_weights, value)
-        
-        return output, attn_weights, value
+                attn_bias = attn_mask + attn_bias
+
+        if enable_gqa:
+            key = key.repeat_interleave(query.size(-3)//key.size(-3), -3)
+            value = value.repeat_interleave(query.size(-3)//value.size(-3), -3)
+
+        attn_weight = query @ key.transpose(-2, -1) * scale_factor
+        attn_weight += attn_bias
+        attn_weight = torch.softmax(attn_weight, dim=-1)
+        attn_weight = torch.dropout(attn_weight, dropout_p, train=True)
+        return attn_weight @ value, attn_weight, value
 
     def forward(self, x):
         """
@@ -173,14 +160,10 @@ class SparseTransformer(nn.Module):
         x = self.type_check(x)  # Shape: [batch_size, n]
         x = x / C  # Apply same scaling
         
-        # Project inputs to attention space
-        query = self.input_proj(x)  # [batch_size, a]
-        key = self.input_proj(X_cross)  # [m, a]
-        value = X_cross  # [m, n]
-        
-        # Apply layer normalization
-        query = self.norm_q(query)
-        key = self.norm_kv(key)
+        # Project to attention space
+        q = self.norm_q(self.W_q(x))  # Shape: [N, a]
+        k = self.norm_k(self.W_k(X_cross))  # Shape: [m, a]
+        v = self.norm_v(self.W_v(X_cross))  # Shape: [m, n]
         
         # Reshape for attention (add seq_len dimension of 1)
         query = query.unsqueeze(1)  # [batch_size, 1, a]
