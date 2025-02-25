@@ -2,46 +2,59 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, TensorDataset
-from typing import List, Union
+from typing import List, Union, Tuple
 from deadfeatures import DeadFeatureTracker
 
 class SparseAutoencoder(nn.Module):
-    def __init__(self, n: int, m: int, sae_model_path: str, lambda_l1: float = 1, device: str = 'cuda'):
+    def __init__(self, n: int, m: int, sae_model_path: str, lambda_l1: float = 5, device: str = 'cuda'):
         super(SparseAutoencoder, self).__init__()
         self.n = n
         self.m = m
         self.sae_model_path = sae_model_path
         self.lambda_l1 = lambda_l1
-        self.device = device
+        self.device = device if torch.cuda.is_available() else 'cpu'
 
+        # Initialize components
         self.W_e = nn.Linear(n, m, bias=False)
         self.W_d = nn.Linear(m, n, bias=False)
         self.b_e = nn.Parameter(torch.zeros(m))
         self.b_d = nn.Parameter(torch.zeros(n))
         
-        # Initialize feature tracker
+        # Initialize feature tracker with 10M window as specified
         self.feature_tracker = DeadFeatureTracker(
-            num_features=m,  # m is the number of features
-            window_size=10_000_000,  # As specified in the paper
-            update_interval=10_000  # Update stats every 10k samples
+            num_features=m,
+            window_size=10_000_000,
+            update_interval=10_000
         )
 
         self.initialize_weights()
-        self.to(device)
-
+        self.to(self.device)
 
     def initialize_weights(self):
+        """
+        Initialize weights according to updated SAE training configuration:
+        - W_d columns have random directions with L2 norms between 0.05 and 1
+        - W_e is initialized as W_d^T
+        - Biases are initialized to zeros
+        """
         with torch.no_grad():
+            # Create random weight matrix for decoder
             W_d = torch.randn(self.n, self.m)
+            
+            # Normalize columns to have unit norm
             norms = torch.norm(W_d, p=2, dim=0)
+            W_d = W_d / norms
+            
+            # Scale columns to have norms between 0.05 and 1
             target_norms = 0.05 + 0.95 * torch.rand(self.m)
-            W_d = W_d * (target_norms / norms)
+            W_d = W_d * target_norms
+            
+            # Assign to model parameters
             self.W_d.weight.data = W_d
-            self.W_e.weight.data = W_d.t()
-            self.b_e.data = torch.zeros(self.m)
-            self.b_d.data = torch.zeros(self.n)
+            self.W_e.weight.data = W_d.t()  # W_e = W_d^T
+            
+            # Biases initialized to zeros (already done in __init__)
 
     def forward(self, x):
         if isinstance(x, np.ndarray):
@@ -55,42 +68,44 @@ class SparseAutoencoder(nn.Module):
         return x, x_hat, f_x
 
     def compute_loss(self, x, x_hat, f_x):
-            """
-            Compute loss according to the paper's specification:
-            L = (1/|X|) * Σ ||x - x̂||₂² + λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
-            
-            Args:
-                x: Input tensor of shape [batch_size, n] where n is input dimension
-                x_hat: Reconstructed input of shape [batch_size, n]
-                f_x: Feature activations of shape [batch_size, m] where m is number of features
-            """
-            # L2 reconstruction term: (1/|X|) * Σ ||x - x̂||₂²
-            # First compute L2 norm of difference vectors, then square, then average
-            L2_loss = torch.mean(torch.norm(x - x_hat, p=2, dim=1)**2)
-            
-            # Get L2 norms of decoder weight columns: shape [m]
-            W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)
-            
-            # Sparsity penalty: sum over features (m), average over batch
-            L1_penalty = self.lambda_l1 * torch.mean(torch.sum(f_x * W_d_norms, dim=1))
-            
-            total_loss = L2_loss + L1_penalty
-            
-            return total_loss, L2_loss, L1_penalty
+        """
+        Compute loss according to the paper's specification:
+        L = (1/|X|) * Σ ||x - x̂||₂² + λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
+        """
+        # L2 reconstruction loss
+        L2_loss = torch.mean(torch.norm(x - x_hat, p=2, dim=1)**2)
+        
+        # Get L2 norms of decoder weight columns
+        W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)
+        
+        # Sparsity penalty: λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
+        L1_penalty = self.lambda_l1 * torch.mean(torch.sum(f_x * W_d_norms, dim=1))
+        
+        total_loss = L2_loss + L1_penalty
+        
+        return total_loss, L2_loss, L1_penalty
 
     def preprocess(self, X):
+        """
+        Scale dataset so that E_x[||x||₂] = √n as specified
+        """
         if isinstance(X, np.ndarray):
             X = torch.from_numpy(X.astype(np.float32)).to(self.device)
         elif isinstance(X, torch.Tensor) and X.device != self.device:
             X = X.to(self.device)
 
-        C = torch.mean(torch.norm(X, p=2, dim=1)) / np.sqrt(self.n)
-        return(C)
+        # Calculate scaling factor C so that E_x[||x||₂] = √n after dividing by C
+        mean_norm = torch.mean(torch.norm(X, p=2, dim=1))
+        C = mean_norm / np.sqrt(self.n)
+        
+        return C
 
     def feature_vectors(self):
+        """Return normalized feature vectors (decoder columns)"""
         return self.W_d.weight / torch.norm(self.W_d.weight, p=2, dim=0)
 
     def feature_activations(self, x):
+        """Calculate feature activations with L2 norm weighting"""
         if isinstance(x, np.ndarray):
             x = torch.from_numpy(x.astype(np.float32)).to(self.device)
         elif isinstance(x, torch.Tensor) and x.device != self.device:
@@ -99,23 +114,20 @@ class SparseAutoencoder(nn.Module):
         f_x = torch.relu(self.W_e(x) + self.b_e)
         return f_x * torch.norm(self.W_d.weight, p=2, dim=0)
 
-    def train_and_validate(self, X_train, X_val, learning_rate=1e-3, batch_size=4096, target_steps=200_000):
+    def train_and_validate(self, X_train, X_val, learning_rate=5e-5, batch_size=4096, target_steps=200_000):
         """
-        Train the Sparse Autoencoder targeting a specific number of steps while tracking dead features.
-        
-        Args:
-            X_train: Training data
-            X_val: Validation data
-            learning_rate: Initial learning rate
-            batch_size: Batch size for training
-            target_steps: Target number of training steps (default 200k as per paper)
+        Train the SAE following the updated configuration:
+        - Adam optimizer (beta1=0.9, beta2=0.999, no weight decay)
+        - Learning rate ~5e-5 with linear decay in last 20% of training
+        - λ warmup over first 5% of training
+        - Gradient clipping to norm 1
         """
         optimizer = optim.Adam(self.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=0)
         
-        # Preprocess data
+        # Preprocess data - scale so that E_x[||x||₂] = √n
         C = self.preprocess(X_train)
-        X_train /= C
-        X_val /= C
+        X_train = X_train.clone() / C
+        X_val = X_val.clone() / C
 
         # Setup data loaders
         train_dataset = TensorDataset(X_train)
@@ -123,7 +135,7 @@ class SparseAutoencoder(nn.Module):
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-        # Calculate required epochs to reach target steps
+        # Calculate training parameters
         steps_per_epoch = len(train_loader)
         num_epochs = max(1, target_steps // steps_per_epoch)
         actual_total_steps = num_epochs * steps_per_epoch
@@ -134,14 +146,6 @@ class SparseAutoencoder(nn.Module):
         step = 0
         best_val_loss = float('inf')
         final_lambda = self.lambda_l1
-
-        # Initialize feature tracker if not already done
-        if not hasattr(self, 'feature_tracker'):
-            self.feature_tracker = DeadFeatureTracker(
-                num_features=self.m,
-                window_size=10_000_000,  # As specified in paper
-                update_interval=10_000
-            )
 
         print("\nTraining Configuration:")
         print(f"Total Steps: {actual_total_steps}")
@@ -157,8 +161,7 @@ class SparseAutoencoder(nn.Module):
         print("  λ       - Current L1 regularization strength")
         print("  Dead%   - Percentage of features with no activation in 10M samples")
         print("  Sparse% - Percentage of non-zero activations")
-        print("  Track%  - Percentage of 10M sample tracking window completed")
-        print(f"\n{'Step':>8} {'Epoch':>5} {'Loss':>8} {'ValLoss':>8} {'λ':>5} {'Dead%':>6} {'Sparse%':>7} {'Track%':>7}")
+        print(f"\n{'Step':>8} {'Epoch':>5} {'Loss':>8} {'ValLoss':>8} {'λ':>5} {'Dead%':>6} {'Sparse%':>7}")
 
         for epoch in range(num_epochs):
             self.train()
@@ -175,16 +178,16 @@ class SparseAutoencoder(nn.Module):
                 # Update feature tracking
                 dead_ratio, stats = self.feature_tracker.update(f_x)
 
-                # Lambda warmup
+                # Lambda warmup - linear increase from 0 to final_lambda over first 5% of steps
                 if step < warmup_steps:
                     self.lambda_l1 = (step / warmup_steps) * final_lambda
                 else:
                     self.lambda_l1 = final_lambda
                 
-                # Learning rate decay in last 20%
+                # Learning rate decay - linear decay to zero over last 20% of steps
                 if step >= decay_start_step:
                     progress = (step - decay_start_step) / (actual_total_steps - decay_start_step)
-                    new_lr = learning_rate * (1 - progress)  # Linear decay to zero
+                    new_lr = learning_rate * (1 - progress)
                     for param_group in optimizer.param_groups:
                         param_group['lr'] = new_lr
 
@@ -192,7 +195,7 @@ class SparseAutoencoder(nn.Module):
                 total_loss, L2_loss, L1_loss = self.compute_loss(x, x_hat, f_x)
                 total_loss.backward()
                 
-                # Gradient clipping as per paper
+                # Gradient clipping to norm 1
                 torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
                 optimizer.step()
 
@@ -201,7 +204,7 @@ class SparseAutoencoder(nn.Module):
                 step += 1
 
                 # Periodic validation and logging
-                if num_batches % (len(train_loader) // 1) == 0:
+                if batch_idx % (len(train_loader) // 5) == 0:
                     self.eval()
                     val_loss = 0.0
                     val_batches = 0
@@ -216,26 +219,31 @@ class SparseAutoencoder(nn.Module):
                     
                     avg_val_loss = val_loss / val_batches
                     
-                    # Calculate sparsity and tracking progress
+                    # Calculate sparsity
                     sparsity = (f_x.abs() >= self.feature_tracker.activation_threshold).float().mean().item()
-                    tracking_progress = min(self.feature_tracker.samples_seen / self.feature_tracker.window_size, 1.0)
                     
-
-                    print(f"Step: {step:6d}/{actual_total_steps} ({step/actual_total_steps:3.1%}) | "
-                          f"Epoch: {epoch:3d} | LR: {
-                              optimizer.param_groups[0]['lr']:.2e} | "
-                          f"Train: {total_loss.item():8.4f} | Val: {
-                        val_loss:8.4f} | "
-                        f"L1_loss: {L1_loss:4.2f} | L2_loss: {
-                              L2_loss:4.2f} | "
-                        f"L1 λ: {self.lambda_l1:4.2f} | Sparse: {sparsity:5.1%} | ")
+                    # Note: We intentionally do NOT save the model with lowest validation loss
+                    # because the lowest loss would occur early when L1 penalty is minimal
+                    
+                    print(f"{step:8d} {epoch:5d} {total_loss.item():8.4f} {avg_val_loss:8.4f} "
+                          f"{self.lambda_l1:5.2f} {dead_ratio*100:6.2f}% {sparsity*100:7.2f}%")
+                    
+                    # Save periodic checkpoints if desired
+                    if step % 50000 == 0:
+                        checkpoint_path = f"{self.sae_model_path}.step{step}"
+                        torch.save(self.state_dict(), checkpoint_path)
+                        print(f"Saved checkpoint at step {step} to {checkpoint_path}")
                     
                     self.train()
 
-
         print(f"\nTraining completed:")
-        print(f"Best validation loss: {best_val_loss:.4f}")
+        print(f"Final validation loss: {avg_val_loss:.4f}")
         print(f"Final dead feature ratio: {dead_ratio:.1%}")
         print(f"Steps completed: {step}/{actual_total_steps}")
         print(f"Final λ: {self.lambda_l1:.2f}")
+        
+        # Save the final model (we want this one, not the "best" by loss)
         torch.save(self.state_dict(), self.sae_model_path)
+        print(f"Saved final model to {self.sae_model_path}")
+        
+        return self
