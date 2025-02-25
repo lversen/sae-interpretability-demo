@@ -125,7 +125,7 @@ def main():
     # Setup feature dimensions
     n = args.input_dimension
     m = args.feature_dimension if args.feature_dimension else 8 * n
-    a = args.attention_dimension if args.attention_dimension else 64
+    a = args.attention_dimension if args.attention_dimension else n // 2
     
     # Model parameters
     model_params = {
