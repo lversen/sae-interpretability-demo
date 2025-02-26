@@ -57,6 +57,16 @@ def parse_args():
     parser.add_argument('--force_retrain', action='store_true',
                         help='Force retraining of models')
     
+    # ST-specific parameters
+    parser.add_argument('--use_mixed_precision', action='store_true',
+                        help='Enable mixed precision training for ST model')
+    parser.add_argument('--activation_threshold', type=float, default=1e-3,
+                        help='Activation threshold for ST feature tracking')
+    parser.add_argument('--grad_accum_steps', type=int, default=1,
+                        help='Number of gradient accumulation steps for ST model')
+    parser.add_argument('--eval_freq', type=int, default=None,
+                        help='Evaluation frequency during training (steps)')
+    
     # Misc parameters
     parser.add_argument('--data_type', type=str, default='vector', choices=['text', 'vector'],
                         help='Type of data')
@@ -237,7 +247,9 @@ def main():
             st_model_path=st_model_path,
             lambda_l1=args.l1_lambda,
             num_heads=1,
-            device=device
+            device=device,
+            activation_threshold=args.activation_threshold,
+            use_mixed_precision=args.use_mixed_precision
         )
         
         # Train or load model
@@ -248,7 +260,9 @@ def main():
                 val_tensor,
                 learning_rate=model_params['learning_rate'],
                 batch_size=model_params['batch_size'],
-                target_steps=model_params['target_steps']
+                target_steps=model_params['target_steps'],
+                grad_accum_steps=args.grad_accum_steps,
+                eval_freq=args.eval_freq
             )
         else:
             print(f"Loading pre-trained ST model from {st_model_path}")
