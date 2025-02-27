@@ -870,7 +870,7 @@ class SparseTransformer(nn.Module):
                             grad_accum_steps=1, eval_freq=None, scheduler_type=None,
                             early_stopping=False, early_stopping_patience=5, 
                             warmup_steps_pct=0.05, final_decay_pct=0.2,
-                            plot_weights_freq=10, plot_input_shape=(28, 28),
+                            plot_weights_freq=0, plot_input_shape=(28, 28),
                             plot_save_dir=None):
         """
         Enhanced training method with more options and better monitoring.
