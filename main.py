@@ -516,7 +516,19 @@ def main():
             )
         else:
             print(f"Loading pre-trained SAE model from {sae_model_path}")
-            sae_model.load_state_dict(torch.load(sae_model_path))
+            checkpoint = torch.load(sae_model_path)
+            if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+                print(f"Loading model state from checkpoint")
+                sae_model.load_state_dict(checkpoint['model_state_dict'])
+                # Optionally load other training state if needed
+                if 'lambda_l1' in checkpoint:
+                    sae_model.lambda_l1 = checkpoint['lambda_l1']
+                    print(f"Also loaded lambda_l1 = {sae_model.lambda_l1}")
+            else:
+                # If it's already just a state dict, load directly
+                print(f"Loading state dict directly")
+                sae_model.load_state_dict(checkpoint)
+            print(f"Model loaded successfully.")
             print(f"Model loaded successfully.")
         
         # Calculate feature activations
