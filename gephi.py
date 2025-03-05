@@ -148,10 +148,6 @@ def create_gephi_graph(feature_extract: np.ndarray,
     # Convert distances to weights
     nn.data = np.exp(-nn.data**2 / np.mean(nn.data)**2)
     
-    # Filter out edges with weights below threshold
-    nn.data[nn.data < min_edge_weight] = 0
-    nn.eliminate_zeros()  # Remove zero entries from the sparse matrix
-    
     # Create NetworkX graph
     G = nx.DiGraph(nn)
     H = nx.relabel_nodes(G, mapping)

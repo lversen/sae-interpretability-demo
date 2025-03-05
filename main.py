@@ -104,7 +104,7 @@ def parse_args():
     
     # Model parameters
     model_group = parser.add_argument_group('Model Configuration')
-    model_group.add_argument('--model_id', type=str, default='default',
+    model_group.add_argument('--model_id', type=str, default='mnist',
                         help='Model identifier')
     model_group.add_argument('--model_type', type=str, default='both', 
                         choices=['sae', 'st', 'both'],
@@ -326,7 +326,7 @@ def create_graphs(df, feature_activations, args):
         subset_features = features[:subset_size]
         
         # Create graph file path
-        graph_file = os.path.join(graphs_dir, f"{args.model_id}_{model_name}.gexf")
+        graph_file = os.path.join(graphs_dir, f"{args.model_id}_{model_name}_{args.gephi_subset_size}.gexf")
         
         # Create the graph
         create_gephi_graph(
@@ -362,9 +362,9 @@ def main():
     print(f"  Label Column: {args.label_column}")
     print(f"Model: {args.model_type.upper()}")
     print(f"  Input Dimension (n): {args.input_dimension}")
-    print(f"  Feature Dimension (m): {args.feature_dimension or args.input_dimension*8}")
+    print(f"  Feature Dimension (m): {args.feature_dimension or 100}")
     if args.model_type in ['st', 'both']:
-        print(f"  Attention Dimension (a): {args.attention_dimension or args.input_dimension//2}")
+        print(f"  Attention Dimension (a): {args.attention_dimension or 64}")
     print(f"Training:")
     print(f"  Learning Rate: {args.learning_rate}")
     print(f"  Batch Size: {args.batch_size}")
@@ -379,7 +379,7 @@ def main():
     
     # Setup feature dimensions
     n = args.input_dimension
-    m = args.feature_dimension if args.feature_dimension else 8 * n
+    m = args.feature_dimension if args.feature_dimension else 100
     a = args.attention_dimension if args.attention_dimension else 64
     
     # Model parameters
@@ -446,7 +446,7 @@ def main():
         n = train_feature_extract.shape[1]
         # Update m and a accordingly if they were not explicitly set
         if args.feature_dimension is None:
-            m = 8 * n
+            m = 100
         if args.attention_dimension is None:
             a = 64
     
@@ -471,7 +471,7 @@ def main():
         print("="*50)
         
         dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
-        model_suffix = f"{dataset_name}_{args.model_id}"
+        model_suffix = f"{args.model_id}"
         if args.data_type == 'text':
             model_suffix += f"_{args.embedding_model}"
         
@@ -550,7 +550,7 @@ def main():
         print("="*50)
         
         dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
-        model_suffix = f"{dataset_name}_{args.model_id}"
+        model_suffix = f"{args.model_id}"
         if args.data_type == 'text':
             model_suffix += f"_{args.embedding_model}"
             
