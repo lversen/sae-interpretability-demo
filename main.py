@@ -17,6 +17,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import json
+# Add torchinfo import
+from torchinfo import summary as model_summary
 
 # Add custom dataset configurations
 DATASET_CONFIGS = {
@@ -43,6 +45,19 @@ LLM_MODELS = {
     "gte-large": "Alibaba-NLP/gte-large-en-v1.5"
 }
 
+def calculate_attention_dim_for_equal_params(n, m):
+    """
+    Calculate attention dimension 'a' that would make ST and SAE have equal parameters
+    
+    For equal parameters:
+    (n*a + a + m*a + m*n) = (2*n*m + m + n)
+    
+    Solving for a:
+    a(n + m + 1) = m*n + m + n
+    a = (m*n + m + n) / (n + m + 1)
+    """
+    return max(1, int((m*n + m + n) / (n + m + 1)))
+
 def save_config_to_file(args, filename="last_config.json"):
     """Save the current configuration to a JSON file"""
     # Convert args to dictionary
@@ -66,6 +81,37 @@ def list_available_datasets():
     """List all available datasets in the data directory"""
     datasets = glob.glob("data/*.csv")
     return [os.path.basename(ds) for ds in datasets]
+
+# Add new function to display model information
+def display_model_info(model, model_name, input_size=None, verbose=1):
+    """
+    Display detailed information about a model using torchinfo.
+    
+    Args:
+        model: The PyTorch model to analyze
+        model_name: Name of the model for display
+        input_size: Input size tuple for the model (optional)
+        verbose: Verbosity level (0, 1, or 2)
+    """
+    print("\n" + "="*50)
+    print(f"MODEL INFORMATION: {model_name}")
+    print("="*50)
+    
+    # Basic parameter count
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Total Parameters: {total_params:,}")
+    
+    # If input_size provided, use torchinfo for detailed summary
+    if input_size:
+        print(f"\nDetailed Model Summary (input size: {input_size}):")
+        model_summary(model, input_size=input_size, depth=2, verbose=verbose)
+    else:
+        print("\nDetailed Parameter Breakdown:")
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(f"{name:<30} {str(list(param.shape)):>20} {param.numel():>12,}")
+    
+    print("="*50)
 
 def parse_args():
     """Parse command line arguments with enhanced dataset and model options"""
@@ -116,7 +162,7 @@ def parse_args():
     model_group.add_argument('--feature_dimension', type=int, default=None,
                         help='Feature dimension (m), defaults to 8*n if not specified')
     model_group.add_argument('--attention_dimension', type=int, default=None,
-                        help='Attention dimension (a) for ST, defaults to n/2 if not specified')
+                        help='Attention dimension (a) for ST, defaults to auto-calculated value to balance parameter count with SAE')
     
     # Training parameters
     training_group = parser.add_argument_group('Training Configuration')
@@ -141,6 +187,9 @@ def parse_args():
                         help='Number of gradient accumulation steps for ST model')
     st_group.add_argument('--eval_freq', type=int, default=None,
                         help='Evaluation frequency during training (steps)')
+    # NEW: Add option for original memory-based approach (direct K-V is default)
+    st_group.add_argument('--use_memory_bank', action='store_true',
+                        help='Use original memory bank approach instead of direct K-V matrices')
     
     # Misc parameters
     misc_group = parser.add_argument_group('Miscellaneous Configuration')
@@ -160,6 +209,11 @@ def parse_args():
                         help='Save current configuration to a JSON file')
     misc_group.add_argument('--load_config', type=str, default=None,
                         help='Load configuration from a JSON file')
+    # Add new parameter for model info display
+    misc_group.add_argument('--show_model_info', action='store_true',
+                        help='Display detailed model information using torchinfo')
+    misc_group.add_argument('--model_info_verbosity', type=int, default=1, choices=[0, 1, 2],
+                        help='Verbosity level for model information (0=minimal, 2=detailed)')
     
     args = parser.parse_args()
     
@@ -181,7 +235,7 @@ def parse_args():
                     isinstance(getattr(args, k), bool) and 
                     k not in ['force_retrain', 'force_reembedding', 'use_mixed_precision',
                              'visualize_decoder', 'perform_classification', 'create_graph',
-                             'save_config']
+                             'save_config', 'use_memory_bank', 'show_model_info']
                 ):
                     setattr(args, k, v)
             print(f"Loaded configuration from {args.load_config}")
@@ -363,15 +417,6 @@ def main():
     print(f"Model: {args.model_type.upper()}")
     print(f"  Input Dimension (n): {args.input_dimension}")
     print(f"  Feature Dimension (m): {args.feature_dimension or 100}")
-    if args.model_type in ['st', 'both']:
-        print(f"  Attention Dimension (a): {args.attention_dimension or 64}")
-    print(f"Training:")
-    print(f"  Learning Rate: {args.learning_rate}")
-    print(f"  Batch Size: {args.batch_size}")
-    print(f"  Target Steps: {args.target_steps}")
-    print(f"  L1 Lambda: {args.l1_lambda}")
-    print(f"  Force Retrain: {args.force_retrain}")
-    print("="*50)
     
     # Set device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -380,7 +425,25 @@ def main():
     # Setup feature dimensions
     n = args.input_dimension
     m = args.feature_dimension if args.feature_dimension else 100
-    a = args.attention_dimension if args.attention_dimension else 64
+    
+    # Calculate default attention dimension to match parameter count
+    if args.attention_dimension is None:
+        args.attention_dimension = calculate_attention_dim_for_equal_params(n, m)
+        a = args.attention_dimension
+        print(f"  Attention Dimension (a): {a} (auto-calculated for balanced parameter count)")
+    else:
+        a = args.attention_dimension
+        print(f"  Attention Dimension (a): {a} (user-specified)")
+    
+    if args.model_type in ['st', 'both']:
+        print(f"  ST Architecture: {'Memory Bank' if args.use_memory_bank else 'Direct K-V Matrices'}")
+    print(f"Training:")
+    print(f"  Learning Rate: {args.learning_rate}")
+    print(f"  Batch Size: {args.batch_size}")
+    print(f"  Target Steps: {args.target_steps}")
+    print(f"  L1 Lambda: {args.l1_lambda}")
+    print(f"  Force Retrain: {args.force_retrain}")
+    print("="*50)
     
     # Model parameters
     model_params = {
@@ -444,11 +507,13 @@ def main():
     if train_feature_extract.shape[1] != n:
         print(f"Input dimension updated from {n} to {train_feature_extract.shape[1]} based on extracted features")
         n = train_feature_extract.shape[1]
-        # Update m and a accordingly if they were not explicitly set
-        if args.feature_dimension is None:
-            m = 100
-        if args.attention_dimension is None:
-            a = 64
+    # Update m and a accordingly if they were not explicitly set
+    if args.feature_dimension is None:
+        print("No feature dimension specified, defaulting to 100")
+        args.feature_dimension = 100
+    if args.attention_dimension is None:
+        a = calculate_attention_dim_for_equal_params(n, m)
+        print(f"  Attention Dimension also updated to: {a} (to maintain balanced parameter count)")
     
     # Create model directories
     os.makedirs('models', exist_ok=True)
@@ -505,6 +570,12 @@ def main():
         # Create the SAE model with the correct dimensions
         sae_model = SparseAutoencoder(n, m, sae_model_path, args.l1_lambda, device)
         
+        # Display model information if requested
+        if args.show_model_info:
+            # Prepare input size for torchinfo based on the model
+            input_size = (args.batch_size, n)
+            display_model_info(sae_model, "SAE", input_size, verbose=args.model_info_verbosity)
+        
         # Train or load model
         if args.force_retrain or not os.path.exists(sae_model_path):
             print(f"Training SAE from scratch...")
@@ -530,7 +601,6 @@ def main():
                 print(f"Loading state dict directly")
                 sae_model.load_state_dict(checkpoint)
             print(f"Model loaded successfully.")
-            print(f"Model loaded successfully.")
         
         # Calculate feature activations
         with torch.no_grad():
@@ -551,12 +621,18 @@ def main():
         print("="*50)
         
         dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
-        model_suffix = f"{args.model_id}_{args.feature_dimension}"
+        model_suffix = f"{args.model_id}_{args.attention_dimension}_{args.feature_dimension}"
         if args.data_type == 'text':
             model_suffix += f"_{args.embedding_model}"
-            
-        st_model_path = f'models/st_model_{model_suffix}.pth'
-
+        
+        # Add suffix based on architecture approach
+        if args.use_memory_bank:
+            model_suffix += "_memory"
+            st_model_path = f'models/st_model_{model_suffix}.pth'
+        else:
+            model_suffix += "_direct"
+            st_model_path = f'models/st_model_{model_suffix}.pth'
+        
         # Check if the ST model file exists, and if so, examine its dimensions
         if os.path.exists(st_model_path):
             try:
@@ -591,7 +667,6 @@ def main():
             except Exception as e:
                 print(f"Error checking model dimensions: {e}")
                 print(f"Using specified dimensions: m={m}, a={a}")
-
         # Create the ST model with the correct dimensions
         st_model = SparseTransformer(
             X=train_feature_extract,
@@ -603,8 +678,15 @@ def main():
             num_heads=1,
             device=device,
             activation_threshold=args.activation_threshold,
-            use_mixed_precision=args.use_mixed_precision
+            use_mixed_precision=args.use_mixed_precision,
+            use_direct_kv=not args.use_memory_bank  # Use direct K-V by default unless memory bank is requested
         )
+        
+        # Display model information if requested
+        if args.show_model_info:
+            # Prepare input size for torchinfo based on the model
+            input_size = (args.batch_size, n)
+            display_model_info(st_model, "ST", input_size, verbose=args.model_info_verbosity)
         
         # Train or load model
         if args.force_retrain or not os.path.exists(st_model_path):
@@ -616,7 +698,8 @@ def main():
                 batch_size=model_params['batch_size'],
                 target_steps=model_params['target_steps'],
                 grad_accum_steps=args.grad_accum_steps,
-                eval_freq=args.eval_freq
+                eval_freq=args.eval_freq,
+                resume_from=st_model_path+".step150000" if not os.path.exists(st_model_path) else None
             )
         else:
             print(f"Loading pre-trained ST model from {st_model_path}")
@@ -638,6 +721,45 @@ def main():
         if args.visualize_decoder:
             print("\nVisualizing ST feature activations...")
             visualize_feature_activations(st_activations, "ST Feature Activations")
+    
+    # Display comparative parameter analysis if both models are trained
+    if args.model_type == 'both' and args.show_model_info:
+        print("\n" + "="*50)
+        print("COMPARATIVE PARAMETER ANALYSIS")
+        print("="*50)
+        
+        # Calculate total parameters for each model
+        sae_params = sum(p.numel() for p in sae_model.parameters() if p.requires_grad)
+        st_params = sum(p.numel() for p in st_model.parameters() if p.requires_grad)
+        
+        print(f"SAE Model: {sae_params:,} parameters")
+        print(f"ST Model: {st_params:,} parameters")
+        print(f"Difference: {st_params - sae_params:,} parameters ({st_params/sae_params:.2f}x)")
+        
+        # Display key dimensions
+        print("\nModel Dimensions:")
+        print(f"Input dimension (n): {n}")
+        print(f"Feature dimension (m): {m}")
+        print(f"Attention dimension (a): {a}")
+        
+        # Display key component sizes
+        print("\nComponent Parameter Counts:")
+        print("SAE Components:")
+        for name, param in sae_model.named_parameters():
+            if param.requires_grad:
+                print(f"  {name}: {param.numel():,} parameters ({' × '.join(str(d) for d in param.shape)})")
+        
+        print("\nST Components:")
+        key_components = []
+        for name, param in st_model.named_parameters():
+            if param.requires_grad:
+                key_components.append((name, param.numel(), param.shape))
+        
+        # Sort by parameter count (largest first)
+        for name, count, shape in sorted(key_components, key=lambda x: x[1], reverse=True):
+            print(f"  {name}: {count:,} parameters ({' × '.join(str(d) for d in shape)})")
+        
+        print("="*50)
     
     # Perform classification if requested
     if args.perform_classification and args.label_column in train_sample_df.columns:

@@ -25,26 +25,27 @@ from sklearn.cluster import KMeans
 
 class SparseTransformer(nn.Module):
     """
-    SparseTransformer: A transformer-based model for learning sparse representations.
+    Modified SparseTransformer with direct K-V matrices option.
     
-    This model uses a cross-attention mechanism where queries come from input data
-    and keys/values come from a memory bank of samples. The model learns to reconstruct
-    inputs while promoting sparsity in the attention patterns.
+    This version supports both the original memory bank approach and a new direct
+    approach where K and V are directly parameterized as matrices rather than 
+    computed from memory samples.
     
-    Features:
-    - Efficient attention implementation optimized for the ST architecture
-    - Dynamic memory bank with strategic sample selection
-    - Robust training with mixed precision, gradient accumulation, and advanced scheduling
-    - Comprehensive feature analysis and visualization capabilities
-    - Memory-efficient implementation with automatic resource management
+    Original approach:
+        - Maintain memory bank of indices
+        - Compute K and V by projecting memory samples: K = W_k(X_cross), V = W_v(X_cross)
+    
+    New direct approach:
+        - Directly use learnable parameter matrices W_k_direct and W_v_direct
+        - Dimensions: W_k_direct (m x a), W_v_direct (m x n)
     """
     
     def __init__(self, X, n: int, m: int, a: int, st_model_path: str,
                  lambda_l1: float = 5.0, num_heads: int = 1, device: str = 'cuda',
                  window_size: int = 10_000_000, update_interval: int = 1_000,
                  activation_threshold: float = 1e-3, use_mixed_precision: bool = True,
-                 use_compile: bool = True, memory_strategy: str = 'diversity',
-                 log_level: str = 'INFO'):
+                 use_compile: bool = False, memory_strategy: str = 'diversity',
+                 log_level: str = 'INFO', use_direct_kv: bool = True):
         """
         Initialize the Sparse Transformer model.
         
@@ -64,6 +65,7 @@ class SparseTransformer(nn.Module):
             use_compile: Whether to use torch.compile for optimization (PyTorch 2.0+)
             memory_strategy: Strategy for memory bank updates ('random', 'diversity', 'kmeans', 'importance')
             log_level: Logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR')
+            use_direct_kv: Whether to use direct K-V matrices instead of memory bank approach
         """
         super().__init__()
         
@@ -83,15 +85,23 @@ class SparseTransformer(nn.Module):
         self.use_mixed_precision = use_mixed_precision
         self.use_compile = use_compile
         self.memory_strategy = memory_strategy
+        self.use_direct_kv = use_direct_kv  # Flag to control which approach to use
         self.training_history = {"steps": [], "train_loss": [], "val_loss": [], 
                                 "l1_loss": [], "l2_loss": [], "lambda": [], 
                                 "dead_ratio": [], "sparsity": [], "avg_feature_norm": []}
         
-        # Projections
-        self.W_q = nn.Linear(n, a)
-        self.W_k = nn.Linear(n, a)
-        self.W_v = nn.Linear(n, n)
+        # Projections for original approach
+        self.W_q = nn.Linear(n, a)  # Always needed
         
+        if self.use_direct_kv:
+            # Only create direct parameter matrices
+            self.W_k_direct = nn.Parameter(torch.Tensor(self.m, self.a))
+            self.W_v_direct = nn.Parameter(torch.Tensor(self.m, self.n))
+            # Don't create W_k and W_v at all
+        else:
+            # Only create memory-based projection matrices
+            self.W_k = nn.Linear(n, a)
+            self.W_v = nn.Linear(n, n)
         # Normalization layers
         self.norm_q = nn.LayerNorm(a)
         self.norm_k = nn.LayerNorm(a)
@@ -105,7 +115,7 @@ class SparseTransformer(nn.Module):
             update_interval=update_interval
         )
         
-        # Initialize memory indices with improved strategy
+        # Initialize memory indices (only needed for original approach)
         self.register_buffer('memory_indices', self._initial_memory_selection())
         self.memory_indices_for_update = None
         
@@ -121,6 +131,12 @@ class SparseTransformer(nn.Module):
         else:
             if self.use_compile and not hasattr(torch, 'compile'):
                 self.logger.warning("torch.compile requested but not available. Using regular model.")
+        
+        # Log which approach is being used
+        if self.use_direct_kv:
+            self.logger.info("Using direct K-V matrices approach")
+        else:
+            self.logger.info("Using original memory bank approach")
     
     def _setup_logger(self, log_level: str) -> logging.Logger:
         """Setup logger for the model"""
@@ -142,15 +158,12 @@ class SparseTransformer(nn.Module):
     def _initial_memory_selection(self) -> torch.Tensor:
         """
         Initialize memory indices using a strategic selection approach.
-        
-        For initial selection, we use a more sophisticated approach than random:
-        - For small m, use KMeans to get diverse representatives
-        - For large m, use a combination of KMeans and random selection
-        
-        Returns:
-            Tensor of selected indices
+        Only used when not using direct K-V matrices.
         """
-        # Initially, we'll use a mix of strategies depending on data size
+        # Only needed for original approach
+        if self.use_direct_kv:
+            return torch.zeros(self.m, dtype=torch.long, device=self.device)
+            
         self.logger.info(f"Initializing memory bank with {self.m} indices using strategy: {self.memory_strategy}")
         
         if self.X.shape[0] <= self.m:
@@ -203,11 +216,6 @@ class SparseTransformer(nn.Module):
                 is_causal=False, scale=None) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Optimized scaled dot-product attention implementation for ST models.
-        
-        This implementation is specifically optimized for the ST model's usage pattern:
-        - Efficiently handles batched queries against memory bank keys/values
-        - Uses optimized matrix operations for better performance
-        - Allocates memory efficiently for faster computation
         
         Args:
             query: Query tensor of shape [N, a] where N is batch size and a is attention dimension
@@ -276,8 +284,6 @@ class SparseTransformer(nn.Module):
         """
         Forward pass for the SparseTransformer model.
         
-        During training, periodically updates memory indices based on the selected strategy.
-        
         Args:
             x: Input tensor of shape [N, n]
             
@@ -288,8 +294,8 @@ class SparseTransformer(nn.Module):
             - f: Feature activations (attention weights)
             - v: Value vectors
         """
-        # Update memory indices periodically during training
-        if self.training and self.steps % self.memory_update_freq == 0:
+        # Update memory indices periodically during training (for original approach)
+        if not self.use_direct_kv and self.training and self.steps % self.memory_update_freq == 0:
             # Only update after initial phase and before final phase
             if self.steps > self.total_steps // 20 and self.steps < self.total_steps * 0.8:
                 with torch.no_grad():
@@ -302,18 +308,28 @@ class SparseTransformer(nn.Module):
         
         self.steps += 1
         
-        # Get cross attention context
-        X_cross = self.X[self.memory_indices]  # Shape: [m, n]
-        C = self.preprocess(X_cross)
-        X_cross = X_cross / C  # Use new tensor to avoid modifying self.X
-        
         # Type conversion for input x
         x = self.type_check(x)  # Shape: [N, n]
         
-        # Project to attention space
-        q = self.norm_q(self.W_q(x))  # Shape: [N, a]
-        k = self.norm_k(self.W_k(X_cross))  # Shape: [m, a]
-        v = self.norm_v(self.W_v(X_cross))  # Shape: [m, n]
+        if self.use_direct_kv:
+            # DIRECT K-V APPROACH
+            # Project input to query space
+            q = self.norm_q(self.W_q(x))  # Shape: [N, a]
+            
+            # Use direct parameter matrices for keys and values
+            k = self.norm_k(self.W_k_direct)  # Shape: [m, a]
+            v = self.norm_v(self.W_v_direct)  # Shape: [m, n]
+        else:
+            # ORIGINAL APPROACH WITH MEMORY BANK
+            # Get cross attention context
+            X_cross = self.X[self.memory_indices]  # Shape: [m, n]
+            C = self.preprocess(X_cross)
+            X_cross = X_cross / C  # Use new tensor to avoid modifying self.X
+            
+            # Project to attention space
+            q = self.norm_q(self.W_q(x))  # Shape: [N, a]
+            k = self.norm_k(self.W_k(X_cross))  # Shape: [m, a]
+            v = self.norm_v(self.W_v(X_cross))  # Shape: [m, n]
         
         # Use PyTorch's native attention if available (PyTorch 2.0+)
         if hasattr(F, 'scaled_dot_product_attention'):
@@ -407,45 +423,35 @@ class SparseTransformer(nn.Module):
         return C
         
     def initialize_weights(self):
-        """
-        Initialize weights with a reasonable scheme for ST model.
-        
-        For ST, we initialize:
-        - Query and Key projections with normal distribution scaled by input dimension
-        - Value projection with a scheme similar to the attention heads in transformers
-        """
         with torch.no_grad():
-            # Initialize query and key projections
+            # Initialize query projection (always used)
             nn.init.normal_(self.W_q.weight, mean=0.0, std=0.02)
-            nn.init.normal_(self.W_k.weight, mean=0.0, std=0.02)
-            
-            # For value projection, use Kaiming initialization
-            nn.init.kaiming_uniform_(self.W_v.weight, a=math.sqrt(5))
-            
-            # Initialize biases to zero if they exist
             if hasattr(self.W_q, 'bias') and self.W_q.bias is not None:
                 nn.init.zeros_(self.W_q.bias)
-            if hasattr(self.W_k, 'bias') and self.W_k.bias is not None:
-                nn.init.zeros_(self.W_k.bias)
-            if hasattr(self.W_v, 'bias') and self.W_v.bias is not None:
-                nn.init.zeros_(self.W_v.bias)
+            
+            if self.use_direct_kv:
+                # Initialize direct K-V matrices
+                nn.init.normal_(self.W_k_direct, mean=0.0, std=0.02)
+                nn.init.kaiming_uniform_(self.W_v_direct, a=math.sqrt(5))
+            else:
+                # Initialize memory-based projections
+                nn.init.normal_(self.W_k.weight, mean=0.0, std=0.02)
+                nn.init.kaiming_uniform_(self.W_v.weight, a=math.sqrt(5))
+                
+                if hasattr(self.W_k, 'bias') and self.W_k.bias is not None:
+                    nn.init.zeros_(self.W_k.bias)
+                if hasattr(self.W_v, 'bias') and self.W_v.bias is not None:
+                    nn.init.zeros_(self.W_v.bias)
     
     def update_memory_indices(self, f_x=None):
         """
         Update memory indices using the selected strategy.
-        
-        Strategies:
-        - 'random': Random selection from the dataset
-        - 'diversity': Select samples that activate diverse features
-        - 'kmeans': Use k-means clustering to find representative samples
-        - 'importance': Weight samples by reconstruction error (harder samples get higher weight)
-        
-        Args:
-            f_x: Optional feature activations to base selection on
-            
-        Returns:
-            Updated memory indices tensor
+        Only used for the original approach.
         """
+        # Only relevant for original approach
+        if self.use_direct_kv:
+            return torch.zeros(self.m, dtype=torch.long, device=self.device)
+            
         # If we're in the first 10% of training, use random selection regardless
         if self.steps < self.total_steps * 0.1:
             return torch.randint(0, self.X.shape[0], (self.m,), device=self.device)
@@ -1442,3 +1448,44 @@ class SparseTransformer(nn.Module):
             'lambda': best_config['lambda'],
             'all_results': results
         }
+    
+    def set_direct_kv_mode(self, use_direct_kv: bool):
+        # Check if we're actually changing the mode
+        if self.use_direct_kv == use_direct_kv:
+            return
+            
+        self.use_direct_kv = use_direct_kv
+        
+        # Remove old parameters and create new ones
+        if self.use_direct_kv:
+            # Remove memory approach parameters
+            if hasattr(self, 'W_k'):
+                delattr(self, 'W_k')
+            if hasattr(self, 'W_v'):
+                delattr(self, 'W_v')
+                
+            # Create direct K-V parameters
+            self.W_k_direct = nn.Parameter(torch.Tensor(self.m, self.a))
+            self.W_v_direct = nn.Parameter(torch.Tensor(self.m, self.n))
+            
+            # Initialize new parameters
+            with torch.no_grad():
+                nn.init.normal_(self.W_k_direct, mean=0.0, std=0.02)
+                nn.init.kaiming_uniform_(self.W_v_direct, a=math.sqrt(5))
+        else:
+            # Remove direct K-V parameters
+            if hasattr(self, 'W_k_direct'):
+                delattr(self, 'W_k_direct')
+            if hasattr(self, 'W_v_direct'):
+                delattr(self, 'W_v_direct')
+                
+            # Create memory approach parameters
+            self.W_k = nn.Linear(self.n, self.a)
+            self.W_v = nn.Linear(self.n, self.n)
+            
+            # Initialize new parameters
+            with torch.no_grad():
+                nn.init.normal_(self.W_k.weight, mean=0.0, std=0.02)
+                nn.init.kaiming_uniform_(self.W_v.weight, a=math.sqrt(5))
+        
+        self.logger.warning("Model parameters have been reset! You will need to retrain.")
