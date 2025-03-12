@@ -471,11 +471,12 @@ def main():
         print("="*50)
         
         dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
-        model_suffix = f"{args.model_id}"
+        model_suffix = f"{args.model_id}_{args.feature_dimension}"
         if args.data_type == 'text':
             model_suffix += f"_{args.embedding_model}"
         
         sae_model_path = f'models/sae_model_{model_suffix}.pth'
+        print(f"SAE model path: {sae_model_path}")
 
         # Check if the SAE model file exists, and if so, examine its dimensions
         if os.path.exists(sae_model_path):
@@ -550,7 +551,7 @@ def main():
         print("="*50)
         
         dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
-        model_suffix = f"{args.model_id}"
+        model_suffix = f"{args.model_id}_{args.feature_dimension}"
         if args.data_type == 'text':
             model_suffix += f"_{args.embedding_model}"
             

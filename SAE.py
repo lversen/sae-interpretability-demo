@@ -289,6 +289,7 @@ class SparseAutoencoder(nn.Module):
                 # Lambda warmup - linear increase from 0 to final_lambda over first 5% of steps
                 if current_step < warmup_steps:
                     self.lambda_l1 = (current_step / warmup_steps) * final_lambda
+
                 else:
                     self.lambda_l1 = final_lambda
                 
@@ -340,7 +341,7 @@ class SparseAutoencoder(nn.Module):
                     sys.stdout.flush()  # Force output flush
                     
                     # Save periodic checkpoints
-                    if current_step % 50000 == 0:
+                    if current_step % 50000 == 0 and current_step > 0:
                         checkpoint_path = f"{self.sae_model_path}.step{current_step}"
                         checkpoint = {
                             'model_state_dict': self.state_dict(),
