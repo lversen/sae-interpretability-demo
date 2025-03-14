@@ -207,7 +207,7 @@ def load_sae_decoder_weights(model_path, device='cpu'):
 
 def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu'):
     """
-    Load an ST model and compute its value vectors
+    Load an ST model and compute its value vectors with support for direct K-V approach
     
     Args:
         model_path: Path to the ST model file
@@ -233,95 +233,124 @@ def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu
             state_dict = checkpoint
             model_info = {'step': 0, 'dead_ratio': 0, 'lambda_l1': 0}
         
-        # Extract model dimensions and memory indices
-        if 'W_q.weight' in state_dict and 'W_k.weight' in state_dict and 'W_v.weight' in state_dict:
-            n = state_dict['W_v.weight'].shape[1]  # Input dimension
-            a = state_dict['W_q.weight'].shape[0]  # Attention dimension
-            
-            # Get memory indices
-            memory_indices = None
-            if 'memory_indices' in state_dict:
-                memory_indices = state_dict['memory_indices'].cpu()
-                m = len(memory_indices)
+        # Check if the model uses direct K-V approach
+        use_direct_kv = 'W_k_direct' in state_dict and 'W_v_direct' in state_dict
+        
+        if use_direct_kv:
+            print("Detected direct K-V approach in the model")
+            # For direct approach, extract the value vectors directly
+            if 'W_v_direct' in state_dict:
+                # Get the value matrix directly
+                v = state_dict['W_v_direct'].cpu()
+                
+                # Check if the model has a value normalization layer
+                if 'norm_v.weight' in state_dict and 'norm_v.bias' in state_dict:
+                    # Apply normalization if available
+                    weight = state_dict['norm_v.weight'].cpu()
+                    bias = state_dict['norm_v.bias'].cpu()
+                    v = v * weight + bias
+                
+                # Calculate norms
+                v_norms = torch.norm(v, p=2, dim=1)
+                
+                print(f"Extracted {len(v)} value vectors directly with shape {v.shape}")
+                return v.numpy(), v_norms.numpy(), model_info
             else:
-                # Estimate based on common ratios
-                m = 8 * n  # Common default is 8*n
+                raise ValueError("Could not find W_v_direct in the direct K-V model")
         else:
-            raise ValueError("Could not determine model dimensions from state_dict")
-        
-        print(f"Model dimensions: n={n}, m={m}, a={a}")
-        
-        # Verify memory indices are within bounds of data tensor
-        if memory_indices is not None:
-            max_index = memory_indices.max().item()
-            data_size = data_tensor.shape[0]
+            # Original memory bank approach - rest of the existing function
+            print("Using memory bank approach to compute value vectors")
             
-            if max_index >= data_size:
-                print(f"Warning: Memory indices in model go up to {max_index} but dataset only has {data_size} samples")
-                print(f"Generating synthetic data for out-of-bounds indices")
+            # Extract model dimensions and memory indices
+            if 'W_q.weight' in state_dict and 'W_k.weight' in state_dict and 'W_v.weight' in state_dict:
+                n = state_dict['W_v.weight'].shape[1]  # Input dimension
+                a = state_dict['W_q.weight'].shape[0]  # Attention dimension
                 
-                # Create extended tensor with synthetic data for missing indices
-                extended_tensor = torch.zeros((max_index + 1, data_tensor.shape[1]), 
-                                             dtype=data_tensor.dtype)
-                
-                # Copy actual data
-                extended_tensor[:data_size] = data_tensor
-                
-                # Generate synthetic data for the rest
-                if data_size > 0:
-                    # Use mean and std of real data for better synthetic data
-                    mean = data_tensor.mean(dim=0)
-                    std = data_tensor.std(dim=0)
-                    extended_tensor[data_size:] = torch.randn(
-                        (max_index + 1 - data_size, data_tensor.shape[1]), 
-                        dtype=data_tensor.dtype) * std + mean
+                # Get memory indices
+                memory_indices = None
+                if 'memory_indices' in state_dict:
+                    memory_indices = state_dict['memory_indices'].cpu()
+                    m = len(memory_indices)
                 else:
-                    # Just use random normal if no real data
-                    extended_tensor[data_size:] = torch.randn(
-                        (max_index + 1 - data_size, data_tensor.shape[1]), 
-                        dtype=data_tensor.dtype)
-                
-                data_tensor = extended_tensor
-                print(f"Extended data tensor to size {data_tensor.shape}")
-        
-        # Create minimal ST model for computing value vectors
-        from ST import SparseTransformer
-        
-        # Create a very minimal model just to compute value vectors
-        st_model = SparseTransformer(
-            X=data_tensor,
-            n=n,
-            m=m,
-            a=a,
-            st_model_path="temp.pth",  # Temporary path
-            device=device
-        )
-        
-        # Load state dict
-        st_model.load_state_dict(state_dict)
-        
-        # Get memory indices (now guaranteed to be within bounds)
-        memory_indices = st_model.memory_indices
-        
-        # Compute value vectors
-        st_model.eval()
-        with torch.no_grad():
-            # Get memory samples
-            X_cross = data_tensor[memory_indices]
+                    # Estimate based on common ratios
+                    m = 8 * n  # Common default is 8*n
+            else:
+                raise ValueError("Could not determine model dimensions from state_dict")
             
-            # Preprocess
-            C = st_model.preprocess(X_cross)
-            X_cross = X_cross / C
+            print(f"Model dimensions: n={n}, m={m}, a={a}")
+            
+            # Verify memory indices are within bounds of data tensor
+            if memory_indices is not None:
+                max_index = memory_indices.max().item()
+                data_size = data_tensor.shape[0]
+                
+                if max_index >= data_size:
+                    print(f"Warning: Memory indices in model go up to {max_index} but dataset only has {data_size} samples")
+                    print(f"Generating synthetic data for out-of-bounds indices")
+                    
+                    # Create extended tensor with synthetic data for missing indices
+                    extended_tensor = torch.zeros((max_index + 1, data_tensor.shape[1]), 
+                                                 dtype=data_tensor.dtype)
+                    
+                    # Copy actual data
+                    extended_tensor[:data_size] = data_tensor
+                    
+                    # Generate synthetic data for the rest
+                    if data_size > 0:
+                        # Use mean and std of real data for better synthetic data
+                        mean = data_tensor.mean(dim=0)
+                        std = data_tensor.std(dim=0)
+                        extended_tensor[data_size:] = torch.randn(
+                            (max_index + 1 - data_size, data_tensor.shape[1]), 
+                            dtype=data_tensor.dtype) * std + mean
+                    else:
+                        # Just use random normal if no real data
+                        extended_tensor[data_size:] = torch.randn(
+                            (max_index + 1 - data_size, data_tensor.shape[1]), 
+                            dtype=data_tensor.dtype)
+                    
+                    data_tensor = extended_tensor
+                    print(f"Extended data tensor to size {data_tensor.shape}")
+            
+            # Create minimal ST model for computing value vectors
+            from ST import SparseTransformer
+            
+            # Create a very minimal model just to compute value vectors
+            st_model = SparseTransformer(
+                X=data_tensor,
+                n=n,
+                m=m,
+                a=a,
+                st_model_path="temp.pth",  # Temporary path
+                device=device,
+                use_direct_kv=False  # Force memory bank approach
+            )
+            
+            # Load state dict
+            st_model.load_state_dict(state_dict)
+            
+            # Get memory indices (now guaranteed to be within bounds)
+            memory_indices = st_model.memory_indices
             
             # Compute value vectors
-            v = st_model.norm_v(st_model.W_v(X_cross))
+            st_model.eval()
+            with torch.no_grad():
+                # Get memory samples
+                X_cross = data_tensor[memory_indices]
+                
+                # Preprocess
+                C = st_model.preprocess(X_cross)
+                X_cross = X_cross / C
+                
+                # Compute value vectors
+                v = st_model.norm_v(st_model.W_v(X_cross))
+                
+                # Calculate norms
+                v_norms = torch.norm(v, p=2, dim=1)
             
-            # Calculate norms
-            v_norms = torch.norm(v, p=2, dim=1)
-        
-        print(f"Computed {len(v)} value vectors with shape {v.shape}")
-        return v.cpu().numpy(), v_norms.cpu().numpy(), model_info
-        
+            print(f"Computed {len(v)} value vectors with shape {v.shape}")
+            return v.cpu().numpy(), v_norms.cpu().numpy(), model_info
+            
     except Exception as e:
         print(f"Error computing value vectors: {e}")
         import traceback

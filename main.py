@@ -30,6 +30,14 @@ DATASET_CONFIGS = {
         "label_column": "label",
         "input_dimension": 784,
     },
+    "fashion_mnist": {
+        "train_dataset": "data/fashion_mnist_train.csv",
+        "val_dataset": "data/fashion_mnist_test.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(784)],
+        "label_column": "label",
+        "input_dimension": 784,
+    },
     "stack_exchange": {
         "train_dataset": "data/stack_exchange_train.csv",
         "val_dataset": "data/stack_exchange_val.csv",
@@ -113,6 +121,59 @@ def display_model_info(model, model_name, input_size=None, verbose=1):
     
     print("="*50)
 
+def calculate_optimal_training_steps(
+    feature_dimension: int, 
+    input_dimension: int, 
+    model_type: str = 'sae',
+    base_steps: int = 200_000, 
+    min_steps: int = 50_000, 
+    max_steps: int = 1_000_000
+) -> int:
+    """
+    Calculate the optimal number of training steps based on feature dimension and input dimension,
+    following scaling laws for dictionary learning as described in the research paper.
+    
+    Args:
+        feature_dimension: The feature dimension (m)
+        input_dimension: The input dimension (n)
+        model_type: Type of model ('sae' or 'st')
+        base_steps: Base number of steps for reference configuration (8*n features)
+        min_steps: Minimum number of steps to return
+        max_steps: Maximum number of steps to return
+        
+    Returns:
+        Recommended number of training steps
+    """
+    # Calculate the ratio of features to input dimension
+    feature_ratio = feature_dimension / input_dimension
+    
+    # Reference configuration from the paper: 8*n features with 200,000 steps
+    reference_ratio = 8.0
+    
+    # Apply scaling law based on the paper's findings
+    # The paper suggests that optimal training steps scale with features with an exponent between 0.5 and 1
+    # We use 0.75 as a middle ground based on the power law relationship observed in the paper
+    scaling_exponent = 0.75
+    
+    # Calculate the scaling factor based on how our feature ratio differs from reference
+    if feature_ratio <= 0:
+        scaling_factor = 1.0  # Protection against division by zero
+    else:
+        scaling_factor = (feature_ratio / reference_ratio) ** scaling_exponent
+    
+    # Apply scaling factor to the base steps
+    optimal_steps = int(base_steps * scaling_factor)
+    
+    # Ensure we're within reasonable bounds
+    optimal_steps = max(min_steps, min(optimal_steps, max_steps))
+    
+    # ST models might benefit from more steps due to more complex optimization
+    if model_type.lower() == 'st':
+        optimal_steps = int(optimal_steps * 1.2)  # 20% more steps for ST models
+        optimal_steps = min(optimal_steps, max_steps)
+    
+    return optimal_steps
+
 def parse_args():
     """Parse command line arguments with enhanced dataset and model options"""
     parser = argparse.ArgumentParser(description='Run SAE and ST training with flexible dataset and model configuration')
@@ -150,15 +211,15 @@ def parse_args():
     
     # Model parameters
     model_group = parser.add_argument_group('Model Configuration')
-    model_group.add_argument('--model_id', type=str, default='mnist',
-                        help='Model identifier')
+    model_group.add_argument('--model_id', type=str, default=None,
+                        help='Model identifier (defaults to dataset name if not specified)')
     model_group.add_argument('--model_type', type=str, default='both', 
                         choices=['sae', 'st', 'both'],
                         help='Type of model to train')
     model_group.add_argument('--n_train', type=int, default=None,
-                        help='Number of training samples to use')
+                        help='Number of training samples to use (defaults to max available)')
     model_group.add_argument('--n_val', type=int, default=None,
-                        help='Number of validation samples to use')
+                        help='Number of validation samples to use (defaults to max available)')
     model_group.add_argument('--feature_dimension', type=int, default=None,
                         help='Feature dimension (m), defaults to 8*n if not specified')
     model_group.add_argument('--attention_dimension', type=int, default=None,
@@ -214,6 +275,15 @@ def parse_args():
                         help='Display detailed model information using torchinfo')
     misc_group.add_argument('--model_info_verbosity', type=int, default=1, choices=[0, 1, 2],
                         help='Verbosity level for model information (0=minimal, 2=detailed)')
+    # Add new parameters for automatic steps calculation
+    misc_group.add_argument('--auto_steps', action='store_true',
+                        help='Automatically determine optimal number of training steps based on feature dimension')
+    misc_group.add_argument('--auto_steps_base', type=int, default=200000,
+                        help='Base number of steps for auto-steps calculation (default: 200000)')
+    misc_group.add_argument('--auto_steps_min', type=int, default=5000,
+                        help='Minimum number of steps for auto-steps calculation (default: 50000)')
+    misc_group.add_argument('--auto_steps_max', type=int, default=1000000,
+                        help='Maximum number of steps for auto-steps calculation (default: 1000000)')
     
     args = parser.parse_args()
     
@@ -235,7 +305,7 @@ def parse_args():
                     isinstance(getattr(args, k), bool) and 
                     k not in ['force_retrain', 'force_reembedding', 'use_mixed_precision',
                              'visualize_decoder', 'perform_classification', 'create_graph',
-                             'save_config', 'use_memory_bank', 'show_model_info']
+                             'save_config', 'use_memory_bank', 'show_model_info', 'auto_steps']
                 ):
                     setattr(args, k, v)
             print(f"Loaded configuration from {args.load_config}")
@@ -257,24 +327,71 @@ def parse_args():
     if args.input_dimension is None:
         args.input_dimension = dataset_config['input_dimension']
     
-    # Apply default values for training/validation set sizes if not specified
-    if args.n_train is None:
-        # Use a reasonable default based on dataset
-        if 'mnist' in args.train_dataset:
-            args.n_train = 60000
-        elif 'stack_exchange' in args.train_dataset:
-            args.n_train = 60000
-        else:
-            args.n_train = 10000  # Default for other datasets
+    # Set model_id based on dataset if not explicitly provided
+    if args.model_id is None:
+        args.model_id = args.dataset
     
-    if args.n_val is None:
-        # Use a reasonable default based on dataset
-        if 'mnist' in args.val_dataset:
-            args.n_val = 10000
-        elif 'stack_exhange' in args.val_dataset:
-            args.n_val = 10000
+    # Apply default values for training/validation set sizes based on actual dataset sizes
+    if args.n_train is None or args.n_val is None:
+        import pandas as pd
+        import os
+        
+        # Load train dataset to get its size
+        if args.n_train is None and os.path.exists(args.train_dataset):
+            try:
+                # Read only the number of rows without loading the entire dataset
+                # First try a fast count method for CSV files
+                with open(args.train_dataset, 'r') as f:
+                    # Count lines but skip header
+                    train_size = sum(1 for _ in f) - 1
+                print(f"Found {train_size} samples in training dataset")
+                args.n_train = train_size
+            except Exception as e:
+                print(f"Error counting training samples: {e}")
+                # Fallback to defaults
+                if 'mnist' in args.train_dataset:
+                    args.n_train = 60000
+                elif 'stack_exchange' in args.train_dataset:
+                    args.n_train = 60000
+                else:
+                    args.n_train = 10000
         else:
-            args.n_val = 2000  # Default for other datasets
+            # Use reasonable defaults if can't determine size
+            if args.n_train is None:
+                if 'mnist' in args.train_dataset:
+                    args.n_train = 60000
+                elif 'stack_exchange' in args.train_dataset:
+                    args.n_train = 60000
+                else:
+                    args.n_train = 10000
+        
+        # Load validation dataset to get its size
+        if args.n_val is None and os.path.exists(args.val_dataset):
+            try:
+                # Read only the number of rows without loading the entire dataset
+                with open(args.val_dataset, 'r') as f:
+                    # Count lines but skip header
+                    val_size = sum(1 for _ in f) - 1
+                print(f"Found {val_size} samples in validation dataset")
+                args.n_val = val_size
+            except Exception as e:
+                print(f"Error counting validation samples: {e}")
+                # Fallback to defaults
+                if 'mnist' in args.val_dataset:
+                    args.n_val = 10000
+                elif 'stack_exchange' in args.val_dataset:
+                    args.n_val = 10000
+                else:
+                    args.n_val = 2000
+        else:
+            # Use reasonable defaults if can't determine size
+            if args.n_val is None:
+                if 'mnist' in args.val_dataset:
+                    args.n_val = 10000
+                elif 'stack_exchange' in args.val_dataset:
+                    args.n_val = 10000
+                else:
+                    args.n_val = 2000
     
     # Resolve embedding model
     if args.custom_embedding_model:
@@ -380,7 +497,7 @@ def create_graphs(df, feature_activations, args):
         subset_features = features[:subset_size]
         
         # Create graph file path
-        graph_file = os.path.join(graphs_dir, f"{args.model_id}_{model_name}_{args.gephi_subset_size}.gexf")
+        graph_file = os.path.join(graphs_dir, f"{args.model_id}_{model_name}_{args.feature_dimension}_{args.gephi_subset_size}.gexf")
         
         # Create the graph
         create_gephi_graph(
@@ -437,6 +554,57 @@ def main():
     
     if args.model_type in ['st', 'both']:
         print(f"  ST Architecture: {'Memory Bank' if args.use_memory_bank else 'Direct K-V Matrices'}")
+    
+    # Calculate optimal training steps if auto_steps is enabled
+    if args.auto_steps:
+        original_steps = args.target_steps
+        
+        # Calculate optimal steps based on model type
+        if args.model_type in ["sae", "both"]:
+            sae_optimal_steps = calculate_optimal_training_steps(
+                feature_dimension=m,
+                input_dimension=n,
+                model_type='sae',
+                base_steps=args.auto_steps_base,
+                min_steps=args.auto_steps_min,
+                max_steps=args.auto_steps_max
+            )
+            if args.model_type == "sae":
+                args.target_steps = sae_optimal_steps
+                print(f"\n=== Auto-calculated optimal steps for SAE ===")
+                print(f"Feature dimension (m): {m}, Input dimension (n): {n}")
+                print(f"Feature ratio (m/n): {m/n:.2f}")
+                print(f"Optimal training steps: {args.target_steps:,} (was: {original_steps:,})")
+                print("="*50)
+        
+        if args.model_type in ["st", "both"]:
+            st_optimal_steps = calculate_optimal_training_steps(
+                feature_dimension=m,
+                input_dimension=n,
+                model_type='st',
+                base_steps=args.auto_steps_base,
+                min_steps=args.auto_steps_min,
+                max_steps=args.auto_steps_max
+            )
+            if args.model_type == "st":
+                args.target_steps = st_optimal_steps
+                print(f"\n=== Auto-calculated optimal steps for ST ===")
+                print(f"Feature dimension (m): {m}, Input dimension (n): {n}")
+                print(f"Feature ratio (m/n): {m/n:.2f}")
+                print(f"Optimal training steps: {args.target_steps:,} (was: {original_steps:,})")
+                print("="*50)
+        
+        # For "both" model type, use the larger of the two
+        if args.model_type == "both":
+            args.target_steps = max(sae_optimal_steps, st_optimal_steps)
+            print(f"\n=== Auto-calculated optimal steps for SAE+ST ===")
+            print(f"Feature dimension (m): {m}, Input dimension (n): {n}")
+            print(f"Feature ratio (m/n): {m/n:.2f}")
+            print(f"Optimal training steps: {args.target_steps:,} (was: {original_steps:,})")
+            print(f"  - SAE optimal steps: {sae_optimal_steps:,}")
+            print(f"  - ST optimal steps: {st_optimal_steps:,}")
+            print("="*50)
+    
     print(f"Training:")
     print(f"  Learning Rate: {args.learning_rate}")
     print(f"  Batch Size: {args.batch_size}")
@@ -808,6 +976,5 @@ def main():
                     print("\nClassification Accuracy:")
                     for model_name, results in classification_results.items():
                         print(f"  {model_name}: {results['accuracy']:.4f}")
-
 if __name__ == "__main__":
     main()

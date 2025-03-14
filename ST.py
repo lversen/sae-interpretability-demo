@@ -310,7 +310,7 @@ class SparseTransformer(nn.Module):
         
         # Type conversion for input x
         x = self.type_check(x)  # Shape: [N, n]
-        
+        x /= self.preprocess(x)
         if self.use_direct_kv:
             # DIRECT K-V APPROACH
             # Project input to query space
