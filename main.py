@@ -10,9 +10,11 @@ import glob
 from feature_extraction_with_store import feature_extraction_with_store
 from sample_handler import get_consistent_samples
 from SAE import SparseAutoencoder
-from ST import SparseTransformer
-from gephi import create_gephi_graph, select_random_labels
+# Import both ST implementations with different names
+import ST
+import ST_old
 import matplotlib.pyplot as plt
+from gephi import create_gephi_graph, select_random_labels
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
@@ -53,18 +55,47 @@ LLM_MODELS = {
     "gte-large": "Alibaba-NLP/gte-large-en-v1.5"
 }
 
-def calculate_attention_dim_for_equal_params(n, m):
+def calculate_attention_dim_for_equal_params(n, m, use_direct_kv=False):
     """
-    Calculate attention dimension 'a' that would make ST and SAE have equal parameters
+    Calculate attention dimension 'a' that would make ST and SAE have equal parameters,
+    considering both memory bank and direct KV approaches.
     
-    For equal parameters:
-    (n*a + a + m*a + m*n) = (2*n*m + m + n)
+    For equal parameters with direct KV approach:
+    SAE: (2*n*m + m + n)
+    ST direct KV: a*(n + 1 + m) + m*n + 2*n
     
-    Solving for a:
-    a(n + m + 1) = m*n + m + n
-    a = (m*n + m + n) / (n + m + 1)
+    For equal parameters with memory bank approach:
+    SAE: (2*n*m + m + n)
+    ST memory bank: a*(2*n + 4) + n*(n + 3)
+    
+    Args:
+        n: Input dimension
+        m: Feature dimension
+        use_direct_kv: Whether using direct KV or memory bank approach
+        
+    Returns:
+        a: Attention dimension that makes parameter counts approximately equal
     """
-    return max(1, int((m*n + m + n) / (n + m + 1)))
+    # SAE parameter count: 2*m*n + m + n
+    sae_params = 2*m*n + m + n
+    
+    if use_direct_kv:
+        # Direct KV parameter count: a*(n + 1 + m) + m*n + 2*n
+        # Solve for a:
+        # a*(n + 1 + m) = sae_params - m*n - 2*n
+        # a = (sae_params - m*n - 2*n) / (n + 1 + m)
+        a = (sae_params - m*n - 2*n) / (n + 1 + m)
+    else:
+        # Memory bank parameter count: a*(2*n + 4) + n*(n + 3)
+        # Solve for a:
+        # a*(2*n + 4) = sae_params - n*(n + 3)
+        # a = (sae_params - n*(n + 3)) / (2*n + 4)
+        a = (sae_params - n*(n + 3)) / (2*n + 4)
+    
+    # Ensure a doesn't become too small or negative
+    a = max(1, int(a))
+    
+    return a
 
 def save_config_to_file(args, filename="last_config.json"):
     """Save the current configuration to a JSON file"""
@@ -240,6 +271,9 @@ def parse_args():
     
     # ST-specific parameters
     st_group = parser.add_argument_group('ST Model Configuration')
+    # NEW: Add option to use the old ST implementation
+    st_group.add_argument('--use_old_st', action='store_true',
+                        help='Use the original ST implementation (ST_old.py) instead of the new one')
     st_group.add_argument('--use_mixed_precision', action='store_true',
                         help='Enable mixed precision training for ST model')
     st_group.add_argument('--activation_threshold', type=float, default=1e-3,
@@ -305,7 +339,8 @@ def parse_args():
                     isinstance(getattr(args, k), bool) and 
                     k not in ['force_retrain', 'force_reembedding', 'use_mixed_precision',
                              'visualize_decoder', 'perform_classification', 'create_graph',
-                             'save_config', 'use_memory_bank', 'show_model_info', 'auto_steps']
+                             'save_config', 'use_memory_bank', 'show_model_info', 'auto_steps',
+                             'use_old_st']  # Added use_old_st to the list
                 ):
                     setattr(args, k, v)
             print(f"Loaded configuration from {args.load_config}")
@@ -543,17 +578,24 @@ def main():
     n = args.input_dimension
     m = args.feature_dimension if args.feature_dimension else 100
     
-    # Calculate default attention dimension to match parameter count
+    # Calculate default attention dimension to match parameter count, considering the implementation and approach
     if args.attention_dimension is None:
-        args.attention_dimension = calculate_attention_dim_for_equal_params(n, m)
+        # For both new and old ST implementation, respect use_memory_bank flag
+        use_direct_kv = not args.use_memory_bank
+        args.attention_dimension = calculate_attention_dim_for_equal_params(n, m, use_direct_kv)
         a = args.attention_dimension
-        print(f"  Attention Dimension (a): {a} (auto-calculated for balanced parameter count)")
+        approach_type = "memory bank" if args.use_memory_bank else "direct K-V" 
+        print(f"  Attention Dimension (a): {a} (auto-calculated for balanced parameter count with {approach_type} approach)")
     else:
         a = args.attention_dimension
         print(f"  Attention Dimension (a): {a} (user-specified)")
     
     if args.model_type in ['st', 'both']:
-        print(f"  ST Architecture: {'Memory Bank' if args.use_memory_bank else 'Direct K-V Matrices'}")
+        if args.use_old_st:
+            print(f"  Using original ST implementation (ST_old.py)")
+        else:
+            print(f"  Using new ST implementation (ST.py)")
+            print(f"  ST Architecture: {'Memory Bank' if args.use_memory_bank else 'Direct K-V Matrices'}")
     
     # Calculate optimal training steps if auto_steps is enabled
     if args.auto_steps:
@@ -698,91 +740,6 @@ def main():
     all_feature_activations[f"original"] = train_feature_extract
     
     # Train SAE model if requested
-    if args.model_type in ["sae", "both"]:
-        print("\n" + "="*50)
-        print("Training SAE model...")
-        print("="*50)
-        
-        dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
-        model_suffix = f"{args.model_id}_{args.feature_dimension}"
-        if args.data_type == 'text':
-            model_suffix += f"_{args.embedding_model}"
-        
-        sae_model_path = f'models/sae_model_{model_suffix}.pth'
-        print(f"SAE model path: {sae_model_path}")
-
-        # Check if the SAE model file exists, and if so, examine its dimensions
-        if os.path.exists(sae_model_path):
-            try:
-                # Load the model state dict to check dimensions
-                checkpoint = torch.load(sae_model_path, map_location=device)
-                
-                # Extract state dict
-                if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
-                    state_dict = checkpoint['model_state_dict']
-                else:
-                    state_dict = checkpoint
-                
-                # Determine feature dimension (m) from the model
-                if 'W_e.weight' in state_dict:
-                    saved_m = state_dict['W_e.weight'].shape[0]
-                    print(f"Detected feature dimension from saved model: m={saved_m}")
-                    # Use the detected dimension
-                    m = saved_m
-                else:
-                    print(f"Could not detect feature dimension from model, using specified value: m={m}")
-            except Exception as e:
-                print(f"Error checking model dimensions: {e}")
-                print(f"Using specified feature dimension: m={m}")
-
-        # Create the SAE model with the correct dimensions
-        sae_model = SparseAutoencoder(n, m, sae_model_path, args.l1_lambda, device)
-        
-        # Display model information if requested
-        if args.show_model_info:
-            # Prepare input size for torchinfo based on the model
-            input_size = (args.batch_size, n)
-            display_model_info(sae_model, "SAE", input_size, verbose=args.model_info_verbosity)
-        
-        # Train or load model
-        if args.force_retrain or not os.path.exists(sae_model_path):
-            print(f"Training SAE from scratch...")
-            sae_model.train_and_validate(
-                train_tensor,
-                val_tensor,
-                learning_rate=model_params['learning_rate'],
-                batch_size=model_params['batch_size'],
-                target_steps=model_params['target_steps']
-            )
-        else:
-            print(f"Loading pre-trained SAE model from {sae_model_path}")
-            checkpoint = torch.load(sae_model_path)
-            if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
-                print(f"Loading model state from checkpoint")
-                sae_model.load_state_dict(checkpoint['model_state_dict'])
-                # Optionally load other training state if needed
-                if 'lambda_l1' in checkpoint:
-                    sae_model.lambda_l1 = checkpoint['lambda_l1']
-                    print(f"Also loaded lambda_l1 = {sae_model.lambda_l1}")
-            else:
-                # If it's already just a state dict, load directly
-                print(f"Loading state dict directly")
-                sae_model.load_state_dict(checkpoint)
-            print(f"Model loaded successfully.")
-        
-        # Calculate feature activations
-        with torch.no_grad():
-            sae_activations = sae_model.feature_activations(train_tensor)
-            sae_activations = sae_activations.cpu().numpy()
-            all_feature_activations["sae"] = sae_activations
-        
-        print(f"SAE model saved to {sae_model_path}")
-        
-        if args.visualize_decoder:
-            print("\nVisualizing SAE feature activations...")
-            visualize_feature_activations(sae_activations, "SAE Feature Activations")
-    
-    # Train ST model if requested
     if args.model_type in ["st", "both"]:
         print("\n" + "="*50)
         print("Training ST model...")
@@ -793,16 +750,28 @@ def main():
         if args.data_type == 'text':
             model_suffix += f"_{args.embedding_model}"
         
-        # Add suffix based on architecture approach
-        if args.use_memory_bank:
-            model_suffix += "_memory"
+        # Add suffix based on implementation and architecture approach
+        if args.use_old_st:
+            model_suffix += "_old"
+            # Add architecture approach suffix for old implementation too
+            if args.use_memory_bank:
+                model_suffix += "_memory"
+            else:
+                model_suffix += "_direct"  # Direct K-V is default for both implementations
             st_model_path = f'models/st_model_{model_suffix}.pth'
         else:
-            model_suffix += "_direct"
+            if args.use_memory_bank:
+                model_suffix += "_memory"
+            else:
+                model_suffix += "_direct"
             st_model_path = f'models/st_model_{model_suffix}.pth'
         
-        # Check if the ST model file exists, and if so, examine its dimensions
-        if os.path.exists(st_model_path):
+        print(f"ST model path: {st_model_path}")
+        model_exists = os.path.exists(st_model_path)
+        print(f"Model exists: {model_exists}")
+        
+        # Check if the ST model file exists
+        if model_exists:
             try:
                 # Load the model state dict to check dimensions
                 checkpoint = torch.load(st_model_path, map_location=device)
@@ -835,8 +804,176 @@ def main():
             except Exception as e:
                 print(f"Error checking model dimensions: {e}")
                 print(f"Using specified dimensions: m={m}, a={a}")
-        # Create the ST model with the correct dimensions
-        st_model = SparseTransformer(
+        
+        # Create the appropriate ST model implementation
+        if args.use_old_st:
+            print("Using original ST implementation from ST_old.py")
+            # Use the same direct K-V approach flag for both implementations
+            st_model = ST_old.SparseTransformer(
+                X=train_feature_extract,
+                n=n,
+                m=m,
+                a=a,
+                st_model_path=st_model_path,
+                lambda_l1=args.l1_lambda,
+                num_heads=1,
+                device=device,
+                activation_threshold=args.activation_threshold,
+                use_direct_kv=not args.use_memory_bank  # Direct K-V is default unless memory bank is requested
+            )
+        else:
+            print("Using new ST implementation from ST.py")
+            st_model = ST.SparseTransformer(
+                X=train_feature_extract,
+                n=n,
+                m=m,
+                a=a,
+                st_model_path=st_model_path,
+                lambda_l1=args.l1_lambda,
+                num_heads=1,
+                device=device,
+                activation_threshold=args.activation_threshold,
+                use_mixed_precision=args.use_mixed_precision,
+                use_direct_kv=not args.use_memory_bank  # Use direct K-V by default unless memory bank is requested
+            )
+        
+        # Display model information if requested
+        if args.show_model_info:
+            # Prepare input size for torchinfo based on the model
+            input_size = (args.batch_size, n)
+            display_model_info(st_model, "ST", input_size, verbose=args.model_info_verbosity)
+        
+        # Train or load model
+        print(f"Force retrain: {args.force_retrain}, Model exists: {model_exists}")
+        if args.force_retrain or not model_exists:
+            print(f"Training ST from scratch...")
+            
+            # Different training methods based on implementation
+            if args.use_old_st:
+                # Old ST implementation has simpler train_and_validate
+                st_model.train_and_validate(
+                    train_tensor,
+                    val_tensor,
+                    learning_rate=model_params['learning_rate'],
+                    batch_size=model_params['batch_size'],
+                    target_steps=model_params['target_steps']
+                )
+            else:
+                # New ST implementation has more parameters
+                st_model.train_and_validate(
+                    train_tensor,
+                    val_tensor,
+                    learning_rate=model_params['learning_rate'],
+                    batch_size=model_params['batch_size'],
+                    target_steps=model_params['target_steps'],
+                    grad_accum_steps=args.grad_accum_steps,
+                    eval_freq=args.eval_freq
+                )
+            
+            print(f"ST model training completed and saved to {st_model_path}")
+        else:
+            print(f"Loading pre-trained ST model from {st_model_path}")
+            checkpoint = torch.load(st_model_path)
+            if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+                st_model.load_state_dict(checkpoint['model_state_dict'])
+            else:
+                st_model.load_state_dict(checkpoint)
+            print(f"Model loaded successfully.")        
+        # Calculate feature activations
+        with torch.no_grad():
+            sae_activations = sae_model.feature_activations(train_tensor)
+            sae_activations = sae_activations.cpu().numpy()
+            all_feature_activations["sae"] = sae_activations
+        
+        print(f"SAE model saved to {sae_model_path}")
+        
+        if args.visualize_decoder:
+            print("\nVisualizing SAE feature activations...")
+            visualize_feature_activations(sae_activations, "SAE Feature Activations")
+    
+    # Train ST model if requested
+    if args.model_type in ["st", "both"]:
+        print("\n" + "="*50)
+        print("Training ST model...")
+        print("="*50)
+        
+        dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
+        model_suffix = f"{args.model_id}_{args.attention_dimension}_{args.feature_dimension}"
+        if args.data_type == 'text':
+            model_suffix += f"_{args.embedding_model}"
+        
+    # Add suffix based on implementation and architecture approach
+    if args.use_old_st:
+        model_suffix += "_old"
+        # Add architecture approach suffix for old implementation too
+        if args.use_memory_bank:
+            model_suffix += "_memory"
+        else:
+            model_suffix += "_direct"  # Direct K-V is default for both implementations
+        st_model_path = f'models/st_model_{model_suffix}.pth'
+    else:
+        if args.use_memory_bank:
+            model_suffix += "_memory"
+        else:
+            model_suffix += "_direct"
+        st_model_path = f'models/st_model_{model_suffix}.pth'
+    
+    print(f"ST model path: {st_model_path}")
+    
+    # Check if the ST model file exists
+    if os.path.exists(st_model_path):
+        try:
+            # Load the model state dict to check dimensions
+            checkpoint = torch.load(st_model_path, map_location=device)
+            
+            # Extract state dict
+            if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+                state_dict = checkpoint['model_state_dict']
+            else:
+                state_dict = checkpoint
+            
+            # Determine dimensions from the model
+            saved_m = None
+            saved_a = None
+            
+            # Check for memory indices to determine m
+            if 'memory_indices' in state_dict:
+                saved_m = len(state_dict['memory_indices'])
+                print(f"Detected feature dimension from saved model: m={saved_m}")
+            
+            # Check for attention dimension from W_q weight
+            if 'W_q.weight' in state_dict:
+                saved_a = state_dict['W_q.weight'].shape[0]
+                print(f"Detected attention dimension from saved model: a={saved_a}")
+            
+            # Use detected dimensions if available
+            if saved_m is not None:
+                m = saved_m
+            if saved_a is not None:
+                a = saved_a
+        except Exception as e:
+            print(f"Error checking model dimensions: {e}")
+            print(f"Using specified dimensions: m={m}, a={a}")
+    
+    # Create the appropriate ST model implementation
+    if args.use_old_st:
+        print("Using original ST implementation from ST_old.py")
+        # Use the same direct K-V approach flag for both implementations
+        st_model = ST_old.SparseTransformer(
+            X=train_feature_extract,
+            n=n,
+            m=m,
+            a=a,
+            st_model_path=st_model_path,
+            lambda_l1=args.l1_lambda,
+            num_heads=1,
+            device=device,
+            activation_threshold=args.activation_threshold,
+            use_direct_kv=not args.use_memory_bank  # Direct K-V is default unless memory bank is requested
+        )
+    else:
+        print("Using new ST implementation from ST.py")
+        st_model = ST.SparseTransformer(
             X=train_feature_extract,
             n=n,
             m=m,
@@ -848,8 +985,7 @@ def main():
             activation_threshold=args.activation_threshold,
             use_mixed_precision=args.use_mixed_precision,
             use_direct_kv=not args.use_memory_bank  # Use direct K-V by default unless memory bank is requested
-        )
-        
+        )        
         # Display model information if requested
         if args.show_model_info:
             # Prepare input size for torchinfo based on the model
@@ -859,16 +995,29 @@ def main():
         # Train or load model
         if args.force_retrain or not os.path.exists(st_model_path):
             print(f"Training ST from scratch...")
-            st_model.train_and_validate(
-                train_tensor,
-                val_tensor,
-                learning_rate=model_params['learning_rate'],
-                batch_size=model_params['batch_size'],
-                target_steps=model_params['target_steps'],
-                grad_accum_steps=args.grad_accum_steps,
-                eval_freq=args.eval_freq,
-                resume_from=st_model_path+".step150000" if not os.path.exists(st_model_path) else None
-            )
+            
+            # Different training methods based on implementation
+            if args.use_old_st:
+                # Old ST implementation has simpler train_and_validate
+                st_model.train_and_validate(
+                    train_tensor,
+                    val_tensor,
+                    learning_rate=model_params['learning_rate'],
+                    batch_size=model_params['batch_size'],
+                    target_steps=model_params['target_steps']
+                )
+            else:
+                # New ST implementation has more parameters
+                st_model.train_and_validate(
+                    train_tensor,
+                    val_tensor,
+                    learning_rate=model_params['learning_rate'],
+                    batch_size=model_params['batch_size'],
+                    target_steps=model_params['target_steps'],
+                    grad_accum_steps=args.grad_accum_steps,
+                    eval_freq=args.eval_freq,
+                    resume_from=st_model_path+".step150000" if not os.path.exists(st_model_path) else None
+                )
         else:
             print(f"Loading pre-trained ST model from {st_model_path}")
             checkpoint = torch.load(st_model_path)
@@ -976,5 +1125,6 @@ def main():
                     print("\nClassification Accuracy:")
                     for model_name, results in classification_results.items():
                         print(f"  {model_name}: {results['accuracy']:.4f}")
+
 if __name__ == "__main__":
     main()

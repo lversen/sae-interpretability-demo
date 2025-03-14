@@ -17,7 +17,7 @@ class SparseTransformer(nn.Module):
     def __init__(self, X, n: int, m: int, a: int, st_model_path: str,
                  lambda_l1: float = 5.0, num_heads: int = 1, device: str = 'cuda',
                  window_size: int = 10_000_000, update_interval: int = 1_000,
-                 activation_threshold: float = 1e-3):
+                 activation_threshold: float = 1e-3, use_direct_kv: bool = False):
         super().__init__()
         
         # Model parameters
@@ -30,10 +30,22 @@ class SparseTransformer(nn.Module):
         self.memory_update_freq = 1
         self.steps = 0
         self.total_steps = 0
-        # Projections
+        self.use_direct_kv = use_direct_kv
+        
+        # Projections - query projection always needed
         self.W_q = nn.Linear(n, a)
-        self.W_k = nn.Linear(n, a)
-        self.W_v = nn.Linear(n, n)
+        
+        if self.use_direct_kv:
+            # Direct K-V approach with parameter matrices
+            self.W_k_direct = nn.Parameter(torch.Tensor(self.m, self.a))
+            self.W_v_direct = nn.Parameter(torch.Tensor(self.m, self.n))
+            # Initialize parameters
+            nn.init.normal_(self.W_k_direct, mean=0.0, std=0.02)
+            nn.init.kaiming_uniform_(self.W_v_direct, a=math.sqrt(5))
+        else:
+            # Original memory bank approach
+            self.W_k = nn.Linear(n, a)
+            self.W_v = nn.Linear(n, n)
         
         # Normalization layers
         self.norm_q = nn.LayerNorm(a)
@@ -48,9 +60,14 @@ class SparseTransformer(nn.Module):
             update_interval=update_interval
         )
         
-        # Initialize memory indices
-        self.register_buffer('memory_indices', 
-                           torch.randint(0, self.X.shape[0], (m,), device=device))
+        # Initialize memory indices (only needed for original approach)
+        if not self.use_direct_kv:
+            self.register_buffer('memory_indices', 
+                              torch.randint(0, self.X.shape[0], (m,), device=device))
+        else:
+            # Create a dummy memory_indices buffer for compatibility
+            self.register_buffer('memory_indices', 
+                              torch.zeros(m, dtype=torch.long, device=device))
         
         self.to(device)
     
@@ -87,26 +104,35 @@ class SparseTransformer(nn.Module):
         return attn_weight @ value, attn_weight, value
 
     def forward(self, x):
-        # Update memory indices periodically during training
-        if self.training and self.steps > self.total_steps // 20 and self.steps < self.total_steps * 0.8 and self.steps % self.memory_update_freq == 0:
+        # Update memory indices periodically during training (only for memory bank approach)
+        if not self.use_direct_kv and self.training and self.steps > self.total_steps // 20 and self.steps < self.total_steps * 0.8 and self.steps % self.memory_update_freq == 0:
             with torch.no_grad():
                 self.memory_indices = torch.randint(0, self.X.shape[0], 
                                                     (self.m,), device=self.device)
                 print("X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED")
         self.steps += 1
         
-        # Get cross attention context
-        X_cross = self.X[self.memory_indices]  # Shape: [m, n]
-        C = self.preprocess(X_cross)
-        X_cross /= C
-        
         # Type conversion for input x
         x = self.type_check(x)  # Shape: [N, n]
         
-        # Project to attention space
+        # Project to query space
         q = self.norm_q(self.W_q(x))  # Shape: [N, a]
-        k = self.norm_k(self.W_k(X_cross))  # Shape: [m, a]
-        v = self.norm_v(self.W_v(X_cross))  # Shape: [m, n]
+        
+        if self.use_direct_kv:
+            # DIRECT K-V APPROACH
+            # Use direct parameter matrices for keys and values
+            k = self.norm_k(self.W_k_direct)  # Shape: [m, a]
+            v = self.norm_v(self.W_v_direct)  # Shape: [m, n]
+        else:
+            # ORIGINAL MEMORY BANK APPROACH
+            # Get cross attention context
+            X_cross = self.X[self.memory_indices]  # Shape: [m, n]
+            C = self.preprocess(X_cross)
+            X_cross /= C
+            
+            # Project to attention space
+            k = self.norm_k(self.W_k(X_cross))  # Shape: [m, a]
+            v = self.norm_v(self.W_v(X_cross))  # Shape: [m, n]
         
         x_hat, f, V = self.scaled_dot_product_attention(q, k, v, dropout_p=0)
         if self.training:
@@ -150,6 +176,7 @@ class SparseTransformer(nn.Module):
 
         C = torch.mean(torch.norm(X, p=2, dim=1)) / np.sqrt(self.n)
         return(C)
+        
     def gini_coefficient(self, tensor: torch.Tensor) -> float:
         sorted_vals, _ = torch.sort(tensor.flatten().abs())
         n = sorted_vals.shape[0]
@@ -170,7 +197,8 @@ class SparseTransformer(nn.Module):
         optimizer = optim.Adam(
             self.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=0)
 
-        # Preprocess data
+
+
         C = self.preprocess(X_train)
         X_train /= C
         X_val /= C
@@ -212,6 +240,7 @@ class SparseTransformer(nn.Module):
         print(f"Batch Size: {batch_size}")
         print(f"Warmup Steps: {warmup_steps}")
         print(f"Learning Rate Decay Start: {decay_start_step}")
+        print(f"Using {'direct K-V matrices' if self.use_direct_kv else 'memory bank approach'}")
 
         print("\nMetrics:")
         print("  Loss    - Training loss for current batch")
