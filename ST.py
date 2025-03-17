@@ -218,6 +218,84 @@ class SparseTransformer(nn.Module):
             """Softmax with temperature parameter"""
             return F.softmax(scores * beta, dim=dim)
         
+        def length_scaled_softmax(scores, dim=-1):
+            """Softmax with temperature scaling based on sequence length"""
+            seq_length = scores.size(dim)
+            # Scale temperature based on log(N) as suggested in the paper
+            temperature = math.sqrt(math.log(seq_length) / math.sqrt(scores.size(-1)))
+            return F.softmax(scores / temperature, dim=dim)
+        
+        def softmax_with_bias(scores, dim=-1):
+            """Softmax with a bias term in the denominator (as in the paper)"""
+            exp_scores = torch.exp(scores)
+            sum_exp = torch.sum(exp_scores, dim=dim, keepdim=True)
+            # Add bias term to denominator
+            return exp_scores / (1.0 + sum_exp)
+        
+        def polynomial_attention(scores, dim=-1):
+            """Use polynomial kernel (x^3) instead of exponential"""
+            # Apply ReLU to ensure non-negativity
+            scores = F.relu(scores)
+            # Raise to power 3
+            poly_scores = torch.pow(scores, 3)
+            # Normalize
+            sum_scores = torch.sum(poly_scores, dim=dim, keepdim=True).clamp(min=1e-6)
+            return poly_scores / sum_scores
+        
+        def adaptive_sparse_attention(scores, dim=-1):
+            """Adaptive sparse attention targeting consistent entropy"""
+            # Sort scores in descending order
+            sorted_scores, _ = torch.sort(scores, descending=True, dim=dim)
+            
+            # Adapt threshold based on sequence length
+            seq_len = scores.size(dim)
+            k = max(1, int(math.sqrt(seq_len)))
+            
+            # Use the k-th value as threshold
+            if k < seq_len:
+                threshold = sorted_scores.select(dim, k)
+                # Add singleton dimension
+                threshold = threshold.unsqueeze(dim)
+            else:
+                threshold = torch.min(sorted_scores, dim=dim, keepdim=True)[0]
+            
+            # Create mask for values above threshold
+            mask = scores >= threshold
+            
+            # Apply mask and normalize
+            masked_scores = scores.clone()
+            masked_scores.masked_fill_(~mask, -float('inf'))
+            return F.softmax(masked_scores, dim=dim)
+        def relu_attention(scores, dim=-1):
+            """
+            Simple ReLU attention - applies ReLU and normalizes.
+            
+            This creates a sparse attention pattern by zeroing out all negative values
+            and then normalizing the result.
+            
+            Args:
+                scores: Attention scores
+                dim: Dimension to apply attention over
+            """
+            # Apply ReLU to zero out negative values
+            relu_scores = F.relu(scores)
+            
+            # Normalize to make weights sum to 1
+            # Add small epsilon to avoid division by zero
+            sum_scores = torch.sum(relu_scores, dim=dim, keepdim=True).clamp(min=1e-6)
+            return relu_scores / sum_scores
+        def tanh_scale_shift_attention(scores, dim=-1):
+            """Attention mechanism using tanh followed by scale and shift"""
+            # Apply tanh with alpha=1.0 (can be adjusted as a hyperparameter)
+            tanh_scores = torch.tanh(scores)
+            
+            # Scale and shift (maps from [-1,1] to [0,1])
+            transformed_scores = 0.5 * tanh_scores + 0.5
+            
+            # Normalize to make weights sum to 1
+            sum_scores = torch.sum(transformed_scores, dim=dim, keepdim=True).clamp(min=1e-6)
+            return transformed_scores / sum_scores
+        
         attention_functions = {
             'softmax': lambda x, dim=-1: F.softmax(x, dim=dim),
             'sparsemax': sparsemax,
@@ -226,11 +304,17 @@ class SparseTransformer(nn.Module):
             'relu_softmax': relu_softmax,
             'softmax_hard': lambda x, dim=-1: custom_softmax(x, dim=dim, beta=2.0),
             'softmax_soft': lambda x, dim=-1: custom_softmax(x, dim=dim, beta=0.5),
+            'length_scaled_softmax': length_scaled_softmax,
+            'softmax_with_bias': softmax_with_bias,
+            'polynomial_attention': polynomial_attention,
+            'adaptive_sparse': adaptive_sparse_attention,
+            'relu_attention': relu_attention,
+            'tanh_scale_shift': tanh_scale_shift_attention,
         }
         
         if attention_name.lower() not in attention_functions:
             self.logger.warning(f"Attention function '{attention_name}' not supported. "
-                              f"Falling back to 'softmax'. Supported functions: {list(attention_functions.keys())}")
+                            f"Falling back to 'softmax'. Supported functions: {list(attention_functions.keys())}")
             return attention_functions['softmax']
         
         return attention_functions[attention_name.lower()]

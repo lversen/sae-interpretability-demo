@@ -181,11 +181,12 @@ def load_sae_decoder_weights(model_path, device='cpu'):
             model_info = {
                 'step': checkpoint.get('step', 0),
                 'dead_ratio': checkpoint.get('dead_ratio', 0),
-                'lambda_l1': checkpoint.get('lambda_l1', 0)
+                'lambda_l1': checkpoint.get('lambda_l1', 0),
+                'val_loss': checkpoint.get('val_loss', None)  # Extract validation loss
             }
         else:
             state_dict = checkpoint
-            model_info = {'step': 0, 'dead_ratio': 0, 'lambda_l1': 0}
+            model_info = {'step': 0, 'dead_ratio': 0, 'lambda_l1': 0, 'val_loss': None}
         
         # Extract decoder weights
         if 'W_d.weight' in state_dict:
@@ -227,11 +228,12 @@ def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu
             model_info = {
                 'step': checkpoint.get('step', 0),
                 'dead_ratio': checkpoint.get('dead_ratio', 0),
-                'lambda_l1': checkpoint.get('lambda_l1', 0)
+                'lambda_l1': checkpoint.get('lambda_l1', 0),
+                'val_loss': checkpoint.get('val_loss', None)  # Extract validation loss
             }
         else:
             state_dict = checkpoint
-            model_info = {'step': 0, 'dead_ratio': 0, 'lambda_l1': 0}
+            model_info = {'step': 0, 'dead_ratio': 0, 'lambda_l1': 0, 'val_loss': None}
         
         # Check if the model uses direct K-V approach
         use_direct_kv = 'W_k_direct' in state_dict and 'W_v_direct' in state_dict
@@ -290,7 +292,7 @@ def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu
                     
                     # Create extended tensor with synthetic data for missing indices
                     extended_tensor = torch.zeros((max_index + 1, data_tensor.shape[1]), 
-                                                 dtype=data_tensor.dtype)
+                                               dtype=data_tensor.dtype)
                     
                     # Copy actual data
                     extended_tensor[:data_size] = data_tensor
@@ -430,7 +432,8 @@ def plot_feature_vectors(vectors, vector_norms, model_info,
     title = title_prefix
     if model_info:
         step_str = f" (Step {model_info['step']})" if model_info.get('step', 0) > 0 else ""
-        title += f"{step_str}\nTop {plot_vectors} by L2 norm"
+        val_loss_str = f" - Val Loss: {model_info.get('val_loss', 0):.4f}" if model_info.get('val_loss') is not None else ""
+        title += f"{step_str}{val_loss_str}\nTop {plot_vectors} by L2 norm"
         if model_info.get('dead_ratio', 0) > 0:
             title += f" - Dead Features: {model_info['dead_ratio']*100:.1f}%"
     

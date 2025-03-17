@@ -259,10 +259,11 @@ def parse_args():
                         choices=['relu', 'leaky_relu', 'gelu', 'sigmoid', 'tanh', 'none'],
                         help='Activation function to use (currently only for SAE model)')
     model_group.add_argument('--attention_fn', type=str, default='softmax',
-                          choices=['softmax', 'sparsemax', 'normalized_activation', 'direct_activation', 
-                                  'relu_softmax', 'softmax_hard', 'softmax_soft'],
-                          help='Function to use for processing attention scores (ST models only)')
-
+                        choices=['softmax', 'sparsemax', 'normalized_activation', 'direct_activation', 
+                                'relu_softmax', 'softmax_hard', 'softmax_soft',
+                                'length_scaled_softmax', 'softmax_with_bias', 'polynomial_attention', 'adaptive_sparse',
+                                'relu_attention', 'tanh_scale_shift'],
+                        help='Function to use for processing attention scores (ST models only)')
     
     # Training parameters
     training_group = parser.add_argument_group('Training Configuration')
