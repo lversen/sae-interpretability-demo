@@ -8,13 +8,17 @@ from deadfeatures import DeadFeatureTracker
 import sys
 
 class SparseAutoencoder(nn.Module):
-    def __init__(self, n: int, m: int, sae_model_path: str, lambda_l1: float = 5, device: str = 'cuda'):
+    def __init__(self, n: int, m: int, sae_model_path: str, lambda_l1: float = 5, device: str = 'cuda', activation: str = 'relu'):
         super(SparseAutoencoder, self).__init__()
         self.n = n
         self.m = m
         self.sae_model_path = sae_model_path
         self.lambda_l1 = lambda_l1
         self.device = device if torch.cuda.is_available() else 'cpu'
+
+        # Set activation function
+        self.activation_name = activation
+        self.activation = self._get_activation_function(activation)
 
         # Initialize components
         self.W_e = nn.Linear(n, m, bias=False)
@@ -31,6 +35,25 @@ class SparseAutoencoder(nn.Module):
 
         self.initialize_weights()
         self.to(self.device)
+
+    def _get_activation_function(self, activation_name: str):
+        """
+        Returns the activation function based on the name.
+        """
+        activation_functions = {
+            'relu': torch.relu,
+            'leaky_relu': lambda x: torch.nn.functional.leaky_relu(x, negative_slope=0.1),
+            'gelu': torch.nn.functional.gelu,
+            'sigmoid': torch.sigmoid,
+            'tanh': torch.tanh,
+            'none': lambda x: x  # Identity function (no activation)
+        }
+        
+        if activation_name.lower() not in activation_functions:
+            raise ValueError(f"Activation function '{activation_name}' not supported. "
+                             f"Supported activations: {list(activation_functions.keys())}")
+        
+        return activation_functions[activation_name.lower()]
 
     def initialize_weights(self):
         """
@@ -57,6 +80,49 @@ class SparseAutoencoder(nn.Module):
             
             # Biases initialized to zeros (already done in __init__)
 
+    def forward(self, x):
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
+        elif isinstance(x, torch.Tensor) and x.device != self.device:
+            x = x.to(self.device)
+
+        # Use the selected activation function instead of hardcoded torch.relu
+        f_x = self.activation(self.W_e(x) + self.b_e)
+        x_hat = self.W_d(f_x) + self.b_d
+        
+        return x, x_hat, f_x
+
+    def compute_loss(self, x, x_hat, f_x):
+        """
+        Compute loss according to the paper's specification:
+        L = (1/|X|) * Σ ||x - x̂||₂² + λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
+        """
+        # L2 reconstruction loss
+        L2_loss = torch.mean(torch.norm(x - x_hat, p=2, dim=1)**2)
+        
+        # Get L2 norms of decoder weight columns
+        W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)
+        
+        # Sparsity penalty: λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
+        L1_penalty = self.lambda_l1 * torch.mean(torch.sum(f_x * W_d_norms, dim=1))
+        
+        total_loss = L2_loss + L1_penalty
+        
+        return total_loss, L2_loss, L1_penalty
+
+    def feature_activations(self, x):
+        """Calculate feature activations with L2 norm weighting"""
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
+        elif isinstance(x, torch.Tensor) and x.device != self.device:
+            x = x.to(self.device)
+
+        # Use the selected activation function instead of hardcoded torch.relu
+        f_x = self.activation(self.W_e(x) + self.b_e)
+        return f_x * torch.norm(self.W_d.weight, p=2, dim=0)
+
+
+
     def resume_from_checkpoint(self, checkpoint_path):
         """Resume training from a checkpoint"""
         print(f"\nResuming from checkpoint: {checkpoint_path}")
@@ -80,34 +146,6 @@ class SparseAutoencoder(nn.Module):
             print(f"Error loading checkpoint: {e}")
             return False
 
-    def forward(self, x):
-        if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
-        elif isinstance(x, torch.Tensor) and x.device != self.device:
-            x = x.to(self.device)
-
-        f_x = torch.relu(self.W_e(x) + self.b_e)
-        x_hat = self.W_d(f_x) + self.b_d
-        
-        return x, x_hat, f_x
-
-    def compute_loss(self, x, x_hat, f_x):
-        """
-        Compute loss according to the paper's specification:
-        L = (1/|X|) * Σ ||x - x̂||₂² + λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
-        """
-        # L2 reconstruction loss
-        L2_loss = torch.mean(torch.norm(x - x_hat, p=2, dim=1)**2)
-        
-        # Get L2 norms of decoder weight columns
-        W_d_norms = torch.norm(self.W_d.weight, p=2, dim=0)
-        
-        # Sparsity penalty: λ * Σᵢ |fᵢ(x)| ||Wdᵢ||₂
-        L1_penalty = self.lambda_l1 * torch.mean(torch.sum(f_x * W_d_norms, dim=1))
-        
-        total_loss = L2_loss + L1_penalty
-        
-        return total_loss, L2_loss, L1_penalty
 
     def preprocess(self, X):
         """
@@ -128,15 +166,7 @@ class SparseAutoencoder(nn.Module):
         """Return normalized feature vectors (decoder columns)"""
         return self.W_d.weight / torch.norm(self.W_d.weight, p=2, dim=0)
 
-    def feature_activations(self, x):
-        """Calculate feature activations with L2 norm weighting"""
-        if isinstance(x, np.ndarray):
-            x = torch.from_numpy(x.astype(np.float32)).to(self.device)
-        elif isinstance(x, torch.Tensor) and x.device != self.device:
-            x = x.to(self.device)
 
-        f_x = torch.relu(self.W_e(x) + self.b_e)
-        return f_x * torch.norm(self.W_d.weight, p=2, dim=0)
 
     def train_and_validate(self, X_train, X_val, learning_rate=5e-5, batch_size=4096, target_steps=200_000):
         """

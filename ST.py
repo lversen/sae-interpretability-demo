@@ -25,19 +25,7 @@ from sklearn.cluster import KMeans
 
 class SparseTransformer(nn.Module):
     """
-    Modified SparseTransformer with direct K-V matrices option.
-    
-    This version supports both the original memory bank approach and a new direct
-    approach where K and V are directly parameterized as matrices rather than 
-    computed from memory samples.
-    
-    Original approach:
-        - Maintain memory bank of indices
-        - Compute K and V by projecting memory samples: K = W_k(X_cross), V = W_v(X_cross)
-    
-    New direct approach:
-        - Directly use learnable parameter matrices W_k_direct and W_v_direct
-        - Dimensions: W_k_direct (m x a), W_v_direct (m x n)
+    SparseTransformer with customizable activation and attention functions.
     """
     
     def __init__(self, X, n: int, m: int, a: int, st_model_path: str,
@@ -45,7 +33,8 @@ class SparseTransformer(nn.Module):
                  window_size: int = 10_000_000, update_interval: int = 1_000,
                  activation_threshold: float = 1e-3, use_mixed_precision: bool = True,
                  use_compile: bool = False, memory_strategy: str = 'diversity',
-                 log_level: str = 'INFO', use_direct_kv: bool = True):
+                 log_level: str = 'INFO', use_direct_kv: bool = True,
+                 activation: str = 'relu', attention_fn: str = 'softmax'):
         """
         Initialize the Sparse Transformer model.
         
@@ -66,6 +55,8 @@ class SparseTransformer(nn.Module):
             memory_strategy: Strategy for memory bank updates ('random', 'diversity', 'kmeans', 'importance')
             log_level: Logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR')
             use_direct_kv: Whether to use direct K-V matrices instead of memory bank approach
+            activation: Activation function to use in the model
+            attention_fn: Function to use for attention score processing
         """
         super().__init__()
         
@@ -90,18 +81,26 @@ class SparseTransformer(nn.Module):
                                 "l1_loss": [], "l2_loss": [], "lambda": [], 
                                 "dead_ratio": [], "sparsity": [], "avg_feature_norm": []}
         
-        # Projections for original approach
+        # Set activation function
+        self.activation_name = activation
+        self.activation = self._get_activation_function(activation)
+        
+        # Set attention function
+        self.attention_fn_name = attention_fn
+        self.attention_fn = self._get_attention_function(attention_fn)
+        
+        # Projections
         self.W_q = nn.Linear(n, a)  # Always needed
         
         if self.use_direct_kv:
             # Only create direct parameter matrices
             self.W_k_direct = nn.Parameter(torch.Tensor(self.m, self.a))
             self.W_v_direct = nn.Parameter(torch.Tensor(self.m, self.n))
-            # Don't create W_k and W_v at all
         else:
             # Only create memory-based projection matrices
             self.W_k = nn.Linear(n, a)
             self.W_v = nn.Linear(n, n)
+            
         # Normalization layers
         self.norm_q = nn.LayerNorm(a)
         self.norm_k = nn.LayerNorm(a)
@@ -132,14 +131,14 @@ class SparseTransformer(nn.Module):
             if self.use_compile and not hasattr(torch, 'compile'):
                 self.logger.warning("torch.compile requested but not available. Using regular model.")
         
-        # Log which approach is being used
-        if self.use_direct_kv:
-            self.logger.info("Using direct K-V matrices approach")
-        else:
-            self.logger.info("Using original memory bank approach")
+        # Log configuration
+        self.logger.info(f"Using {'direct K-V matrices' if self.use_direct_kv else 'memory bank'} approach")
+        self.logger.info(f"Using activation function: {self.activation_name}")
+        self.logger.info(f"Using attention function: {self.attention_fn_name}")
     
     def _setup_logger(self, log_level: str) -> logging.Logger:
         """Setup logger for the model"""
+        import logging
         logger = logging.getLogger(f"SparseTransformer_{id(self)}")
         
         # Set level based on parameter
@@ -154,6 +153,87 @@ class SparseTransformer(nn.Module):
             logger.addHandler(handler)
             
         return logger
+    def _get_activation_function(self, activation_name: str) -> Callable:
+        """
+        Returns the activation function based on the name.
+        """
+        activation_functions = {
+            'relu': torch.relu,
+            'leaky_relu': lambda x: torch.nn.functional.leaky_relu(x, negative_slope=0.1),
+            'gelu': torch.nn.functional.gelu,
+            'sigmoid': torch.sigmoid,
+            'tanh': torch.tanh,
+            'none': lambda x: x,  # Identity function (no activation)
+            'softplus': torch.nn.functional.softplus,
+            'elu': torch.nn.functional.elu,
+            'selu': torch.nn.functional.selu,
+        }
+        
+        if activation_name.lower() not in activation_functions:
+            self.logger.warning(f"Activation function '{activation_name}' not supported. "
+                              f"Falling back to 'relu'. Supported activations: {list(activation_functions.keys())}")
+            return activation_functions['relu']
+        
+        return activation_functions[activation_name.lower()]
+    
+    def _get_attention_function(self, attention_name: str) -> Callable:
+        """
+        Returns the attention function based on the name.
+        
+        This function determines how attention scores are processed.
+        """
+        def sparsemax(scores, dim=-1):
+            """Sparsemax function - a sparse alternative to softmax"""
+            # Implementation of sparsemax
+            zeroes = torch.zeros_like(scores)
+            scores = torch.where(scores < -1e10, zeroes, scores)  # Replace large negative values
+            sorted_scores, _ = torch.sort(scores, descending=True, dim=dim)
+            cumsum = torch.cumsum(sorted_scores, dim=dim)
+            range_idx = torch.arange(1, scores.size(dim) + 1, device=scores.device)
+            range_idx = range_idx.view([-1] + [1] * (scores.dim() - 1))
+            range_idx = range_idx.transpose(0, dim)
+            threshold = (cumsum - 1) / range_idx
+            mask = sorted_scores > threshold
+            mask_sum = mask.sum(dim=dim, keepdim=True).clamp(min=1)
+            mask_threshold = torch.gather(threshold, dim, mask_sum - 1)
+            return torch.clamp(scores - mask_threshold, min=0)
+        
+        def normalized_activation(scores, dim=-1):
+            """Apply activation then normalize to ensure weights sum to 1"""
+            scores = self.activation(scores)  # Apply the model's activation function
+            # Avoid division by zero
+            sum_scores = scores.sum(dim=dim, keepdim=True).clamp(min=1e-6)
+            return scores / sum_scores
+        
+        def direct_activation(scores, dim=-1):
+            """Apply activation directly without normalization"""
+            return self.activation(scores)  # Apply the model's activation function
+        
+        def relu_softmax(scores, dim=-1):
+            """Apply ReLU first, then softmax - handles negative values differently"""
+            scores = F.relu(scores)
+            return F.softmax(scores, dim=dim)
+        
+        def custom_softmax(scores, dim=-1, beta=1.0):
+            """Softmax with temperature parameter"""
+            return F.softmax(scores * beta, dim=dim)
+        
+        attention_functions = {
+            'softmax': lambda x, dim=-1: F.softmax(x, dim=dim),
+            'sparsemax': sparsemax,
+            'normalized_activation': normalized_activation,
+            'direct_activation': direct_activation,
+            'relu_softmax': relu_softmax,
+            'softmax_hard': lambda x, dim=-1: custom_softmax(x, dim=dim, beta=2.0),
+            'softmax_soft': lambda x, dim=-1: custom_softmax(x, dim=dim, beta=0.5),
+        }
+        
+        if attention_name.lower() not in attention_functions:
+            self.logger.warning(f"Attention function '{attention_name}' not supported. "
+                              f"Falling back to 'softmax'. Supported functions: {list(attention_functions.keys())}")
+            return attention_functions['softmax']
+        
+        return attention_functions[attention_name.lower()]
     
     def _initial_memory_selection(self) -> torch.Tensor:
         """
@@ -211,37 +291,22 @@ class SparseTransformer(nn.Module):
         if isinstance(x, np.ndarray):
             return torch.from_numpy(x.astype(np.float32)).to(self.device)
         return x.to(self.device) if x.device != self.device else x
-    
+
     def scaled_dot_product_attention(self, query, key, value, attn_mask=None, dropout_p=0.0,
                 is_causal=False, scale=None) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        Optimized scaled dot-product attention implementation for ST models.
-        
-        Args:
-            query: Query tensor of shape [N, a] where N is batch size and a is attention dimension
-            key: Key tensor of shape [m, a] where m is feature dimension and a is attention dimension
-            value: Value tensor of shape [m, n] where m is feature dimension and n is input dimension
-            attn_mask: Optional mask tensor
-            dropout_p: Dropout probability (applied to attention weights)
-            is_causal: Whether to use causal (autoregressive) attention
-            scale: Optional custom scale factor for attention scores
-            
-        Returns:
-            Tuple containing:
-            - output: Attention output tensor of shape [N, n]
-            - attn_weight: Attention weight matrix of shape [N, m]
-            - value: Value tensor of shape [m, n]
+        Customized scaled dot-product attention with replaceable attention function.
         """
         # Pre-calculate scale factor once
         scale_factor = 1 / math.sqrt(query.size(-1)) if scale is None else scale
         
         # Fast path for the common case in ST (no masks, no causal)
         if attn_mask is None and not is_causal:
-            # Compute attention weights with optimized matrix multiplication
-            attn_weight = torch.matmul(query, key.transpose(-2, -1)) * scale_factor
+            # Compute raw attention scores with optimized matrix multiplication
+            attn_scores = torch.matmul(query, key.transpose(-2, -1)) * scale_factor
             
-            # Apply softmax directly (most common case)
-            attn_weight = F.softmax(attn_weight, dim=-1)
+            # Apply custom attention function instead of hardcoded softmax
+            attn_weight = self.attention_fn(attn_scores, dim=-1)
             
             # Apply dropout only during training
             if dropout_p > 0.0 and self.training:
@@ -255,23 +320,23 @@ class SparseTransformer(nn.Module):
         # Fallback path for less common cases (masks, causal attention)
         L, S = query.size(-2), key.size(-2)
         
-        # Compute attention weights
-        attn_weight = torch.matmul(query, key.transpose(-2, -1)) * scale_factor
+        # Compute attention scores
+        attn_scores = torch.matmul(query, key.transpose(-2, -1)) * scale_factor
         
         # Apply causal mask if needed (for autoregressive models)
         if is_causal:
             mask = torch.ones(L, S, dtype=torch.bool, device=query.device).tril(diagonal=0)
-            attn_weight.masked_fill_(~mask, float("-inf"))
+            attn_scores.masked_fill_(~mask, float("-inf"))
         
         # Apply attention mask if provided (for controlling attention patterns)
         if attn_mask is not None:
             if attn_mask.dtype == torch.bool:
-                attn_weight.masked_fill_(~attn_mask, float("-inf"))
+                attn_scores.masked_fill_(~attn_mask, float("-inf"))
             else:
-                attn_weight += attn_mask
+                attn_scores += attn_mask
         
-        # Apply softmax and dropout
-        attn_weight = F.softmax(attn_weight, dim=-1)
+        # Apply custom attention function and dropout
+        attn_weight = self.attention_fn(attn_scores, dim=-1)
         if dropout_p > 0.0 and self.training:
             attn_weight = F.dropout(attn_weight, p=dropout_p)
         
@@ -283,16 +348,6 @@ class SparseTransformer(nn.Module):
     def forward(self, x):
         """
         Forward pass for the SparseTransformer model.
-        
-        Args:
-            x: Input tensor of shape [N, n]
-            
-        Returns:
-            Tuple containing:
-            - x: Original input
-            - x_hat: Reconstructed input
-            - f: Feature activations (attention weights)
-            - v: Value vectors
         """
         # Update memory indices periodically during training (for original approach)
         if not self.use_direct_kv and self.training and self.steps % self.memory_update_freq == 0:
@@ -311,14 +366,20 @@ class SparseTransformer(nn.Module):
         # Type conversion for input x
         x = self.type_check(x)  # Shape: [N, n]
         x /= self.preprocess(x)
+        
         if self.use_direct_kv:
             # DIRECT K-V APPROACH
-            # Project input to query space
-            q = self.norm_q(self.W_q(x))  # Shape: [N, a]
+            # Project input to query space with activation function
+            q_pre = self.W_q(x)
+            q_act = self.activation(q_pre)  # Apply activation function
+            q = self.norm_q(q_act)  # Shape: [N, a]
             
-            # Use direct parameter matrices for keys and values
-            k = self.norm_k(self.W_k_direct)  # Shape: [m, a]
-            v = self.norm_v(self.W_v_direct)  # Shape: [m, n]
+            # For direct K-V, we can apply activation to the raw parameters
+            k_act = self.activation(self.W_k_direct)  # Apply activation function
+            k = self.norm_k(k_act)  # Shape: [m, a]
+            
+            v_act = self.activation(self.W_v_direct)  # Apply activation function
+            v = self.norm_v(v_act)  # Shape: [m, n]
         else:
             # ORIGINAL APPROACH WITH MEMORY BANK
             # Get cross attention context
@@ -326,13 +387,21 @@ class SparseTransformer(nn.Module):
             C = self.preprocess(X_cross)
             X_cross = X_cross / C  # Use new tensor to avoid modifying self.X
             
-            # Project to attention space
-            q = self.norm_q(self.W_q(x))  # Shape: [N, a]
-            k = self.norm_k(self.W_k(X_cross))  # Shape: [m, a]
-            v = self.norm_v(self.W_v(X_cross))  # Shape: [m, n]
+            # Project to attention space with activation functions
+            q_pre = self.W_q(x)
+            q_act = self.activation(q_pre)  # Apply activation function
+            q = self.norm_q(q_act)  # Shape: [N, a]
+            
+            k_pre = self.W_k(X_cross)
+            k_act = self.activation(k_pre)  # Apply activation function
+            k = self.norm_k(k_act)  # Shape: [m, a]
+            
+            v_pre = self.W_v(X_cross)
+            v_act = self.activation(v_pre)  # Apply activation function
+            v = self.norm_v(v_act)  # Shape: [m, n]
         
-        # Use PyTorch's native attention if available (PyTorch 2.0+)
-        if hasattr(F, 'scaled_dot_product_attention'):
+        # Use PyTorch's native attention if available and using standard softmax
+        if hasattr(F, 'scaled_dot_product_attention') and self.attention_fn_name == 'softmax':
             # Reshape tensors for batch attention
             q_reshaped = q.unsqueeze(1)  # [N, 1, a]
             k_reshaped = k.unsqueeze(0)  # [1, m, a]
@@ -346,9 +415,10 @@ class SparseTransformer(nn.Module):
             ).squeeze(1)  # [N, n]
             
             # Compute feature activations (attention weights)
-            f = F.softmax(torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.a), dim=-1)
+            attn_scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.a)
+            f = F.softmax(attn_scores, dim=-1)
         else:
-            # Fall back to custom implementation
+            # Fall back to custom implementation with custom attention function
             x_hat, f, _ = self.scaled_dot_product_attention(q, k, v, dropout_p=0)
             
         if self.training:
