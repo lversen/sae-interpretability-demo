@@ -327,6 +327,10 @@ def parse_args():
                         help='Minimum number of steps for auto-steps calculation (default: 50000)')
     misc_group.add_argument('--auto_steps_max', type=int, default=1000000,
                         help='Maximum number of steps for auto-steps calculation (default: 1000000)')
+    misc_group.add_argument('--sae_save_path', type=str, default=None,
+                        help='Custom save path for SAE model')
+    misc_group.add_argument('--st_save_path', type=str, default=None,
+                        help='Custom save path for ST model')
     
     args = parser.parse_args()
     
@@ -763,7 +767,13 @@ def main():
         model_suffix = f"{args.model_id}_{args.feature_dimension}"
         if args.data_type == 'text':
             model_suffix += f"_{args.embedding_model}"
-        sae_model_path = f'models/sae_model_{model_suffix}.pth'
+        # For SAE model path
+        if args.sae_save_path:
+            sae_model_path = args.sae_save_path
+        else:
+            # Original path creation logic...
+            sae_model_path = f'models/sae_model_{model_suffix}.pth'
+
         
         print(f"SAE model path: {sae_model_path}")
         
@@ -837,13 +847,21 @@ def main():
                 model_suffix += "_memory"
             else:
                 model_suffix += "_direct"  # Direct K-V is default for both implementations
-            st_model_path = f'models/st_model_{model_suffix}.pth'
+            if args.st_save_path:
+                st_model_path = args.st_save_path
+            else:
+                # Original path creation logic...
+                st_model_path = f'models/st_model_{model_suffix}.pth'
         else:
             if args.use_memory_bank:
                 model_suffix += "_memory"
             else:
                 model_suffix += "_direct"
-            st_model_path = f'models/st_model_{model_suffix}.pth'
+            if args.st_save_path:
+                st_model_path = args.st_save_path
+            else:
+                # Original path creation logic...
+                st_model_path = f'models/st_model_{model_suffix}.pth'
         
         print(f"ST model path: {st_model_path}")
         model_exists = os.path.exists(st_model_path)

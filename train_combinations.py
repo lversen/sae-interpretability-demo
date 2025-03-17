@@ -22,8 +22,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Train multiple combinations of models and attention functions')
     
     # Base arguments
-    parser.add_argument('--dataset', type=str, default='mnist', 
-                        help='Dataset to use for training')
+    parser.add_argument('--datasets', type=str, nargs='+', default=['mnist'],
+                        help='List of datasets to use for training')
     parser.add_argument('--model_types', type=str, nargs='+', default=['st'],
                         help='List of model types to train (sae, st, both)')
     parser.add_argument('--attention_fns', type=str, nargs='+', 
@@ -103,6 +103,7 @@ def generate_combinations(args):
     
     # Create product of all specified parameters
     param_grid = itertools.product(
+        args.datasets,
         args.model_types,
         args.attention_fns,
         args.feature_dimensions,
@@ -117,7 +118,7 @@ def generate_combinations(args):
         auto_steps_bases
     )
     
-    for (model_type, attention_fn, feature_dim, attention_dim, lr, l1_lambda, 
+    for (dataset, model_type, attention_fn, feature_dim, attention_dim, lr, l1_lambda, 
          activation, batch_size, target_steps, grad_accum_steps, eval_freq, 
          auto_steps_base) in param_grid:
          
@@ -126,6 +127,7 @@ def generate_combinations(args):
             continue
             
         combo = {
+            'dataset': dataset,
             'model_type': model_type,
             'attention_fn': attention_fn,
             'feature_dimension': feature_dim,
@@ -145,7 +147,7 @@ def generate_combinations(args):
 
 def get_model_id(combination, args):
     """Create a unique model_id based on the combination"""
-    base_id = f"{args.dataset}_{combination['model_type']}_{combination['feature_dimension']}"
+    base_id = f"{combination['dataset']}_{combination['model_type']}_{combination['feature_dimension']}"
     
     if combination['model_type'] in ['st', 'both']:
         base_id += f"_{combination['attention_fn']}"
@@ -241,7 +243,7 @@ def run_training(combination, args, idx, total, experiment_dir):
     # Build command for running main.py
     cmd = [
         "python", "main.py",
-        "--dataset", args.dataset,
+        "--dataset", combination['dataset'],
         "--model_type", combination['model_type'],
         "--feature_dimension", str(combination['feature_dimension']),
         "--learning_rate", str(combination['learning_rate']),
@@ -617,19 +619,30 @@ def organize_results(results, args):
                         hier_path = os.path.join(
                             hierarchy_dir, 
                             model_type,
-                            dataset,
+                            result['combination']['dataset'],
                             activation,
                             feature_dim
                         )
                         os.makedirs(hier_path, exist_ok=True)
                         
-                        # Create symbolic link in hierarchy
-                        hier_dest_path = os.path.join(hier_path, f"{model_type_prefix}_model_{model_id}.pth")
-                        # Create relative symlink
-                        hier_rel_path = os.path.relpath(source_model_path, os.path.dirname(hier_dest_path))
-                        if os.path.exists(hier_dest_path):
-                            os.remove(hier_dest_path)
-                        os.symlink(hier_rel_path, hier_dest_path)
+                        try:
+                            # Create hierarchical destination path
+                            hier_dest_path = os.path.join(hier_path, f"{model_type_prefix}_model_{model_id}.pth")
+                            
+                            # Try symlink first (works on most Unix systems)
+                            if os.path.exists(hier_dest_path):
+                                os.remove(hier_dest_path)
+                                
+                            try:
+                                # Create relative symlink
+                                hier_rel_path = os.path.relpath(source_model_path, os.path.dirname(hier_dest_path))
+                                os.symlink(hier_rel_path, hier_dest_path)
+                            except (OSError, AttributeError):
+                                # Fallback to copy if symlink fails (for Windows or unsupported filesystems)
+                                print(f"Symlink creation failed, copying file instead")
+                                shutil.copy2(source_model_path, hier_dest_path)
+                        except Exception as e:
+                            print(f"Error creating hierarchical organization for {model_id}: {e}")
             
             f.write("\n")
         
