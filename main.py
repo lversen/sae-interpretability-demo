@@ -881,11 +881,11 @@ def main():
             print(f"Model loaded successfully.")        
         # Calculate feature activations
         with torch.no_grad():
-            sae_activations = sae_model.feature_activations(train_tensor)
+            sae_activations = st_model.feature_activations(train_tensor)
             sae_activations = sae_activations.cpu().numpy()
             all_feature_activations["sae"] = sae_activations
         
-        print(f"SAE model saved to {sae_model_path}")
+        print(f"SAE model saved to {st_model_path}")
         
         if args.visualize_decoder:
             print("\nVisualizing SAE feature activations...")
