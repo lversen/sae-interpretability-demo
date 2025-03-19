@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 from umap import UMAP
 from typing import Dict, List, Tuple
 import argparse
+from sklearn.metrics.pairwise import euclidean_distances
 
 # Import the models
 from SAE import SparseAutoencoder
@@ -211,8 +212,25 @@ def plot_embeddings(embeddings_2d, labels, title, figure_size=(12, 10)):
     
     return plt.gcf()
 
-def calculate_centroids(embeddings_2d, labels):
-    """Calculate centroids for each class in the embedding space"""
+def calculate_centroids_original(embeddings, labels):
+    """Calculate centroids in the original high-dimensional embedding space"""
+    unique_labels = sorted(np.unique(labels))
+    centroids = []
+    
+    for label in unique_labels:
+        # Get all embeddings for this class
+        class_embeddings = embeddings[labels == label]
+        # Calculate the centroid as the mean of all embeddings
+        centroid = np.mean(class_embeddings, axis=0)
+        centroids.append((label, centroid))
+    
+    return {
+        'labels': np.array([c[0] for c in centroids]),
+        'centroids': np.array([c[1] for c in centroids])
+    }
+
+def calculate_centroids_2d(embeddings_2d, labels):
+    """Calculate centroids in the 2D reduced space (for visualization only)"""
     # Create a DataFrame for the embedding data
     df = pd.DataFrame({
         'x': embeddings_2d[:, 0],
@@ -224,7 +242,7 @@ def calculate_centroids(embeddings_2d, labels):
     centroids = df.groupby('label').mean().reset_index()
     return centroids
 
-def plot_centroids(embeddings_2d, labels, centroids, title):
+def plot_centroids(embeddings_2d, labels, centroids_2d, title):
     """Plot embeddings with class centroids highlighted"""
     # Create a DataFrame for the embedding data
     df = pd.DataFrame({
@@ -250,7 +268,7 @@ def plot_centroids(embeddings_2d, labels, centroids, title):
                     alpha=0.3, s=30)
     
     # Plot centroids with labels
-    for i, row in centroids.iterrows():
+    for i, row in centroids_2d.iterrows():
         plt.scatter(row['x'], row['y'], color=colors[int(row['label'])], 
                    s=300, edgecolors='black', linewidths=2, alpha=1.0)
         plt.annotate(f"Class {int(row['label'])}", (row['x'], row['y']), 
@@ -263,19 +281,14 @@ def plot_centroids(embeddings_2d, labels, centroids, title):
     
     return plt.gcf()
 
-def calculate_centroid_distances(centroids):
-    """Calculate pairwise distances between class centroids"""
-    # Extract coordinates and labels
-    labels = centroids['label'].values
-    points = centroids[['x', 'y']].values
+def calculate_centroid_distances_original(centroids_original):
+    """Calculate pairwise distances between class centroids in the original space"""
+    # Extract centroids and labels
+    centroids = centroids_original['centroids']
+    labels = centroids_original['labels']
     
-    # Calculate pairwise distances
-    n = len(points)
-    distances = np.zeros((n, n))
-    
-    for i in range(n):
-        for j in range(n):
-            distances[i, j] = np.sqrt(np.sum((points[i] - points[j])**2))
+    # Calculate pairwise Euclidean distances
+    distances = euclidean_distances(centroids)
     
     # Create a DataFrame for the distance matrix
     distance_df = pd.DataFrame(distances, index=labels, columns=labels)
@@ -330,36 +343,68 @@ def compare_models(sae_model, st_model, data_loader, reduction_method='tsne'):
     print("Generating ST embeddings...")
     st_embeddings, _ = generate_embeddings(st_model, data_loader, model_type='st')
     
-    # Apply dimensionality reduction
-    print(f"Applying {reduction_method} dimensionality reduction...")
+    # Calculate centroids in original high-dimensional space
+    print("Calculating centroids in original high-dimensional space...")
+    sae_centroids_original = calculate_centroids_original(sae_embeddings, labels)
+    st_centroids_original = calculate_centroids_original(st_embeddings, labels)
+    
+    # Calculate centroid distances in original space
+    print("Calculating centroid distances in original space...")
+    sae_distances_original = calculate_centroid_distances_original(sae_centroids_original)
+    st_distances_original = calculate_centroid_distances_original(st_centroids_original)
+    
+    # Apply dimensionality reduction to embeddings
+    print(f"Applying {reduction_method} dimensionality reduction to embeddings...")
     sae_embeddings_2d = apply_dimensionality_reduction(sae_embeddings, method=reduction_method)
     st_embeddings_2d = apply_dimensionality_reduction(st_embeddings, method=reduction_method)
     
-    # Plot embeddings
-    sae_plot = plot_embeddings(sae_embeddings_2d, labels, f"SAE Embeddings ({reduction_method.upper()})")
-    st_plot = plot_embeddings(st_embeddings_2d, labels, f"ST Embeddings ({reduction_method.upper()})")
+    # Apply same dimensionality reduction to original centroids
+    print(f"Applying {reduction_method} dimensionality reduction to centroids...")
+    sae_centroids_2d_from_original = apply_dimensionality_reduction(
+        sae_centroids_original['centroids'], method=reduction_method)
+    st_centroids_2d_from_original = apply_dimensionality_reduction(
+        st_centroids_original['centroids'], method=reduction_method)
     
-    # Calculate centroids
-    sae_centroids = calculate_centroids(sae_embeddings_2d, labels)
-    st_centroids = calculate_centroids(st_embeddings_2d, labels)
+    # Convert reduced centroids to DataFrame for plotting
+    sae_centroids_2d_df = pd.DataFrame({
+        'label': sae_centroids_original['labels'],
+        'x': sae_centroids_2d_from_original[:, 0],
+        'y': sae_centroids_2d_from_original[:, 1]
+    })
     
-    # Plot centroids
-    sae_centroid_plot = plot_centroids(sae_embeddings_2d, labels, sae_centroids, 
-                                      f"SAE Embeddings with Centroids ({reduction_method.upper()})")
-    st_centroid_plot = plot_centroids(st_embeddings_2d, labels, st_centroids, 
-                                     f"ST Embeddings with Centroids ({reduction_method.upper()})")
+    st_centroids_2d_df = pd.DataFrame({
+        'label': st_centroids_original['labels'],
+        'x': st_centroids_2d_from_original[:, 0],
+        'y': st_centroids_2d_from_original[:, 1]
+    })
     
-    # Calculate centroid distances
-    sae_distances = calculate_centroid_distances(sae_centroids)
-    st_distances = calculate_centroid_distances(st_centroids)
+    # Also calculate centroids directly in 2D space (for comparison)
+    sae_centroids_2d = calculate_centroids_2d(sae_embeddings_2d, labels)
+    st_centroids_2d = calculate_centroids_2d(st_embeddings_2d, labels)
     
-    # Plot distance heatmaps
-    sae_heatmap = plot_distance_heatmap(sae_distances, "SAE Centroid Distances")
-    st_heatmap = plot_distance_heatmap(st_distances, "ST Centroid Distances")
+    # Plot embeddings and centroids
+    sae_plot = plot_embeddings(sae_embeddings_2d, labels, 
+                              f"SAE Embeddings ({reduction_method.upper()})")
+    st_plot = plot_embeddings(st_embeddings_2d, labels, 
+                             f"ST Embeddings ({reduction_method.upper()})")
     
-    # Calculate clustering metrics
-    sae_metrics = calculate_clustering_metrics(sae_distances)
-    st_metrics = calculate_clustering_metrics(st_distances)
+    # Plot embeddings with original centroids projected to 2D
+    sae_centroid_plot = plot_centroids(
+        sae_embeddings_2d, labels, sae_centroids_2d_df,
+        f"SAE Embeddings with Original Space Centroids ({reduction_method.upper()})")
+    st_centroid_plot = plot_centroids(
+        st_embeddings_2d, labels, st_centroids_2d_df,
+        f"ST Embeddings with Original Space Centroids ({reduction_method.upper()})")
+    
+    # Plot distance heatmaps based on original high-dimensional distances
+    sae_heatmap = plot_distance_heatmap(
+        sae_distances_original, "SAE Centroid Distances (Original Space)")
+    st_heatmap = plot_distance_heatmap(
+        st_distances_original, "ST Centroid Distances (Original Space)")
+    
+    # Calculate clustering metrics in original space
+    sae_metrics = calculate_clustering_metrics(sae_distances_original)
+    st_metrics = calculate_clustering_metrics(st_distances_original)
     
     # Prepare comparison results
     results = {
@@ -372,17 +417,25 @@ def compare_models(sae_model, st_model, data_loader, reduction_method='tsne'):
             'st_heatmap': st_heatmap
         },
         'distances': {
-            'sae_distances': sae_distances,
-            'st_distances': st_distances
+            'sae_distances_original': sae_distances_original,
+            'st_distances_original': st_distances_original
         },
         'metrics': {
             'sae': sae_metrics,
             'st': st_metrics
+        },
+        'centroids': {
+            'sae_original': sae_centroids_original,
+            'st_original': st_centroids_original,
+            'sae_2d': sae_centroids_2d,
+            'st_2d': st_centroids_2d,
+            'sae_2d_from_original': sae_centroids_2d_df,
+            'st_2d_from_original': st_centroids_2d_df
         }
     }
     
     # Print comparison metrics
-    print("\n===== Clustering Metrics Comparison =====")
+    print("\n===== Clustering Metrics Comparison (Original Space) =====")
     print(f"SAE - Avg Centroid Distance: {sae_metrics['avg_distance']:.4f}")
     print(f"ST - Avg Centroid Distance: {st_metrics['avg_distance']:.4f}")
     print(f"SAE - Cluster Separation Score: {sae_metrics['separation_score']:.4f}")
