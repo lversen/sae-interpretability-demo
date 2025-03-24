@@ -452,7 +452,81 @@ def parse_args():
         save_config_to_file(args)
     
     return args
-
+def get_hierarchical_model_path(args, model_type):
+    """
+    Generate a hierarchical path for model saving based on model parameters.
+    
+    Structure:
+    models/[dataset]/[model_type]/[activation_or_attention]/[feature_dimension]/[training_params].pth
+    
+    Args:
+        args: Command line arguments
+        model_type: 'sae' or 'st'
+        
+    Returns:
+        Path string for saving the model
+    """
+    # Base directory is always models/dataset/
+    base_dir = os.path.join('models', args.dataset)
+    
+    if model_type.lower() == 'sae':
+        # SAE: models/[dataset]/sae/[activation]/[feature_dimension]/
+        hierarchy_path = os.path.join(
+            base_dir,
+            'sae',
+            args.activation,
+            str(args.feature_dimension)
+        )
+    else:  # ST model
+        # ST: models/[dataset]/st/[attention_fn]/[feature_dimension]/
+        hierarchy_path = os.path.join(
+            base_dir,
+            'st',
+            args.attention_fn,
+            str(args.feature_dimension)
+        )
+    
+    # Create the directory
+    os.makedirs(hierarchy_path, exist_ok=True)
+    
+    # Create filename with training parameters
+    filename_parts = []
+    
+    # Add batch size
+    filename_parts.append(f"bs{args.batch_size}")
+    
+    # Add learning rate (replace decimal point)
+    lr_str = str(args.learning_rate).replace('.', 'p')
+    filename_parts.append(f"lr{lr_str}")
+    
+    # Add target steps
+    if args.auto_steps:
+        filename_parts.append(f"autosteps{args.auto_steps_base}")
+    else:
+        filename_parts.append(f"steps{args.target_steps}")
+    
+    # Add L1 lambda if not the default 5.0
+    if args.l1_lambda != 5.0:
+        l1_str = str(args.l1_lambda).replace('.', 'p')
+        filename_parts.append(f"l1{l1_str}")
+    
+    # Add gradient accumulation if not 1
+    if hasattr(args, 'grad_accum_steps') and args.grad_accum_steps != 1:
+        filename_parts.append(f"accum{args.grad_accum_steps}")
+    
+    # Add memory bank flag for ST models
+    if model_type.lower() == 'st' and args.use_memory_bank:
+        filename_parts.append("memory")
+    
+    # Add old ST implementation flag
+    if model_type.lower() == 'st' and args.use_old_st:
+        filename_parts.append("oldst")
+    
+    # Combine all parts
+    filename = f"{'_'.join(filename_parts)}.pth"
+    
+    # Full hierarchical path
+    return os.path.join(hierarchy_path, filename)
 def get_feature_extraction_fn(data_type: str):
     """
     Factory function to return appropriate feature extraction function based on data type.
@@ -771,8 +845,9 @@ def main():
         if args.sae_save_path:
             sae_model_path = args.sae_save_path
         else:
-            # Original path creation logic...
-            sae_model_path = f'models/sae_model_{model_suffix}.pth'
+            # Use hierarchical path
+            sae_model_path = get_hierarchical_model_path(args, 'sae')
+        print(f"SAE model will be saved to: {sae_model_path}")
 
         
         print(f"SAE model path: {sae_model_path}")
@@ -850,8 +925,10 @@ def main():
             if args.st_save_path:
                 st_model_path = args.st_save_path
             else:
-                # Original path creation logic...
-                st_model_path = f'models/st_model_{model_suffix}.pth'
+                # Use hierarchical path
+                st_model_path = get_hierarchical_model_path(args, 'st')
+            print(f"ST model will be saved to: {st_model_path}")
+
         else:
             if args.use_memory_bank:
                 model_suffix += "_memory"
@@ -860,8 +937,10 @@ def main():
             if args.st_save_path:
                 st_model_path = args.st_save_path
             else:
-                # Original path creation logic...
-                st_model_path = f'models/st_model_{model_suffix}.pth'
+                # Use hierarchical path
+                st_model_path = get_hierarchical_model_path(args, 'st')
+            print(f"ST model will be saved to: {st_model_path}")
+
         
         print(f"ST model path: {st_model_path}")
         model_exists = os.path.exists(st_model_path)

@@ -3,6 +3,12 @@
 Script to train models and save them in a customized hierarchical folder structure:
 - SAE: models/sae/activation_function/feature_dimension/
 - ST: models/st/attention_function/feature_dimension/
+
+Supports multiple runs of the same configuration with automatic naming:
+- First run: model.pth
+- Second run: model_2.pth 
+- Third run: model_3.pth
+- etc.
 """
 
 import os
@@ -15,6 +21,7 @@ import glob
 import shutil
 from datetime import datetime
 import torch
+
 def parse_args():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(description='Train models with hierarchical organization')
@@ -56,6 +63,14 @@ def parse_args():
                       help='Use memory bank approach for ST models')
     parser.add_argument('--use_old_st', action='store_true',
                       help='Use old ST implementation')
+    
+    # Multiple runs and retraining options
+    parser.add_argument('--num_runs', type=int, default=1,
+                      help='Number of runs for each model configuration')
+    parser.add_argument('--force_retrain', action='store_true',
+                      help='Force retraining even if models with the same configuration exist')
+    parser.add_argument('--continue_numbering', action='store_true',
+                      help='Continue run numbering from highest existing run')
     
     # Other options
     parser.add_argument('--skip_existing', action='store_true',
@@ -100,19 +115,23 @@ def generate_combinations(args):
          activation, batch_size, target_steps, grad_accum_steps, eval_freq, 
          auto_steps_base) in param_grid:
          
-        # Skip invalid combinations (e.g., attention functions only work with ST)
-        if (model_type == 'sae' and attention_fn != 'softmax'):
-            continue
+        # For SAE models, always use ReLU activation and ignore attention functions
+        if model_type == 'sae':
+            # Set the activation function to ReLU for SAE models
+            activation = 'relu'
             
+        # For ST models, make sure attention function is valid
+        # No need to filter SAE models based on attention function anymore
+        
         combo = {
             'dataset': dataset,
             'model_type': model_type,
-            'attention_fn': attention_fn,
+            'attention_fn': attention_fn,  # Only used for ST models
             'feature_dimension': feature_dim,
-            'attention_dimension': attention_dim,
+            'attention_dimension': attention_dim,  # Only used for ST models
             'learning_rate': lr,
             'l1_lambda': l1_lambda,
-            'activation': activation,
+            'activation': activation,  # Always 'relu' for SAE
             'batch_size': batch_size,
             'target_steps': target_steps,
             'grad_accum_steps': grad_accum_steps,
@@ -208,9 +227,9 @@ def get_simplified_filename(model_type_prefix, combination, args):
         # Default steps (200,000)
         parts.append("steps200000")
     
-    # Add L1 lambda if not default
-    if combination['l1_lambda'] != 5.0:
-        parts.append(f"l1{str(combination['l1_lambda']).replace('.', 'p')}")
+    # Always include L1 lambda in the filename
+    l1_str = str(combination['l1_lambda']).replace('.', 'p')
+    parts.append(f"l1{l1_str}")
     
     # Add grad accumulation steps if not default
     if combination['grad_accum_steps'] != 1:
@@ -229,7 +248,7 @@ def get_simplified_filename(model_type_prefix, combination, args):
     
     return filename
 
-def get_hierarchical_model_path(combination, model_type_prefix, args):
+def get_hierarchical_model_path(combination, model_type_prefix, args, run_index=0):
     """Get hierarchical path for a model using the custom directory structure"""
     # For SAE: models/[dataset]/sae/activation_function/feature_dimension/bs_lr_steps.pth
     # For ST: models/[dataset]/st/attention_function/feature_dimension/bs_lr_steps.pth
@@ -260,24 +279,74 @@ def get_hierarchical_model_path(combination, model_type_prefix, args):
     # Get simplified filename (now without redundant information)
     filename = get_simplified_filename(model_type_prefix, combination, args)
     
+    # Modify filename to include run index if needed (only for runs 2+)
+    if run_index > 0:
+        # Split filename into base and extension
+        base, ext = os.path.splitext(filename)
+        filename = f"{base}_{run_index+1}{ext}"
+    
     # Full model path
     model_path = os.path.join(hierarchy_path, filename)
     
     return model_path
 
-def model_exists(combination, args):
-    """Check if a model already exists in the hierarchical structure"""
-    if combination['model_type'] in ['sae', 'both']:
-        sae_path = get_hierarchical_model_path(combination, 'sae', args)
-        if os.path.exists(sae_path):
-            return True
+def find_all_run_files(base_path):
+    """Find all existing run files for a given base path"""
+    if base_path is None:
+        return {}
+        
+    base_dir = os.path.dirname(base_path)
+    base_name, ext = os.path.splitext(os.path.basename(base_path))
     
-    if combination['model_type'] in ['st', 'both']:
-        st_path = get_hierarchical_model_path(combination, 'st', args)
-        if os.path.exists(st_path):
-            return True
+    # Look for the base file and any files with _2, _3, etc. suffixes
+    pattern = os.path.join(base_dir, f"{base_name}*{ext}")
+    files = glob.glob(pattern)
     
-    return False
+    # Map files to their run indices
+    run_files = {}
+    for file in files:
+        filename = os.path.basename(file)
+        file_base, file_ext = os.path.splitext(filename)
+        
+        # Check if this is the base file (run 1)
+        if file_base == base_name:
+            run_files[0] = file
+        else:
+            # Check if there's a run suffix (_2, _3, etc.)
+            suffix_parts = file_base.split('_')
+            if len(suffix_parts) > 1 and suffix_parts[-1].isdigit():
+                run_idx = int(suffix_parts[-1]) - 1  # Convert from 1-indexed to 0-indexed
+                run_files[run_idx] = file
+    
+    return run_files
+
+def find_next_available_run(base_path):
+    """Find the next available run index for a model path"""
+    if base_path is None:
+        return 0
+        
+    existing_runs = find_all_run_files(base_path)
+    
+    if not existing_runs:
+        return 0  # First run
+    
+    # Return the next available run index
+    max_run = max(existing_runs.keys())
+    return max_run + 1
+
+def model_exists(base_path, run_index):
+    """Check if a specific run of a model exists"""
+    if base_path is None:
+        return False
+        
+    if run_index == 0:
+        # Check for the base file
+        return os.path.exists(base_path)
+    else:
+        # Check for a run with the specified index
+        base_name, ext = os.path.splitext(base_path)
+        run_path = f"{base_name}_{run_index+1}{ext}"
+        return os.path.exists(run_path)
 
 def find_model_files(model_id):
     """Find all model files matching the model_id with support for new naming convention"""
@@ -318,6 +387,7 @@ def find_model_files(model_id):
     all_files = list(set(all_files))
     
     return all_files
+
 def extract_actual_steps_from_model(model_path):
     """
     Extract the actual number of steps from a trained model checkpoint
@@ -382,8 +452,9 @@ def rename_with_actual_steps(file_path, actual_steps):
     except Exception as e:
         print(f"Error renaming file: {e}")
         return file_path
-def run_training(combination, args, idx, total):
-    """Run training for a specific combination of parameters"""
+
+def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
+    """Run training for a specific combination of parameters and run index"""
     # Create model ID
     model_id = get_model_id(combination, args)
     
@@ -391,26 +462,51 @@ def run_training(combination, args, idx, total):
     temp_dir = args.temp_dir
     os.makedirs(temp_dir, exist_ok=True)
     
-    # Check if model already exists
-    if args.skip_existing and model_exists(combination, args):
-        print(f"\nSkipping combination {idx+1}/{total}: {model_id} (already trained)")
-        return {
-            'model_id': model_id,
-            'returncode': 0,
-            'combination': combination,
-            'skipped': True
-        }
+    # Calculate the actual run index (base + offset)
+    if args.continue_numbering:
+        actual_run_index = base_run_index + run_idx
+        print(f"Using run index {actual_run_index} = {base_run_index} (base) + {run_idx} (offset)")
+    else:
+        actual_run_index = run_idx
     
     # Get hierarchical paths for model outputs
     if combination['model_type'] in ['sae', 'both']:
-        sae_path = get_hierarchical_model_path(combination, 'sae', args)
+        sae_path = get_hierarchical_model_path(combination, 'sae', args, actual_run_index)
+        # Create directory for SAE
+        os.makedirs(os.path.dirname(sae_path), exist_ok=True)
     else:
         sae_path = None
         
     if combination['model_type'] in ['st', 'both']:
-        st_path = get_hierarchical_model_path(combination, 'st', args)
+        st_path = get_hierarchical_model_path(combination, 'st', args, actual_run_index)
+        # Create directory for ST
+        os.makedirs(os.path.dirname(st_path), exist_ok=True)
     else:
         st_path = None
+    
+    # Check if model already exists - skip only if not forcing retrain
+    if args.skip_existing and not args.force_retrain:
+        if (sae_path and os.path.exists(sae_path)) or (st_path and os.path.exists(st_path)):
+            print(f"\nSkipping combination {idx+1}/{total} run {actual_run_index+1}: {model_id} (already trained)")
+            return {
+                'model_id': model_id,
+                'returncode': 0,
+                'combination': combination,
+                'skipped': True,
+                'sae_path': sae_path,
+                'st_path': st_path,
+                'run_index': actual_run_index
+            }
+    
+    # Add run index to model_id for display purposes
+    if args.num_runs > 1:
+        if args.continue_numbering:
+            run_display = f"run {actual_run_index+1}"
+        else:
+            run_display = f"run {run_idx+1}/{args.num_runs}"
+    else:
+        run_display = ""
+    display_model_id = f"{model_id} {run_display}".strip()
     
     # Build command for running main.py
     cmd = [
@@ -423,18 +519,18 @@ def run_training(combination, args, idx, total):
         "--model_id", model_id,
     ]
     
-    # Add attention function for ST models
+    # Add model-specific parameters based on model type
     if combination['model_type'] in ['st', 'both']:
+        # For ST models: add attention function and set activation to "none"
         cmd.extend(["--attention_fn", combination['attention_fn']])
-        # Fixed activation to "none" for ST models as specified
         cmd.extend(["--activation", "none"])
         
         # Add attention dimension if specified
         if combination['attention_dimension']:
             cmd.extend(["--attention_dimension", str(combination['attention_dimension'])])
     else:
-        # Add activation function for SAE models
-        cmd.extend(["--activation", combination['activation']])
+        # For SAE models: always use ReLU activation regardless of what's in combination
+        cmd.extend(["--activation", "relu"])
     
     # Add optional flags
     if args.use_memory_bank:
@@ -466,27 +562,26 @@ def run_training(combination, args, idx, total):
         if combination['auto_steps_base'] != 200000:
             cmd.extend(["--auto_steps_base", str(combination['auto_steps_base'])])
     
+    # Always add force_retrain flag when using this script with multiple runs
+    if args.force_retrain:
+        cmd.append("--force_retrain")
+    
+    # Add direct save paths - this makes models save directly to the correct location
+    if sae_path:
+        cmd.extend(["--sae_save_path", sae_path])
+    
+    if st_path:
+        cmd.extend(["--st_save_path", st_path])
+    
     # Add any additional arguments
     if args.main_args:
         cmd.extend(args.main_args.split())
     
     # Print status
     print(f"\n\n{'='*80}")
-    print(f"Training combination {idx+1}/{total}: {model_id}")
-    # Create direct save paths
-    if sae_path:
-        sae_dir = os.path.dirname(sae_path)
-        os.makedirs(sae_dir, exist_ok=True)
-        # Add a custom argument to save SAE directly
-        cmd.extend(["--sae_save_path", sae_path])
-        print(f"Adding direct SAE save path: {sae_path}")
-        
-    if st_path:
-        st_dir = os.path.dirname(st_path)
-        os.makedirs(st_dir, exist_ok=True)
-        # Add a custom argument to save ST directly
-        cmd.extend(["--st_save_path", st_path])
-        print(f"Adding direct ST save path: {st_path}")
+    print(f"Training combination {idx+1}/{total}: {display_model_id}")
+    print(f"SAE save path: {sae_path}")
+    print(f"ST save path: {st_path}")
     print(f"Command: {' '.join(cmd)}")
     print(f"{'='*80}\n")
     
@@ -499,6 +594,22 @@ def run_training(combination, args, idx, total):
     # Record end time and duration
     end_time = time.time()
     duration = end_time - start_time
+    
+    # Check if models were actually saved to the intended paths
+    files_saved_correctly = True
+    
+    if sae_path and os.path.exists(sae_path):
+        print(f"Successfully saved SAE model to {sae_path}")
+    elif sae_path:
+        files_saved_correctly = False
+        print(f"Warning: SAE model not found at {sae_path}")
+    
+    if st_path and os.path.exists(st_path):
+        print(f"Successfully saved ST model to {st_path}")
+    elif st_path:
+        files_saved_correctly = False
+        print(f"Warning: ST model not found at {st_path}")
+    
     # Check if we're using auto steps
     if args.auto_steps and result.returncode == 0:
         # Rename files to use actual step count instead of 'autosteps'
@@ -517,23 +628,11 @@ def run_training(combination, args, idx, total):
                 # Rename the file
                 st_path = rename_with_actual_steps(st_path, actual_steps)
                 print(f"Updated ST path with actual steps: {st_path}")
+    
+    # If files weren't saved correctly but the process returned 0, try to find and move them
+    if not files_saved_correctly and result.returncode == 0:
+        print("Models weren't saved to the hierarchical paths. Trying to find and move them...")
         
-        # Also look for any additional files like .best or .stepXXX
-        if sae_path and not sae_path.endswith('.best'):
-            sae_best_path = sae_path.replace('.pth', '.best')
-            if os.path.exists(sae_best_path) and 'autosteps' in sae_best_path:
-                actual_steps = extract_actual_steps_from_model(sae_best_path)
-                if actual_steps:
-                    rename_with_actual_steps(sae_best_path, actual_steps)
-        
-        if st_path and not st_path.endswith('.best'):
-            st_best_path = st_path.replace('.pth', '.best')
-            if os.path.exists(st_best_path) and 'autosteps' in st_best_path:
-                actual_steps = extract_actual_steps_from_model(st_best_path)
-                if actual_steps:
-                    rename_with_actual_steps(st_best_path, actual_steps)
-    # Find and move model files to hierarchical paths if training succeeded
-    if result.returncode == 0:
         # Find all model files
         model_files = find_model_files(model_id)
         print(f"Found {len(model_files)} model files: {model_files}")
@@ -542,16 +641,16 @@ def run_training(combination, args, idx, total):
             filename = os.path.basename(file_path)
             
             # Determine target path based on model type
-            if filename.startswith("sae_model_") and sae_path:
+            if "sae_model_" in filename and sae_path:
                 target_path = sae_path
                 model_type = "sae"
-            elif filename.startswith("st_model_") and st_path:
+            elif "st_model_" in filename and st_path:
                 target_path = st_path
                 model_type = "st"
             else:
                 continue  # Skip unknown file types
             
-            # Move the file
+            # Create directory if needed (redundant but safe)
             os.makedirs(os.path.dirname(target_path), exist_ok=True)
             
             try:
@@ -574,12 +673,13 @@ def run_training(combination, args, idx, total):
         'combination': combination,
         'duration': duration,
         'skipped': False,
-        'sae_path': sae_path if combination['model_type'] in ['sae', 'both'] else None,
-        'st_path': st_path if combination['model_type'] in ['st', 'both'] else None
+        'sae_path': sae_path,
+        'st_path': st_path,
+        'run_index': actual_run_index
     }
 
 def create_summary(results, args):
-    """Create a summary of training results"""
+    """Create a summary of training results with run information"""
     summary_path = args.summary_file
     
     # Count results by type
@@ -587,14 +687,16 @@ def create_summary(results, args):
     skipped = [r for r in results if r.get('skipped', False)]
     failed = [r for r in results if r['returncode'] != 0]
     
-    # Generate summary file
-    with open(summary_path, 'w') as f:
+    # Generate summary file with explicit UTF-8 encoding
+    with open(summary_path, 'w', encoding='utf-8') as f:
         f.write("# Training Results Summary\n\n")
         f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         
         # Overview
         f.write("## Overview\n\n")
-        f.write(f"Total combinations: {len(results)}\n")
+        f.write(f"Total configurations: {len(results) // max(1, args.num_runs)}\n")
+        f.write(f"Total runs: {len(results)}\n")
+        f.write(f"Runs per configuration: {args.num_runs}\n")
         f.write(f"Successful: {len(successful)}\n")
         f.write(f"Skipped: {len(skipped)}\n")
         f.write(f"Failed: {len(failed)}\n\n")
@@ -604,37 +706,50 @@ def create_summary(results, args):
         f.write("Models are organized in the following structure:\n")
         f.write("```\n")
         f.write("models/\n")
-        f.write("  ├── sae/\n")
-        f.write("  │   ├── [activation_function]/\n")
-        f.write("  │   │   ├── [feature_dimension]/\n")
-        f.write("  │   │   │   ├── sae_[simple_name].pth\n")
-        f.write("  │   │   │   └── ...\n")
-        f.write("  └── st/\n")
-        f.write("      ├── [attention_function]/\n")
-        f.write("      │   ├── [feature_dimension]/\n")
-        f.write("      │   │   ├── st_[simple_name].pth\n")
-        f.write("      │   │   └── ...\n")
+        f.write("  |-- [dataset]/\n")
+        f.write("      |-- sae/\n")
+        f.write("      |   |-- [activation_function]/\n")
+        f.write("      |   |   |-- [feature_dimension]/\n")
+        f.write("      |   |       |-- bs{batch}_lr{lr}_steps{steps}.pth         # Run 1\n")
+        f.write("      |   |       |-- bs{batch}_lr{lr}_steps{steps}_2.pth       # Run 2\n")
+        f.write("      |   |       |-- bs{batch}_lr{lr}_steps{steps}_3.pth       # Run 3\n")
+        f.write("      |-- st/\n")
+        f.write("          |-- [attention_function]/\n")
+        f.write("              |-- [feature_dimension]/\n")
+        f.write("                  |-- bs{batch}_lr{lr}_steps{steps}.pth         # Run 1\n")
+        f.write("                  |-- bs{batch}_lr{lr}_steps{steps}_2.pth       # Run 2\n")
+        f.write("                  |-- bs{batch}_lr{lr}_steps{steps}_3.pth       # Run 3\n")
         f.write("```\n\n")
         
-        # Successful models
+        # Group successful models by configuration
         if successful:
-            f.write("## Successful Models\n\n")
-            f.write("| Model ID | Training Time | Path |\n")
-            f.write("|----------|---------------|------|\n")
-            
+            # Group by model_id (without run index)
+            grouped_results = {}
             for result in successful:
                 model_id = result['model_id']
-                duration_hours = result.get('duration', 0) / 3600
+                if model_id not in grouped_results:
+                    grouped_results[model_id] = []
+                grouped_results[model_id].append(result)
+            
+            f.write("## Successful Models\n\n")
+            f.write("| Configuration | Run | Training Time | Path |\n")
+            f.write("|--------------|-----|---------------|------|\n")
+            
+            for model_id, results_for_model in grouped_results.items():
+                # Sort by run index
+                sorted_results = sorted(results_for_model, key=lambda x: x.get('run_index', 0))
                 
-                # Get path(s)
-                paths = []
-                if result['sae_path']:
-                    paths.append(result['sae_path'])
-                if result['st_path']:
-                    paths.append(result['st_path'])
+                # Print first row with configuration details
+                first_result = sorted_results[0]
+                duration_hours = first_result.get('duration', 0) / 3600
+                path = first_result['sae_path'] if first_result['sae_path'] else first_result['st_path']
+                f.write(f"| {model_id} | 1 | {duration_hours:.1f}h | {path} |\n")
                 
-                path_str = "<br>".join(paths)
-                f.write(f"| {model_id} | {duration_hours:.1f}h | {path_str} |\n")
+                # Print additional runs if any
+                for i, result in enumerate(sorted_results[1:], 2):
+                    duration_hours = result.get('duration', 0) / 3600
+                    path = result['sae_path'] if result['sae_path'] else result['st_path']
+                    f.write(f"| | {i} | {duration_hours:.1f}h | {path} |\n")
             
             f.write("\n")
         
@@ -642,45 +757,81 @@ def create_summary(results, args):
         if skipped:
             f.write("## Skipped Models\n\n")
             for result in skipped:
-                f.write(f"- {result['model_id']}\n")
+                run_info = f" (run {result.get('run_index', 0) + 1})" if args.num_runs > 1 else ""
+                f.write(f"- {result['model_id']}{run_info}\n")
             f.write("\n")
         
         # Failed models
         if failed:
             f.write("## Failed Models\n\n")
             for result in failed:
-                f.write(f"- {result['model_id']} (return code: {result['returncode']})\n")
+                run_info = f" (run {result.get('run_index', 0) + 1})" if args.num_runs > 1 else ""
+                f.write(f"- {result['model_id']}{run_info} (return code: {result['returncode']})\n")
     
     print(f"\nSummary written to {summary_path}")
     return summary_path
 
 def main():
-    """Main function to run training combinations"""
+    """Main function to run training combinations with support for multiple runs"""
     args = parse_args()
     
     # Generate combinations
     combinations = generate_combinations(args)
     
-    print(f"Generated {len(combinations)} combinations to train")
+    print(f"Generated {len(combinations)} configurations to train")
+    print(f"Number of runs per configuration: {args.num_runs}")
+    print(f"Total training runs to perform: {len(combinations) * args.num_runs}")
     
     # Show sample of combinations
-    if len(combinations) > 10:
-        print("\nSample of combinations to train:")
+    if len(combinations) > 5:
+        print("\nSample of configurations to train:")
         for i, combo in enumerate(combinations[:5]):
             model_id = get_model_id(combo, args)
-            print(f"{i+1}. {model_id}")
+            
+            # Check existing runs if continue_numbering is enabled
+            if args.continue_numbering:
+                base_sae_path = get_hierarchical_model_path(combo, 'sae', args, 0) if combo['model_type'] in ['sae', 'both'] else None
+                base_st_path = get_hierarchical_model_path(combo, 'st', args, 0) if combo['model_type'] in ['st', 'both'] else None
+                
+                sae_next_run = find_next_available_run(base_sae_path) if base_sae_path else 0
+                st_next_run = find_next_available_run(base_st_path) if base_st_path else 0
+                next_run = max(sae_next_run, st_next_run)
+                
+                run_str = f"(Adding runs {next_run+1} to {next_run+args.num_runs})"
+            else:
+                run_str = f"({args.num_runs} runs per configuration)"
+                
+            print(f"{i+1}. {model_id} {run_str}")
         print("...")
     
-    # Train each combination
+    # Train each combination for each run
     results = []
+    
     for idx, combo in enumerate(combinations):
-        result = run_training(combo, args, idx, len(combinations))
-        results.append(result)
+        # For continue_numbering mode, determine base index once per configuration
+        base_run_index = 0
+        if args.continue_numbering:
+            # Get the base model paths without run index
+            base_sae_path = get_hierarchical_model_path(combo, 'sae', args, 0) if combo['model_type'] in ['sae', 'both'] else None
+            base_st_path = get_hierarchical_model_path(combo, 'st', args, 0) if combo['model_type'] in ['st', 'both'] else None
+            
+            # Find the highest existing run index
+            sae_next_run = find_next_available_run(base_sae_path) if base_sae_path else 0
+            st_next_run = find_next_available_run(base_st_path) if base_st_path else 0
+            base_run_index = max(sae_next_run, st_next_run)
+            print(f"\nConfiguration {idx+1}: Found {base_run_index} existing runs")
+        
+        for run_idx in range(args.num_runs):
+            result = run_training(combo, args, idx, len(combinations), run_idx, base_run_index)
+            results.append(result)
     
     # Create summary
     summary_path = create_summary(results, args)
     
     print("\nTraining completed!")
+    if args.num_runs > 1:
+        print(f"Completed {args.num_runs} runs for each of {len(combinations)} configurations.")
+    print(f"See {summary_path} for details.")
 
 if __name__ == "__main__":
     main()
