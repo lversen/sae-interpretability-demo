@@ -344,10 +344,14 @@ def parse_args():
             print(f"  {i+1}. {ds}")
         exit(0)
     if args.device:
+        print(f"Explicitly using device: {args.device}")
         device = args.device
     else:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f"Using device: {device}")
+        print(f"Defaulting to device: {device}")
+
+    # Later in the code when creating models
+    print(f"Creating model on device: {device}")
     # Load config from file if specified
     if args.load_config:
         loaded_config = load_config_from_file(args.load_config)
@@ -663,9 +667,11 @@ def main():
     print(f"  Feature Dimension (m): {args.feature_dimension or 100}")
     
     # Set device
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    if args.device:
+        device = args.device
+    else:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
-    
     # Setup feature dimensions
     n = args.input_dimension
     m = args.feature_dimension if args.feature_dimension else 100
