@@ -331,6 +331,8 @@ def parse_args():
                         help='Custom save path for SAE model')
     misc_group.add_argument('--st_save_path', type=str, default=None,
                         help='Custom save path for ST model')
+    misc_group.add_argument('--device', type=str, default=None,
+                      help='Device to use for training (cuda or cpu)')
     
     args = parser.parse_args()
     
@@ -341,7 +343,11 @@ def parse_args():
         for i, ds in enumerate(datasets):
             print(f"  {i+1}. {ds}")
         exit(0)
-    
+    if args.device:
+        device = args.device
+    else:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {device}")
     # Load config from file if specified
     if args.load_config:
         loaded_config = load_config_from_file(args.load_config)

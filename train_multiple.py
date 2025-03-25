@@ -11,6 +11,7 @@ Supports multiple runs of the same configuration with automatic naming:
 - etc.
 """
 
+import re
 import os
 import argparse
 import itertools
@@ -81,8 +82,71 @@ def parse_args():
                       help='Additional arguments to pass to main.py')
     parser.add_argument('--temp_dir', type=str, default='temp_models',
                       help='Temporary directory for model files before moving')
+    parser.add_argument('--device', type=str, default='cuda',
+                    help='Device to use for training (cuda or cpu)')
     
     return parser.parse_args()
+
+def get_steps_version_of_path(path):
+    """
+    Check if a file exists with 'steps' instead of 'autosteps' in the path
+    
+    Args:
+        path: Original path with autosteps
+        
+    Returns:
+        Updated path with actual steps if found, original path otherwise
+    """
+    if path is None or 'autosteps' not in path:
+        return path
+        
+    dir_name = os.path.dirname(path)
+    file_name = os.path.basename(path)
+    
+    # Extract the base number from autosteps
+    parts = file_name.split('_')
+    for i, part in enumerate(parts):
+        if part.startswith('autosteps'):
+            # Create a pattern replacing just this part with steps*
+            auto_base = part[9:]  # Extract base number after 'autosteps'
+            parts[i] = f"steps*"
+            pattern = '_'.join(parts)
+            
+            # Search for matching files
+            matches = glob.glob(os.path.join(dir_name, pattern))
+            if matches:
+                # Sort matches to get the most relevant one
+                matches.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+                return matches[0]
+    
+    return path
+
+def model_exists_with_autosteps(base_path):
+    """
+    Check if a model exists, accounting for auto_steps renaming.
+    
+    Args:
+        base_path: Original path to check
+        
+    Returns:
+        Tuple (exists, actual_path) - Boolean indicating if model exists,
+        and the actual path if found (which might be different from base_path)
+    """
+    if base_path is None:
+        return False, None
+        
+    # Check if the exact path exists
+    if os.path.exists(base_path):
+        return True, base_path
+        
+    # If we're looking for an autosteps file, also check for steps files
+    if 'autosteps' in base_path:
+        # Use the helper function to get the steps version
+        steps_path = get_steps_version_of_path(base_path)
+        if steps_path != base_path and os.path.exists(steps_path):
+            return True, steps_path
+    
+    return False, base_path
 
 def generate_combinations(args):
     """Generate all combinations of parameters to try"""
@@ -294,6 +358,10 @@ def find_all_run_files(base_path):
     """Find all existing run files for a given base path"""
     if base_path is None:
         return {}
+    
+    # Handle the case where base_path might contain autosteps
+    if 'autosteps' in base_path:
+        base_path = get_steps_version_of_path(base_path)
         
     base_dir = os.path.dirname(base_path)
     base_name, ext = os.path.splitext(os.path.basename(base_path))
@@ -324,6 +392,12 @@ def find_next_available_run(base_path):
     """Find the next available run index for a model path"""
     if base_path is None:
         return 0
+    
+    # Check if we have a renamed version (for auto_steps)
+    if 'autosteps' in base_path:
+        updated_path = get_steps_version_of_path(base_path)
+        if updated_path != base_path:
+            base_path = updated_path
         
     existing_runs = find_all_run_files(base_path)
     
@@ -338,6 +412,10 @@ def model_exists(base_path, run_index):
     """Check if a specific run of a model exists"""
     if base_path is None:
         return False
+    
+    # Check for renamed files if this contains autosteps
+    if 'autosteps' in base_path:
+        base_path = get_steps_version_of_path(base_path)
         
     if run_index == 0:
         # Check for the base file
@@ -371,6 +449,14 @@ def find_model_files(model_id):
             f"models/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_pattern}*.pth",  # Basic pattern
             f"models/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_pattern}_*.pth", # With extra params
         ]
+        
+        # Also search for steps versions of autosteps patterns
+        if 'autosteps' in steps_pattern:
+            steps_version = steps_pattern.replace('autosteps', 'steps')
+            new_patterns.extend([
+                f"models/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_version}*.pth",
+                f"models/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_version}_*.pth",
+            ])
     else:
         new_patterns = []
     
@@ -484,9 +570,35 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
     else:
         st_path = None
     
+    # CRITICAL FIX: Check if renamed versions of these paths exist and update them
+    if args.auto_steps:
+        if sae_path and 'autosteps' in sae_path:
+            sae_exists, actual_sae_path = model_exists_with_autosteps(sae_path)
+            if sae_exists:
+                print(f"Found existing renamed SAE model: {actual_sae_path}")
+                sae_path = actual_sae_path
+                
+        if st_path and 'autosteps' in st_path:
+            st_exists, actual_st_path = model_exists_with_autosteps(st_path)
+            if st_exists:
+                print(f"Found existing renamed ST model: {actual_st_path}")
+                st_path = actual_st_path
+    
     # Check if model already exists - skip only if not forcing retrain
     if args.skip_existing and not args.force_retrain:
-        if (sae_path and os.path.exists(sae_path)) or (st_path and os.path.exists(st_path)):
+        # Check for existing models, handling auto_steps renaming
+        sae_exists, actual_sae_path = model_exists_with_autosteps(sae_path)
+        st_exists, actual_st_path = model_exists_with_autosteps(st_path)
+        
+        # Update paths to actual files if found
+        if sae_exists:
+            sae_path = actual_sae_path
+            print(f"Found existing SAE model at: {sae_path}")
+        if st_exists:
+            st_path = actual_st_path
+            print(f"Found existing ST model at: {st_path}")
+        
+        if sae_exists or st_exists:
             print(f"\nSkipping combination {idx+1}/{total} run {actual_run_index+1}: {model_id} (already trained)")
             return {
                 'model_id': model_id,
@@ -565,7 +677,8 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
     # Always add force_retrain flag when using this script with multiple runs
     if args.force_retrain:
         cmd.append("--force_retrain")
-    
+    if args.device:
+        cmd.extend(["--device", args.device])
     # Add direct save paths - this makes models save directly to the correct location
     if sae_path:
         cmd.extend(["--sae_save_path", sae_path])
@@ -793,9 +906,17 @@ def main():
                 base_sae_path = get_hierarchical_model_path(combo, 'sae', args, 0) if combo['model_type'] in ['sae', 'both'] else None
                 base_st_path = get_hierarchical_model_path(combo, 'st', args, 0) if combo['model_type'] in ['st', 'both'] else None
                 
+                # Check for renamed paths if using auto_steps
+                if args.auto_steps:
+                    if base_sae_path and 'autosteps' in base_sae_path:
+                        base_sae_path = get_steps_version_of_path(base_sae_path)
+                    if base_st_path and 'autosteps' in base_st_path:
+                        base_st_path = get_steps_version_of_path(base_st_path)
+                
+                # Find the highest existing run index
                 sae_next_run = find_next_available_run(base_sae_path) if base_sae_path else 0
                 st_next_run = find_next_available_run(base_st_path) if base_st_path else 0
-                next_run = max(sae_next_run, st_next_run)
+                base_run_index = max(sae_next_run, st_next_run)
                 
                 run_str = f"(Adding runs {next_run+1} to {next_run+args.num_runs})"
             else:
@@ -814,6 +935,13 @@ def main():
             # Get the base model paths without run index
             base_sae_path = get_hierarchical_model_path(combo, 'sae', args, 0) if combo['model_type'] in ['sae', 'both'] else None
             base_st_path = get_hierarchical_model_path(combo, 'st', args, 0) if combo['model_type'] in ['st', 'both'] else None
+            
+            # Check for renamed paths if using auto_steps
+            if args.auto_steps:
+                if base_sae_path and 'autosteps' in base_sae_path:
+                    base_sae_path = get_steps_version_of_path(base_sae_path)
+                if base_st_path and 'autosteps' in base_st_path:
+                    base_st_path = get_steps_version_of_path(base_st_path)
             
             # Find the highest existing run index
             sae_next_run = find_next_available_run(base_sae_path) if base_sae_path else 0
