@@ -65,6 +65,8 @@ def parse_args():
                       help='Use memory bank approach for ST models')
     parser.add_argument('--use_old_st', action='store_true',
                       help='Use old ST implementation')
+    parser.add_argument('--use_mixed_precision', action='store_true',
+                    help='Enable mixed precision training for ST model')
     
     # Multiple runs and retraining options
     parser.add_argument('--num_runs', type=int, default=1,
@@ -652,6 +654,8 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
     
     if args.use_old_st:
         cmd.append("--use_old_st")
+    if args.use_mixed_precision:
+        cmd.append("--use_mixed_precision")
     
     # Add batch size if specified
     if combination['batch_size'] is not None:
