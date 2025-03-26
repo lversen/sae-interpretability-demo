@@ -1,13 +1,13 @@
 # Training Results Summary
 
-Date: 2025-03-24 10:08:01
+Date: 2025-03-25 12:16:12
 
 ## Overview
 
-Total configurations: 2
-Total runs: 6
-Runs per configuration: 3
-Successful: 6
+Total configurations: 18
+Total runs: 18
+Runs per configuration: 1
+Successful: 18
 Skipped: 0
 Failed: 0
 
@@ -35,10 +35,22 @@ models/
 
 | Configuration | Run | Training Time | Path |
 |--------------|-----|---------------|------|
-| mnist_st_10_softmax_steps100 | 1 | 0.0h | models\mnist\st\softmax\10\bs4096_lr5e-05_steps100_3.pth |
-| | 2 | 0.0h | models\mnist\st\softmax\10\bs4096_lr5e-05_steps100_4.pth |
-| | 3 | 0.0h | models\mnist\st\softmax\10\bs4096_lr5e-05_steps100_5.pth |
-| mnist_st_20_softmax_steps100 | 1 | 0.0h | models\mnist\st\softmax\20\bs4096_lr5e-05_steps100_3.pth |
-| | 2 | 0.0h | models\mnist\st\softmax\20\bs4096_lr5e-05_steps100_4.pth |
-| | 3 | 0.0h | models\mnist\st\softmax\20\bs4096_lr5e-05_steps100_5.pth |
+| mnist_st_20_softmax_lr0p001_l110p0 | 1 | 0.0h | models\mnist\st\softmax\20\bs4096_lr0p001_steps6000_l110p0.pth |
+| mnist_st_20_softmax_l110p0 | 1 | 0.0h | models\mnist\st\softmax\20\bs4096_lr5e-05_steps6000_l110p0.pth |
+| mnist_st_50_softmax_lr0p001_l110p0 | 1 | 0.0h | models\mnist\st\softmax\50\bs4096_lr0p001_steps6390_l110p0.pth |
+| mnist_st_50_softmax_l110p0 | 1 | 0.0h | models\mnist\st\softmax\50\bs4096_lr5e-05_steps6390_l110p0.pth |
+| mnist_st_100_softmax_lr0p001_l110p0 | 1 | 0.0h | models\mnist\st\softmax\100\bs4096_lr0p001_steps10755_l110p0.pth |
+| mnist_st_100_softmax_l110p0 | 1 | 0.3h | models\mnist\st\softmax\100\bs4096_lr5e-05_steps10755_l110p0.pth |
+| mnist_st_20_relu_attention_lr0p001_l110p0 | 1 | 0.1h | models\mnist\st\relu_attention\20\bs4096_lr0p001_steps6000_l110p0.pth |
+| mnist_st_20_relu_attention_l110p0 | 1 | 0.1h | models\mnist\st\relu_attention\20\bs4096_lr5e-05_steps6000_l110p0.pth |
+| mnist_st_50_relu_attention_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\relu_attention\50\bs4096_lr0p001_steps6390_l110p0.pth |
+| mnist_st_50_relu_attention_l110p0 | 1 | 0.1h | models\mnist\st\relu_attention\50\bs4096_lr5e-05_steps6390_l110p0.pth |
+| mnist_st_100_relu_attention_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\relu_attention\100\bs4096_lr0p001_steps10755_l110p0.pth |
+| mnist_st_100_relu_attention_l110p0 | 1 | 0.3h | models\mnist\st\relu_attention\100\bs4096_lr5e-05_steps10755_l110p0.pth |
+| mnist_st_20_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr0p001_steps6000_l110p0.pth |
+| mnist_st_20_tanh_scale_shift_l110p0 | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr5e-05_steps6000_l110p0.pth |
+| mnist_st_50_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr0p001_steps6390_l110p0.pth |
+| mnist_st_50_tanh_scale_shift_l110p0 | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr5e-05_steps6390_l110p0.pth |
+| mnist_st_100_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr0p001_steps10755_l110p0.pth |
+| mnist_st_100_tanh_scale_shift_l110p0 | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr5e-05_steps10755_l110p0.pth |
 

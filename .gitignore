@@ -8,3 +8,6 @@
 *.gexf
 /graphs
 /__pycache__
+/enhanced_visualizations
+/model_comparison
+/visualization

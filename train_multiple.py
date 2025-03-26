@@ -10,7 +10,8 @@ Supports multiple runs of the same configuration with automatic naming:
 - Third run: model_3.pth
 - etc.
 """
-
+import concurrent.futures
+from functools import partial
 import re
 import os
 import argparse
@@ -84,7 +85,8 @@ def parse_args():
                       help='Temporary directory for model files before moving')
     parser.add_argument('--device', type=str, default='cuda',
                     help='Device to use for training (cuda or cpu)')
-    
+    parser.add_argument('--workers', type=int, default=4,
+                      help='Number of parallel training jobs to run')
     return parser.parse_args()
 
 def get_steps_version_of_path(path):
@@ -883,83 +885,68 @@ def create_summary(results, args):
     
     print(f"\nSummary written to {summary_path}")
     return summary_path
-
 def main():
-    """Main function to run training combinations with support for multiple runs"""
+    """Main function with parallelization"""
     args = parse_args()
-    
     # Generate combinations
     combinations = generate_combinations(args)
     
     print(f"Generated {len(combinations)} configurations to train")
     print(f"Number of runs per configuration: {args.num_runs}")
     print(f"Total training runs to perform: {len(combinations) * args.num_runs}")
+    print(f"Using {args.workers} parallel workers")
     
-    # Show sample of combinations
-    if len(combinations) > 5:
-        print("\nSample of configurations to train:")
-        for i, combo in enumerate(combinations[:5]):
-            model_id = get_model_id(combo, args)
-            
-            # Check existing runs if continue_numbering is enabled
-            if args.continue_numbering:
-                base_sae_path = get_hierarchical_model_path(combo, 'sae', args, 0) if combo['model_type'] in ['sae', 'both'] else None
-                base_st_path = get_hierarchical_model_path(combo, 'st', args, 0) if combo['model_type'] in ['st', 'both'] else None
-                
-                # Check for renamed paths if using auto_steps
-                if args.auto_steps:
-                    if base_sae_path and 'autosteps' in base_sae_path:
-                        base_sae_path = get_steps_version_of_path(base_sae_path)
-                    if base_st_path and 'autosteps' in base_st_path:
-                        base_st_path = get_steps_version_of_path(base_st_path)
-                
-                # Find the highest existing run index
-                sae_next_run = find_next_available_run(base_sae_path) if base_sae_path else 0
-                st_next_run = find_next_available_run(base_st_path) if base_st_path else 0
-                base_run_index = max(sae_next_run, st_next_run)
-                
-                run_str = f"(Adding runs {next_run+1} to {next_run+args.num_runs})"
-            else:
-                run_str = f"({args.num_runs} runs per configuration)"
-                
-            print(f"{i+1}. {model_id} {run_str}")
-        print("...")
-    
-    # Train each combination for each run
-    results = []
-    
+    # Prepare all training tasks
+    all_tasks = []
     for idx, combo in enumerate(combinations):
-        # For continue_numbering mode, determine base index once per configuration
+        # Determine base run index for continue_numbering mode
         base_run_index = 0
         if args.continue_numbering:
-            # Get the base model paths without run index
             base_sae_path = get_hierarchical_model_path(combo, 'sae', args, 0) if combo['model_type'] in ['sae', 'both'] else None
             base_st_path = get_hierarchical_model_path(combo, 'st', args, 0) if combo['model_type'] in ['st', 'both'] else None
             
-            # Check for renamed paths if using auto_steps
+            # Handle auto_steps renaming
             if args.auto_steps:
                 if base_sae_path and 'autosteps' in base_sae_path:
                     base_sae_path = get_steps_version_of_path(base_sae_path)
                 if base_st_path and 'autosteps' in base_st_path:
                     base_st_path = get_steps_version_of_path(base_st_path)
             
-            # Find the highest existing run index
+            # Find highest existing run index
             sae_next_run = find_next_available_run(base_sae_path) if base_sae_path else 0
             st_next_run = find_next_available_run(base_st_path) if base_st_path else 0
             base_run_index = max(sae_next_run, st_next_run)
-            print(f"\nConfiguration {idx+1}: Found {base_run_index} existing runs")
         
+        # Create tasks for each run of this combination
         for run_idx in range(args.num_runs):
-            result = run_training(combo, args, idx, len(combinations), run_idx, base_run_index)
-            results.append(result)
+            all_tasks.append((combo, idx, len(combinations), run_idx, base_run_index))
+    
+    # Create a partial function with fixed args
+    training_func = partial(run_training_task, args=args)
+    
+    # Execute tasks in parallel
+    results = []
+    with concurrent.futures.ProcessPoolExecutor(max_workers=args.workers) as executor:
+        futures = [executor.submit(training_func, *task) for task in all_tasks]
+        
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                result = future.result()
+                results.append(result)
+                print(f"Completed task for model: {result['model_id']}, run: {result['run_index']+1}")
+            except Exception as e:
+                print(f"Task failed with error: {e}")
     
     # Create summary
     summary_path = create_summary(results, args)
     
     print("\nTraining completed!")
-    if args.num_runs > 1:
-        print(f"Completed {args.num_runs} runs for each of {len(combinations)} configurations.")
+    print(f"Completed {len(results)} of {len(all_tasks)} training tasks.")
     print(f"See {summary_path} for details.")
 
+def run_training_task(combo, idx, total, run_idx, base_run_index, args):
+    """Wrapper for run_training to use with concurrent.futures"""
+    return run_training(combo, args, idx, total, run_idx, base_run_index)
 if __name__ == "__main__":
     main()
