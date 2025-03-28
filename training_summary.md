@@ -1,13 +1,13 @@
 # Training Results Summary
 
-Date: 2025-03-26 14:38:40
+Date: 2025-03-28 07:43:42
 
 ## Overview
 
-Total configurations: 144
-Total runs: 144
+Total configurations: 27
+Total runs: 27
 Runs per configuration: 1
-Successful: 144
+Successful: 27
 Skipped: 0
 Failed: 0
 
@@ -35,148 +35,31 @@ models/
 
 | Configuration | Run | Training Time | Path |
 |--------------|-----|---------------|------|
-| mnist_sae_20_lr0p001_l110p0 | 1 | 0.1h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l110p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l110p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l110p0_2.pth |
-| mnist_sae_20 | 1 | 0.1h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l15p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l15p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l15p0_2.pth |
-| mnist_sae_20_lr0p001_l12p5 | 1 | 0.1h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l12p5_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l12p5_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l12p5_2.pth |
-| mnist_sae_20_lr0p001 | 1 | 0.1h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l15p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l15p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\20\bs4096_lr0p001_steps4994_l15p0_2.pth |
-| mnist_sae_20_l12p5 | 1 | 0.1h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l12p5_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l12p5_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l12p5_2.pth |
-| mnist_sae_20_l110p0 | 1 | 0.1h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l110p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l110p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l110p0_2.pth |
-| mnist_sae_50_lr0p001 | 1 | 0.1h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l15p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l15p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l15p0_2.pth |
-| mnist_sae_50_lr0p001_l12p5 | 1 | 0.1h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l12p5_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l12p5_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l12p5_2.pth |
-| mnist_sae_50_lr0p001_l110p0 | 1 | 0.1h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l110p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l110p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\50\bs4096_lr0p001_steps5324_l110p0_2.pth |
-| mnist_sae_50 | 1 | 0.1h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l15p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l15p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l15p0_2.pth |
-| mnist_sae_50_l12p5 | 1 | 0.1h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l12p5_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l12p5_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l12p5_2.pth |
-| mnist_sae_50_l110p0 | 1 | 0.1h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l110p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l110p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l110p0_2.pth |
-| mnist_sae_100_lr0p001 | 1 | 0.1h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l15p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l15p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l15p0_2.pth |
-| mnist_sae_100_lr0p001_l12p5 | 1 | 0.1h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l12p5_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l12p5_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l12p5_2.pth |
-| mnist_sae_100_lr0p001_l110p0 | 1 | 0.1h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l110p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l110p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\100\bs4096_lr0p001_steps8969_l110p0_2.pth |
-| mnist_sae_100 | 1 | 0.1h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l15p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l15p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l15p0_2.pth |
-| mnist_sae_100_l12p5 | 1 | 0.1h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l12p5_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l12p5_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l12p5_2.pth |
-| mnist_sae_100_l110p0 | 1 | 0.1h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l110p0_2.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l110p0_2.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l110p0_2.pth |
-| mnist_sae_200_lr0p001 | 1 | 0.2h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l15p0.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l15p0.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l15p0.pth |
-| mnist_sae_200_lr0p001_l12p5 | 1 | 0.2h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l12p5.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l12p5.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l12p5.pth |
-| mnist_sae_200_lr0p001_l110p0 | 1 | 0.2h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l110p0.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l110p0.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\200\bs4096_lr0p001_steps15089_l110p0.pth |
-| mnist_sae_200 | 1 | 0.2h | models\mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l15p0.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l15p0.pth |
-| | 3 | 0.0h | models\mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l15p0.pth |
-| mnist_sae_200_l110p0 | 1 | 0.2h | models\mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l110p0.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l110p0.pth |
-| | 3 | 0.2h | models\mnist\sae\relu\200\bs4096_lr5e-05_autosteps200000_l110p0.pth |
-| mnist_sae_200_l12p5 | 1 | 0.2h | models\mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l12p5.pth |
-| | 2 | 0.0h | models\mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l12p5.pth |
-| | 3 | 0.2h | models\mnist\sae\relu\200\bs4096_lr5e-05_autosteps200000_l12p5.pth |
-| mnist_st_20_softmax_lr0p001 | 1 | 0.2h | models\mnist\st\softmax\20\bs4096_lr0p001_steps6000_l15p0_2.pth |
-| mnist_st_20_softmax_lr0p001_l12p5 | 1 | 0.2h | models\mnist\st\softmax\20\bs4096_lr0p001_steps6000_l12p5_2.pth |
-| mnist_st_20_softmax | 1 | 0.2h | models\mnist\st\softmax\20\bs4096_lr5e-05_steps6000_l15p0_2.pth |
-| mnist_st_20_softmax_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\softmax\20\bs4096_lr0p001_steps6000_l110p0_2.pth |
-| mnist_st_20_softmax_l110p0 | 1 | 0.2h | models\mnist\st\softmax\20\bs4096_lr5e-05_steps6000_l110p0_2.pth |
-| mnist_st_20_softmax_l12p5 | 1 | 0.2h | models\mnist\st\softmax\20\bs4096_lr5e-05_steps6000_l12p5_2.pth |
-| mnist_st_50_softmax_lr0p001_l12p5 | 1 | 0.2h | models\mnist\st\softmax\50\bs4096_lr0p001_steps6390_l12p5_2.pth |
-| mnist_st_50_softmax_lr0p001 | 1 | 0.2h | models\mnist\st\softmax\50\bs4096_lr0p001_steps6390_l15p0_2.pth |
-| mnist_st_50_softmax_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\softmax\50\bs4096_lr0p001_steps6390_l110p0_2.pth |
-| mnist_st_50_softmax | 1 | 0.2h | models\mnist\st\softmax\50\bs4096_lr5e-05_steps6390_l15p0_2.pth |
-| mnist_st_50_softmax_l12p5 | 1 | 0.2h | models\mnist\st\softmax\50\bs4096_lr5e-05_steps6390_l12p5_2.pth |
-| mnist_st_50_softmax_l110p0 | 1 | 0.2h | models\mnist\st\softmax\50\bs4096_lr5e-05_steps6390_l110p0_2.pth |
-| mnist_st_100_softmax_lr0p001 | 1 | 0.3h | models\mnist\st\softmax\100\bs4096_lr0p001_steps10755_l15p0_2.pth |
-| mnist_st_100_softmax_lr0p001_l12p5 | 1 | 0.3h | models\mnist\st\softmax\100\bs4096_lr0p001_steps10755_l12p5_2.pth |
-| mnist_st_100_softmax | 1 | 0.3h | models\mnist\st\softmax\100\bs4096_lr5e-05_steps10755_l15p0_2.pth |
-| mnist_st_100_softmax_lr0p001_l110p0 | 1 | 0.3h | models\mnist\st\softmax\100\bs4096_lr0p001_steps10755_l110p0_2.pth |
-| mnist_st_100_softmax_l110p0 | 1 | 0.3h | models\mnist\st\softmax\100\bs4096_lr5e-05_steps10755_l110p0_2.pth |
-| mnist_st_100_softmax_l12p5 | 1 | 0.3h | models\mnist\st\softmax\100\bs4096_lr5e-05_steps10755_l12p5_2.pth |
-| mnist_st_200_softmax_lr0p001 | 1 | 0.5h | models\mnist\st\softmax\200\bs4096_lr0p001_steps18105_l15p0.pth |
-| mnist_st_200_softmax_lr0p001_l12p5 | 1 | 0.5h | models\mnist\st\softmax\200\bs4096_lr0p001_steps18105_l12p5.pth |
-| mnist_st_200_softmax_lr0p001_l110p0 | 1 | 0.5h | models\mnist\st\softmax\200\bs4096_lr0p001_steps18105_l110p0.pth |
-| mnist_st_200_softmax | 1 | 0.5h | models\mnist\st\softmax\200\bs4096_lr5e-05_steps18105_l15p0.pth |
-| mnist_st_20_relu_attention_lr0p001 | 1 | 0.2h | models\mnist\st\relu_attention\20\bs4096_lr0p001_steps6000_l15p0_2.pth |
-| mnist_st_20_relu_attention_lr0p001_l12p5 | 1 | 0.2h | models\mnist\st\relu_attention\20\bs4096_lr0p001_steps6000_l12p5_2.pth |
-| mnist_st_20_relu_attention_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\relu_attention\20\bs4096_lr0p001_steps6000_l110p0_2.pth |
-| mnist_st_20_relu_attention | 1 | 0.2h | models\mnist\st\relu_attention\20\bs4096_lr5e-05_steps6000_l15p0_2.pth |
-| mnist_st_200_softmax_l12p5 | 1 | 0.5h | models\mnist\st\softmax\200\bs4096_lr5e-05_steps18105_l12p5.pth |
-| mnist_st_200_softmax_l110p0 | 1 | 0.5h | models\mnist\st\softmax\200\bs4096_lr5e-05_steps18105_l110p0.pth |
-| mnist_st_20_relu_attention_l12p5 | 1 | 0.2h | models\mnist\st\relu_attention\20\bs4096_lr5e-05_steps6000_l12p5_2.pth |
-| mnist_st_20_relu_attention_l110p0 | 1 | 0.2h | models\mnist\st\relu_attention\20\bs4096_lr5e-05_steps6000_l110p0_2.pth |
-| mnist_st_50_relu_attention_lr0p001 | 1 | 0.2h | models\mnist\st\relu_attention\50\bs4096_lr0p001_steps6390_l15p0_2.pth |
-| mnist_st_50_relu_attention_lr0p001_l12p5 | 1 | 0.2h | models\mnist\st\relu_attention\50\bs4096_lr0p001_steps6390_l12p5_2.pth |
-| mnist_st_50_relu_attention_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\relu_attention\50\bs4096_lr0p001_steps6390_l110p0_2.pth |
-| mnist_st_50_relu_attention | 1 | 0.2h | models\mnist\st\relu_attention\50\bs4096_lr5e-05_steps6390_l15p0_2.pth |
-| mnist_st_50_relu_attention_l12p5 | 1 | 0.2h | models\mnist\st\relu_attention\50\bs4096_lr5e-05_steps6390_l12p5_2.pth |
-| mnist_st_50_relu_attention_l110p0 | 1 | 0.2h | models\mnist\st\relu_attention\50\bs4096_lr5e-05_steps6390_l110p0_2.pth |
-| mnist_st_100_relu_attention_lr0p001 | 1 | 0.3h | models\mnist\st\relu_attention\100\bs4096_lr0p001_steps10755_l15p0_2.pth |
-| mnist_st_100_relu_attention_lr0p001_l12p5 | 1 | 0.3h | models\mnist\st\relu_attention\100\bs4096_lr0p001_steps10755_l12p5_2.pth |
-| mnist_st_100_relu_attention_lr0p001_l110p0 | 1 | 0.3h | models\mnist\st\relu_attention\100\bs4096_lr0p001_steps10755_l110p0_2.pth |
-| mnist_st_100_relu_attention | 1 | 0.3h | models\mnist\st\relu_attention\100\bs4096_lr5e-05_steps10755_l15p0_2.pth |
-| mnist_st_100_relu_attention_l12p5 | 1 | 0.3h | models\mnist\st\relu_attention\100\bs4096_lr5e-05_steps10755_l12p5_2.pth |
-| mnist_st_100_relu_attention_l110p0 | 1 | 0.3h | models\mnist\st\relu_attention\100\bs4096_lr5e-05_steps10755_l110p0_2.pth |
-| mnist_st_200_relu_attention_lr0p001 | 1 | 0.5h | models\mnist\st\relu_attention\200\bs4096_lr0p001_steps18105_l15p0.pth |
-| mnist_st_200_relu_attention_lr0p001_l12p5 | 1 | 0.5h | models\mnist\st\relu_attention\200\bs4096_lr0p001_steps18105_l12p5.pth |
-| mnist_st_200_relu_attention | 1 | 0.5h | models\mnist\st\relu_attention\200\bs4096_lr5e-05_steps18105_l15p0.pth |
-| mnist_st_200_relu_attention_lr0p001_l110p0 | 1 | 0.5h | models\mnist\st\relu_attention\200\bs4096_lr0p001_steps18105_l110p0.pth |
-| mnist_st_20_tanh_scale_shift_lr0p001 | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr0p001_steps6000_l15p0_2.pth |
-| mnist_st_20_tanh_scale_shift_lr0p001_l12p5 | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr0p001_steps6000_l12p5_2.pth |
-| mnist_st_200_relu_attention_l12p5 | 1 | 0.5h | models\mnist\st\relu_attention\200\bs4096_lr5e-05_steps18105_l12p5.pth |
-| mnist_st_200_relu_attention_l110p0 | 1 | 0.5h | models\mnist\st\relu_attention\200\bs4096_lr5e-05_steps18105_l110p0.pth |
-| mnist_st_20_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr0p001_steps6000_l110p0_2.pth |
-| mnist_st_20_tanh_scale_shift | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr5e-05_steps6000_l15p0_2.pth |
-| mnist_st_20_tanh_scale_shift_l12p5 | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr5e-05_steps6000_l12p5_2.pth |
-| mnist_st_20_tanh_scale_shift_l110p0 | 1 | 0.1h | models\mnist\st\tanh_scale_shift\20\bs4096_lr5e-05_steps6000_l110p0_2.pth |
-| mnist_st_50_tanh_scale_shift_lr0p001_l12p5 | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr0p001_steps6390_l12p5_2.pth |
-| mnist_st_50_tanh_scale_shift_lr0p001 | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr0p001_steps6390_l15p0_2.pth |
-| mnist_st_50_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr0p001_steps6390_l110p0_2.pth |
-| mnist_st_50_tanh_scale_shift | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr5e-05_steps6390_l15p0_2.pth |
-| mnist_st_50_tanh_scale_shift_l110p0 | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr5e-05_steps6390_l110p0_2.pth |
-| mnist_st_50_tanh_scale_shift_l12p5 | 1 | 0.2h | models\mnist\st\tanh_scale_shift\50\bs4096_lr5e-05_steps6390_l12p5_2.pth |
-| mnist_st_100_tanh_scale_shift_lr0p001 | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr0p001_steps10755_l15p0_2.pth |
-| mnist_st_100_tanh_scale_shift_lr0p001_l12p5 | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr0p001_steps10755_l12p5_2.pth |
-| mnist_st_100_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr0p001_steps10755_l110p0_2.pth |
-| mnist_st_100_tanh_scale_shift | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr5e-05_steps10755_l15p0_2.pth |
-| mnist_st_100_tanh_scale_shift_l12p5 | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr5e-05_steps10755_l12p5_2.pth |
-| mnist_st_100_tanh_scale_shift_l110p0 | 1 | 0.3h | models\mnist\st\tanh_scale_shift\100\bs4096_lr5e-05_steps10755_l110p0_2.pth |
-| mnist_st_200_tanh_scale_shift_lr0p001 | 1 | 0.4h | models\mnist\st\tanh_scale_shift\200\bs4096_lr0p001_steps18105_l15p0.pth |
-| mnist_st_200_tanh_scale_shift_lr0p001_l12p5 | 1 | 0.4h | models\mnist\st\tanh_scale_shift\200\bs4096_lr0p001_steps18105_l12p5.pth |
-| mnist_st_200_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.4h | models\mnist\st\tanh_scale_shift\200\bs4096_lr0p001_steps18105_l110p0.pth |
-| mnist_st_200_tanh_scale_shift | 1 | 0.4h | models\mnist\st\tanh_scale_shift\200\bs4096_lr5e-05_steps18105_l15p0.pth |
-| mnist_st_200_tanh_scale_shift_l12p5 | 1 | 0.4h | models\mnist\st\tanh_scale_shift\200\bs4096_lr5e-05_steps18105_l12p5.pth |
-| mnist_st_200_tanh_scale_shift_l110p0 | 1 | 0.4h | models\mnist\st\tanh_scale_shift\200\bs4096_lr5e-05_steps18105_l110p0.pth |
+| mnist_st_400_softmax_lr0p001_l12p5 | 1 | 0.0h | models\mnist\st\softmax\400\bs4096_lr0p001_steps30450_l12p5.pth |
+| mnist_st_400_softmax_lr0p001_l110p0 | 1 | 0.0h | models\mnist\st\softmax\400\bs4096_lr0p001_steps30450_l110p0.pth |
+| mnist_st_400_softmax_lr0p001 | 1 | 0.0h | models\mnist\st\softmax\400\bs4096_lr0p001_steps30450_l15p0.pth |
+| mnist_st_800_softmax_lr0p001_l12p5 | 1 | 0.0h | models\mnist\st\softmax\800\bs4096_lr0p001_steps51210_l12p5.pth |
+| mnist_st_800_softmax_lr0p001 | 1 | 0.0h | models\mnist\st\softmax\800\bs4096_lr0p001_steps51210_l15p0.pth |
+| mnist_st_800_softmax_lr0p001_l110p0 | 1 | 0.0h | models\mnist\st\softmax\800\bs4096_lr0p001_steps51210_l110p0.pth |
+| mnist_st_1600_softmax_lr0p001 | 1 | 0.0h | models\mnist\st\softmax\1600\bs4096_lr0p001_steps86145_l15p0.pth |
+| mnist_st_1600_softmax_lr0p001_l12p5 | 1 | 0.0h | models\mnist\st\softmax\1600\bs4096_lr0p001_steps86145_l12p5.pth |
+| mnist_st_1600_softmax_lr0p001_l110p0 | 1 | 0.0h | models\mnist\st\softmax\1600\bs4096_lr0p001_steps86145_l110p0.pth |
+| mnist_st_400_relu_attention_lr0p001 | 1 | 0.0h | models\mnist\st\relu_attention\400\bs4096_lr0p001_steps30450_l15p0.pth |
+| mnist_st_400_relu_attention_lr0p001_l110p0 | 1 | 0.0h | models\mnist\st\relu_attention\400\bs4096_lr0p001_steps30450_l110p0.pth |
+| mnist_st_400_relu_attention_lr0p001_l12p5 | 1 | 0.0h | models\mnist\st\relu_attention\400\bs4096_lr0p001_steps30450_l12p5.pth |
+| mnist_st_800_relu_attention_lr0p001_l12p5 | 1 | 1.3h | models\mnist\st\relu_attention\800\bs4096_lr0p001_steps51210_l12p5.pth |
+| mnist_st_800_relu_attention_lr0p001 | 1 | 1.4h | models\mnist\st\relu_attention\800\bs4096_lr0p001_steps51210_l15p0.pth |
+| mnist_st_800_relu_attention_lr0p001_l110p0 | 1 | 1.4h | models\mnist\st\relu_attention\800\bs4096_lr0p001_steps51210_l110p0.pth |
+| mnist_st_1600_relu_attention_lr0p001 | 1 | 2.7h | models\mnist\st\relu_attention\1600\bs4096_lr0p001_steps86145_l15p0.pth |
+| mnist_st_1600_relu_attention_lr0p001_l110p0 | 1 | 2.7h | models\mnist\st\relu_attention\1600\bs4096_lr0p001_steps86145_l110p0.pth |
+| mnist_st_1600_relu_attention_lr0p001_l12p5 | 1 | 2.7h | models\mnist\st\relu_attention\1600\bs4096_lr0p001_steps86145_l12p5.pth |
+| mnist_st_400_tanh_scale_shift_lr0p001 | 1 | 0.8h | models\mnist\st\tanh_scale_shift\400\bs4096_lr0p001_steps30450_l15p0.pth |
+| mnist_st_400_tanh_scale_shift_lr0p001_l12p5 | 1 | 0.8h | models\mnist\st\tanh_scale_shift\400\bs4096_lr0p001_steps30450_l12p5.pth |
+| mnist_st_400_tanh_scale_shift_lr0p001_l110p0 | 1 | 0.8h | models\mnist\st\tanh_scale_shift\400\bs4096_lr0p001_steps30450_l110p0.pth |
+| mnist_st_800_tanh_scale_shift_lr0p001 | 1 | 1.4h | models\mnist\st\tanh_scale_shift\800\bs4096_lr0p001_steps51210_l15p0.pth |
+| mnist_st_800_tanh_scale_shift_lr0p001_l12p5 | 1 | 1.4h | models\mnist\st\tanh_scale_shift\800\bs4096_lr0p001_steps51210_l12p5.pth |
+| mnist_st_800_tanh_scale_shift_lr0p001_l110p0 | 1 | 1.4h | models\mnist\st\tanh_scale_shift\800\bs4096_lr0p001_steps51210_l110p0.pth |
+| mnist_st_1600_tanh_scale_shift_lr0p001 | 1 | 2.7h | models\mnist\st\tanh_scale_shift\1600\bs4096_lr0p001_steps86145_l15p0.pth |
+| mnist_st_1600_tanh_scale_shift_lr0p001_l12p5 | 1 | 2.7h | models\mnist\st\tanh_scale_shift\1600\bs4096_lr0p001_steps86145_l12p5.pth |
+| mnist_st_1600_tanh_scale_shift_lr0p001_l110p0 | 1 | 2.7h | models\mnist\st\tanh_scale_shift\1600\bs4096_lr0p001_steps86145_l110p0.pth |
 

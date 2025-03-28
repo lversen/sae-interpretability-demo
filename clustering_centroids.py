@@ -167,13 +167,32 @@ def generate_embeddings(model, data_loader, model_type='sae'):
     return all_embeddings, all_labels
 
 def apply_dimensionality_reduction(embeddings, method='tsne', random_state=42):
-    """Apply dimensionality reduction to embeddings"""
+    """Apply dimensionality reduction to embeddings with adaptive parameters"""
+    # Get number of samples
+    num_samples = embeddings.shape[0]
+    
     if method.lower() == 'pca':
         reducer = PCA(n_components=2, random_state=random_state)
     elif method.lower() == 'tsne':
-        reducer = TSNE(n_components=2, perplexity=30, random_state=random_state)
+        # Adjust perplexity based on the number of samples
+        # Perplexity must be less than number of samples
+        if num_samples <= 10:
+            # For very small datasets, use a much smaller perplexity
+            perplexity = max(2, num_samples // 2)
+            print(f"Adjusting t-SNE perplexity to {perplexity} for {num_samples} samples")
+            reducer = TSNE(n_components=2, perplexity=perplexity, random_state=random_state)
+        else:
+            # For normal sized datasets, use standard perplexity
+            perplexity = min(30, num_samples - 1)
+            reducer = TSNE(n_components=2, perplexity=perplexity, random_state=random_state)
     elif method.lower() == 'umap':
-        reducer = UMAP(n_components=2, n_neighbors=15, min_dist=0.1, random_state=random_state)
+        # Also adjust neighbors for UMAP with small datasets
+        if num_samples < 15:
+            n_neighbors = max(2, num_samples // 2)
+            print(f"Adjusting UMAP n_neighbors to {n_neighbors} for {num_samples} samples")
+            reducer = UMAP(n_components=2, n_neighbors=n_neighbors, min_dist=0.1, random_state=random_state)
+        else:
+            reducer = UMAP(n_components=2, n_neighbors=15, min_dist=0.1, random_state=random_state)
     else:
         raise ValueError(f"Unknown dimensionality reduction method: {method}")
     
