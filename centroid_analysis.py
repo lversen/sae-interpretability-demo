@@ -1,15 +1,11 @@
-# Set environment variable at the top of the file to fix KMeans memory leak
 import os
-os.environ["OMP_NUM_THREADS"] = "1"
-
+import glob
 import torch
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics.pairwise import cosine_distances, euclidean_distances
-from sklearn.cluster import KMeans
-import glob
 from tqdm import tqdm
 import argparse
 from collections import defaultdict
@@ -101,23 +97,23 @@ def safely_open_model(model_path, device='cpu'):
         print(f"Unexpected error loading model {model_path}: {e}")
         return None
 
-def extract_sae_feature_vectors(model_path, device='cpu'):
+def load_sae_model(model_path, device='cpu'):
     """
-    Extract feature vectors from an SAE model.
+    Load an SAE model and prepare it for feature extraction.
     
     Args:
         model_path: Path to the SAE model file
         device: Device to use for computation
         
     Returns:
-        numpy array of feature vectors
+        Loaded SAE model and input dimension n
     """
     try:
         print(f"Loading SAE model from {model_path}")
         # Use the safe loading function
         checkpoint = safely_open_model(model_path, device)
         if checkpoint is None:
-            return None
+            return None, None
         
         # Extract state dict
         if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
@@ -125,80 +121,190 @@ def extract_sae_feature_vectors(model_path, device='cpu'):
         else:
             state_dict = checkpoint
         
-        # Extract decoder weights
+        # Determine input and feature dimensions
+        n, m = None, None
         if 'W_d.weight' in state_dict:
-            # Decoder weight matrix has shape (n, m) for SAE
-            # Each column is a feature vector
-            decoder_weights = state_dict['W_d.weight'].cpu().numpy()
+            n = state_dict['W_d.weight'].shape[0]  # Input dimension
+            m = state_dict['W_d.weight'].shape[1]  # Feature dimension
+        elif 'W_e.weight' in state_dict:
+            n = state_dict['W_e.weight'].shape[1]  # Input dimension
+            m = state_dict['W_e.weight'].shape[0]  # Feature dimension
+        
+        if n is None or m is None:
+            print("Could not determine dimensions from model state dict")
+            return None, None
             
-            # Transpose to get feature vectors as rows
-            feature_vectors = decoder_weights.T
+        print(f"SAE model architecture: {m} features (m) with input dimension {n} (n)")
+        
+        # Import the SAE model class (assuming it's available in the path)
+        try:
+            from SAE import SparseAutoencoder
             
-            print(f"Extracted {feature_vectors.shape[0]} SAE feature vectors with dimension {feature_vectors.shape[1]}")
-            return feature_vectors
-        else:
-            print("Could not find W_d.weight in the model state dict")
-            return None
+            # Create and initialize the model
+            model = SparseAutoencoder(
+                n=n,
+                m=m,
+                sae_model_path="temp.pth",  # Temporary path as we're just using for inference
+                device=device
+            )
+            
+            # Load the state dict
+            model.load_state_dict(state_dict)
+            model.eval()  # Set to evaluation mode
+            
+            print(f"Successfully loaded SAE model (will be used for feature extraction)")
+            return model, n
+            
+        except ImportError:
+            print("Could not import SparseAutoencoder class. Using direct computation instead.")
+            # We'll return None for the model, but keep the dimension information
+            return None, n
             
     except Exception as e:
         print(f"Error loading SAE model: {e}")
-        return None
+        return None, None
 
-def extract_st_feature_vectors(model_path, device='cpu'):
+def load_st_model(model_path, device='cpu'):
     """
-    Extract feature vectors from an ST model.
+    Load an ST model and prepare it for feature extraction.
     
     Args:
         model_path: Path to the ST model file
         device: Device to use for computation
         
     Returns:
-        numpy array of feature vectors
+        Loaded ST model and input dimension n
     """
     try:
         print(f"Loading ST model from {model_path}")
         # Use the safe loading function
         checkpoint = safely_open_model(model_path, device)
         if checkpoint is None:
-            return None
+            return None, None
         
         # Extract state dict
         if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
             state_dict = checkpoint['model_state_dict']
         else:
             state_dict = checkpoint
-            
-        # Check if this is a direct K-V model
-        use_direct_kv = 'W_k_direct' in state_dict and 'W_v_direct' in state_dict
         
-        if use_direct_kv:
-            # Extract value vectors directly from the model
-            if 'W_v_direct' in state_dict:
-                value_vectors = state_dict['W_v_direct'].cpu().numpy()
-                
-                print(f"Extracted {value_vectors.shape[0]} ST direct value vectors with dimension {value_vectors.shape[1]}")
-                return value_vectors
-            else:
-                print("Could not find W_v_direct in the model state dict")
-                return None
-        else:
-            # For memory bank approach, we'd need data to compute value vectors
-            # Since we don't have direct access to the data, we'll use the memory indices
-            # and assume the W_v matrix represents the transformation
-            print("Memory bank approach detected. Using W_v weights as approximation.")
-            if 'W_v.weight' in state_dict:
-                # W_v has shape (output_dim, input_dim) where output_dim is usually equal to input_dim
-                # We'll use the rows as feature vectors
-                value_approx = state_dict['W_v.weight'].cpu().numpy()
-                
-                print(f"Extracted {value_approx.shape[0]} ST memory-based value vectors with dimension {value_approx.shape[1]}")
-                return value_approx
-            else:
-                print("Could not find W_v.weight in the model state dict")
-                return None
-                
+        # Determine dimensions
+        n, m, a = None, None, None
+        
+        # Try to get dimensions from weights
+        if 'W_q.weight' in state_dict:
+            n = state_dict['W_q.weight'].shape[1]  # Input dimension
+            a = state_dict['W_q.weight'].shape[0]  # Attention dimension
+        
+        if 'W_k_direct' in state_dict:
+            m = state_dict['W_k_direct'].shape[0]  # Feature dimension
+        elif 'memory_indices' in state_dict:
+            m = len(state_dict['memory_indices'])  # Feature dimension from memory size
+            
+        if n is None or m is None or a is None:
+            print("Could not determine all dimensions from model state dict")
+            return None, None
+            
+        print(f"ST model architecture: {m} features (m) with input dimension {n} (n) and attention dimension {a} (a)")
+        
+        # Import the ST model class (assuming it's available in the path)
+        try:
+            from ST import SparseTransformer
+            
+            # We need a dummy input tensor for initialization
+            dummy_data = torch.zeros((10, n), device=device)
+            
+            # Create and initialize the model
+            model = SparseTransformer(
+                X=dummy_data,  # Dummy data for initialization
+                n=n,
+                m=m,
+                a=a,
+                st_model_path="temp.pth",  # Temporary path as we're just using for inference
+                device=device
+            )
+            
+            # Load the state dict
+            model.load_state_dict(state_dict)
+            model.eval()  # Set to evaluation mode
+            
+            print(f"Successfully loaded ST model (will be used for feature extraction)")
+            return model, n
+            
+        except ImportError:
+            print("Could not import SparseTransformer class. Using direct computation instead.")
+            # We'll return None for the model, but keep the dimension information
+            return None, n
+            
     except Exception as e:
         print(f"Error loading ST model: {e}")
+        return None, None
+
+def compute_sae_features(model, input_data, device='cpu'):
+    """
+    Compute feature activations (f_x) for SAE model.
+    
+    Args:
+        model: Loaded SAE model or None
+        input_data: Input data to compute features for
+        device: Device to use for computation
+        
+    Returns:
+        Feature activations
+    """
+    if model is None:
+        print("No SAE model provided. Using approximation method.")
+        return None
+        
+    try:
+        # Convert input to tensor
+        input_tensor = torch.tensor(input_data, dtype=torch.float32, device=device)
+        
+        # Compute features
+        with torch.no_grad():
+            _, _, f_x = model(input_tensor)
+            
+        # Return as numpy array
+        features = f_x.cpu().numpy()
+        print(f"Computed SAE feature activations with shape {features.shape} for {len(input_data)} input samples")
+        return features
+        
+    except Exception as e:
+        print(f"Error computing SAE features: {e}")
+        return None
+
+def compute_st_features(model, input_data, device='cpu'):
+    """
+    Compute feature activations (f) for ST model.
+    
+    Args:
+        model: Loaded ST model or None
+        input_data: Input data to compute features for
+        device: Device to use for computation
+        
+    Returns:
+        Feature activations
+    """
+    if model is None:
+        print("No ST model provided. Using approximation method.")
+        return None
+        
+    try:
+        # Convert input to tensor
+        input_tensor = torch.tensor(input_data, dtype=torch.float32, device=device)
+        
+        # Compute features
+        with torch.no_grad():
+            # ST model returns (x, x_hat, f, v)
+            _, _, f, _ = model(input_tensor)
+            
+        # Return as numpy array
+        features = f.cpu().numpy()
+        print(f"Computed ST feature activations with shape {features.shape} for {len(input_data)} input samples")
+        return features
+        
+    except Exception as e:
+        print(f"Error computing ST features: {e}")
         return None
 
 def compute_feature_distances(feature_vectors, metric='cosine'):
@@ -252,132 +358,391 @@ def calculate_centroid(feature_vectors):
         
     return np.mean(feature_vectors, axis=0)
 
-def compute_average_centroid_distance(feature_vectors, num_clusters=10, metric='cosine'):
+def compute_labeled_centroids(feature_vectors, labels, metric='euclidean', normalize_by_dimension=True):
     """
-    Compute the average distance between feature centroids.
-    
-    This function:
-    1. Runs K-means clustering directly in the original feature space (no dimensionality reduction)
-    2. Calculates average pairwise distances between centroids
-    
-    Note: Centroid distances are calculated in the original high-dimensional space
-    to preserve all feature relationships and avoid information loss.
+    Compute centroids for each class based on labels.
     
     Args:
         feature_vectors: Array of feature vectors
-        num_clusters: Number of clusters to use
+        labels: Array of labels for each feature vector
         metric: Distance metric to use ('cosine' or 'euclidean')
+        normalize_by_dimension: Whether to normalize distances by feature dimension
         
     Returns:
-        Dictionary with centroid distance statistics
+        Dictionary with centroid information
     """
-    if feature_vectors is None or len(feature_vectors) == 0:
+    if feature_vectors is None or len(feature_vectors) == 0 or labels is None or len(labels) == 0:
         return None
+    
+    # Get unique labels
+    unique_labels = sorted(np.unique(labels))
+    centroids = []
+    
+    for label in unique_labels:
+        # Get all feature vectors for this class
+        class_vectors = feature_vectors[labels == label]
         
-    # Check if we have enough feature vectors for clustering
-    if len(feature_vectors) < num_clusters:
-        print(f"Not enough feature vectors ({len(feature_vectors)}) for {num_clusters} clusters. Reducing clusters.")
-        num_clusters = max(2, len(feature_vectors) // 2)
+        # Calculate the centroid as the mean of all vectors
+        if len(class_vectors) > 0:
+            centroid = np.mean(class_vectors, axis=0)
+            centroids.append((label, centroid, len(class_vectors)))
+    
+    if not centroids:
+        print("No valid centroids could be calculated.")
+        return None
+    
+    # Calculate pairwise distances between centroids
+    centroid_vectors = np.array([c[1] for c in centroids])
+    
+    if metric == 'cosine':
+        distances = cosine_distances(centroid_vectors)
+    else:  # euclidean
+        distances = euclidean_distances(centroid_vectors)
+        # Normalize by sqrt of dimension for Euclidean distance if requested
+        if normalize_by_dimension and metric == 'euclidean':
+            distances = distances / np.sqrt(feature_vectors.shape[1])
+    
+    # Get upper triangle of distance matrix (excluding diagonal)
+    distances_upper = distances[np.triu_indices_from(distances, k=1)]
+    
+    # Calculate statistics
+    stats = {
+        'avg_centroid_distance': np.mean(distances_upper),
+        'median_centroid_distance': np.median(distances_upper),
+        'min_centroid_distance': np.min(distances_upper),
+        'max_centroid_distance': np.max(distances_upper),
+        'std_centroid_distance': np.std(distances_upper),
+        'num_centroids': len(centroids),
+        'centroids': centroids,
+        'centroid_vectors': centroid_vectors,
+        'centroid_distances': distances,
+        'dimension': feature_vectors.shape[1]
+    }
+    
+    return stats
+
+def analyze_model_with_labeled_data(model_path, model_metadata, labeled_data, metrics=None, device='cpu', normalize_by_dimension=True):
+    """
+    Analyze a single model using labeled data.
+    
+    Args:
+        model_path: Path to the model file
+        model_metadata: Dictionary with model metadata
+        labeled_data: Dictionary with 'features' and 'labels' for analysis
+        metrics: List of distance metrics to use (default: ['cosine', 'euclidean'])
+        device: Device to use for computation
+        normalize_by_dimension: Whether to normalize distances by feature dimension
+        
+    Returns:
+        List of result dictionaries
+    """
+    if metrics is None:
+        metrics = ['cosine', 'euclidean']
+    
+    # Extract labeled data
+    feature_data = labeled_data.get('features')
+    labels = labeled_data.get('labels')
+    
+    if feature_data is None or labels is None:
+        print("Error: No feature data or labels provided.")
+        return []
+    
+    results = []
+    model_type = model_metadata['model_type']
+    feature_dim = int(model_metadata.get('feature_dimension', 0))
     
     try:
-        # Run K-means clustering with safety measures
-        print(f"Computing centroids in original feature space (no dimensionality reduction)")
-        kmeans = KMeans(
-            n_clusters=num_clusters, 
-            random_state=42, 
-            n_init=10,
-            max_iter=300,  # Limit iterations
-            tol=1e-4       # Convergence tolerance
-        )
-        kmeans.fit(feature_vectors)
+        # Load the model based on type
+        if model_type == 'sae':
+            model, input_dim = load_sae_model(model_path, device=device)
+            # Compute feature activations (f_x)
+            feature_activations = compute_sae_features(model, feature_data, device=device)
+        else:  # 'st'
+            model, input_dim = load_st_model(model_path, device=device)
+            # Compute feature activations (f)
+            feature_activations = compute_st_features(model, feature_data, device=device)
+            
+        # If we couldn't compute features directly from the model, try the approximation
+        if feature_activations is None:
+            print(f"Attempting approximate feature computation for {model_path}")
+            
+            # Get the model's weight matrices
+            if model_type == 'sae':
+                # For SAE, we'll use the encoder weights: X → W_e*X → f_x
+                weight_matrix = get_sae_encoder_weights(model_path, device=device)
+                if weight_matrix is None:
+                    print(f"Could not extract encoder weights from {model_path}")
+                    return []
+                feature_activations = approximate_sae_features(weight_matrix, feature_data)
+            else:  # 'st'
+                # For ST, we'll use either direct key vectors or key projection matrix
+                weight_matrix = get_st_key_vectors(model_path, device=device)
+                if weight_matrix is None:
+                    print(f"Could not extract key vectors from {model_path}")
+                    return []
+                feature_activations = approximate_st_features(weight_matrix, feature_data)
+            
+        if feature_activations is None:
+            print(f"Could not compute feature activations for {model_path}")
+            return []
         
-        # Get centroids
-        centroids = kmeans.cluster_centers_
+        # Store the feature dimension for reporting
+        feature_dimension = feature_activations.shape[1]
         
-        # Calculate centroid distances
-        if metric == 'cosine':
-            centroid_distances = cosine_distances(centroids)
-        else:  # euclidean
-            centroid_distances = euclidean_distances(centroids)
+        # Calculate distances using each metric
+        for metric in metrics:
+            try:
+                # For feature distances, we'll compute between model features
+                # (not over feature_activations since those are already "applied")
+                if model_type == 'sae':
+                    weight_matrix = get_sae_feature_vectors(model_path, device=device)
+                else:  # 'st'
+                    weight_matrix = get_st_value_vectors(model_path, device=device)
+                
+                if weight_matrix is not None:
+                    # Compute standard feature distances using model's weights
+                    distance_stats = compute_feature_distances(weight_matrix, metric=metric)
+                else:
+                    # If we can't get weights, set some defaults
+                    distance_stats = {
+                        'avg_distance': 0.0,
+                        'median_distance': 0.0,
+                        'min_distance': 0.0,
+                        'max_distance': 0.0,
+                        'std_distance': 0.0,
+                        'num_features': feature_activations.shape[1],
+                        'dimension': feature_data.shape[1]
+                    }
+                
+                # Compute labeled centroids using our feature activations
+                centroid_stats = compute_labeled_centroids(
+                    feature_activations, 
+                    labels, 
+                    metric=metric,
+                    normalize_by_dimension=normalize_by_dimension
+                )
+                
+                if distance_stats is None or centroid_stats is None:
+                    continue
+                    
+                # Combine all stats
+                result = {
+                    'model_path': model_path,
+                    'metric': metric,
+                    'feature_activation_dim': feature_dimension,  # Actually used feature dimension
+                    **model_metadata,
+                    **distance_stats,
+                    **{k: v for k, v in centroid_stats.items() if k not in ['centroids', 'centroid_vectors', 'centroid_distances']}
+                }
+                
+                results.append(result)
+            except Exception as metric_error:
+                print(f"Error processing metric {metric}: {metric_error}")
+                
+    except Exception as model_error:
+        print(f"Error processing model: {model_error}")
+    
+    return results
+
+def get_sae_encoder_weights(model_path, device='cpu'):
+    """Get encoder weights from an SAE model"""
+    try:
+        checkpoint = safely_open_model(model_path, device)
+        if checkpoint is None:
+            return None
         
-        # Get upper triangle of distance matrix (excluding diagonal)
-        distances_upper = centroid_distances[np.triu_indices_from(centroid_distances, k=1)]
+        # Extract state dict
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            state_dict = checkpoint['model_state_dict']
+        else:
+            state_dict = checkpoint
         
-        # Calculate statistics
-        stats = {
-            'avg_centroid_distance': np.mean(distances_upper),
-            'median_centroid_distance': np.median(distances_upper),
-            'min_centroid_distance': np.min(distances_upper),
-            'max_centroid_distance': np.max(distances_upper),
-            'std_centroid_distance': np.std(distances_upper),
-            'num_centroids': num_clusters,
-            'dimension': feature_vectors.shape[1]
-        }
+        # Get encoder weights
+        if 'W_e.weight' in state_dict:
+            weights = state_dict['W_e.weight'].cpu().numpy()
+            return weights
         
-        return stats
+        return None
     except Exception as e:
-        print(f"Error computing centroid distances: {e}")
+        print(f"Error getting SAE encoder weights: {e}")
         return None
 
-def analyze_models_distances(models_dict, metrics=None, num_clusters=10):
+def get_sae_feature_vectors(model_path, device='cpu'):
+    """Get feature vectors from an SAE model (decoder weights)"""
+    try:
+        checkpoint = safely_open_model(model_path, device)
+        if checkpoint is None:
+            return None
+        
+        # Extract state dict
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            state_dict = checkpoint['model_state_dict']
+        else:
+            state_dict = checkpoint
+        
+        # Get decoder weights
+        if 'W_d.weight' in state_dict:
+            weights = state_dict['W_d.weight'].cpu().numpy()
+            # Transpose to get feature vectors as rows
+            vectors = weights.T
+            print(f"Model has {vectors.shape[0]} features (m) with input dimension {vectors.shape[1]} (n)")
+            return vectors
+        
+        return None
+    except Exception as e:
+        print(f"Error getting SAE feature vectors: {e}")
+        return None
+
+def get_st_key_vectors(model_path, device='cpu'):
+    """Get key vectors from an ST model"""
+    try:
+        checkpoint = safely_open_model(model_path, device)
+        if checkpoint is None:
+            return None
+        
+        # Extract state dict
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            state_dict = checkpoint['model_state_dict']
+        else:
+            state_dict = checkpoint
+            
+        # Check if this is a direct K-V model
+        use_direct_kv = 'W_k_direct' in state_dict
+        
+        if use_direct_kv:
+            if 'W_k_direct' in state_dict:
+                return state_dict['W_k_direct'].cpu().numpy()
+        else:
+            if 'W_k.weight' in state_dict:
+                return state_dict['W_k.weight'].cpu().numpy()
+                
+        return None
+    except Exception as e:
+        print(f"Error getting ST key vectors: {e}")
+        return None
+
+def get_st_value_vectors(model_path, device='cpu'):
+    """Get value vectors from an ST model"""
+    try:
+        checkpoint = safely_open_model(model_path, device)
+        if checkpoint is None:
+            return None
+        
+        # Extract state dict
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            state_dict = checkpoint['model_state_dict']
+        else:
+            state_dict = checkpoint
+            
+        # Check if this is a direct K-V model
+        use_direct_kv = 'W_v_direct' in state_dict
+        
+        if use_direct_kv:
+            if 'W_v_direct' in state_dict:
+                return state_dict['W_v_direct'].cpu().numpy()
+        else:
+            if 'W_v.weight' in state_dict:
+                return state_dict['W_v.weight'].cpu().numpy()
+                
+        return None
+    except Exception as e:
+        print(f"Error getting ST value vectors: {e}")
+        return None
+
+def approximate_sae_features(encoder_weights, feature_data):
     """
-    Analyze distances for all models with improved error handling.
+    Approximate SAE feature activations (f_x) using encoder weights.
+    
+    This is a simplified approach that computes feature activations as:
+    f_x = ReLU(W_e * X + b_e)
+    
+    We'll ignore the bias term for simplicity.
+    
+    Args:
+        encoder_weights: Encoder weight matrix (W_e)
+        feature_data: Input features (X)
+        
+    Returns:
+        Approximated feature activations (f_x)
+    """
+    # Compute linear projection
+    linear_output = np.dot(feature_data, encoder_weights.T)
+    
+    # Apply ReLU activation
+    activations = np.maximum(0, linear_output)
+    
+    return activations
+
+def approximate_st_features(key_vectors, feature_data):
+    """
+    Approximate ST feature activations (f) using key vectors.
+    
+    For ST, the feature activations are attention weights:
+    f = softmax(X_q * K^T / sqrt(d_k))
+    
+    We'll compute a simplified approximation.
+    
+    Args:
+        key_vectors: Key vectors from ST model
+        feature_data: Input features
+        
+    Returns:
+        Approximated feature activations (f)
+    """
+    # For a simple approximation, we'll compute cosine similarities
+    # between input features and key vectors
+    
+    # Normalize feature data and key vectors
+    norm_features = feature_data / (np.linalg.norm(feature_data, axis=1, keepdims=True) + 1e-8)
+    norm_keys = key_vectors / (np.linalg.norm(key_vectors, axis=1, keepdims=True) + 1e-8)
+    
+    # Compute dot products
+    similarity_scores = np.dot(norm_features, norm_keys.T)
+    
+    # Apply softmax
+    # First subtract max for numerical stability
+    exp_scores = np.exp(similarity_scores - np.max(similarity_scores, axis=1, keepdims=True))
+    attention_weights = exp_scores / (np.sum(exp_scores, axis=1, keepdims=True) + 1e-8)
+    
+    return attention_weights
+
+def analyze_models_distances(models_dict, labeled_data, metrics=None, device='cpu'):
+    """
+    Analyze distances for all models using labeled data.
     
     Args:
         models_dict: Dictionary of model paths and metadata
+        labeled_data: Dictionary with 'features' and 'labels' for analysis
         metrics: List of distance metrics to use (default: ['cosine', 'euclidean'])
-        num_clusters: Number of clusters for centroid computation
+        device: Device to use for computation
         
     Returns:
         DataFrame with distance analysis results
     """
     if metrics is None:
         metrics = ['cosine', 'euclidean']
+    
+    feature_data = labeled_data.get('features')
+    labels = labeled_data.get('labels')
+    
+    if feature_data is None or labels is None:
+        print("Error: No feature data or labels provided.")
+        return pd.DataFrame()
         
-    results = []
+    all_results = []
     skipped = []
     
     for model_path, metadata in tqdm(models_dict.items(), desc="Analyzing models"):
         try:
-            model_type = metadata['model_type']
+            # Analyze this model
+            results = analyze_model_with_labeled_data(model_path, metadata, labeled_data, metrics, device=device)
+            all_results.extend(results)
             
-            # Extract feature vectors based on model type
-            if model_type == 'sae':
-                feature_vectors = extract_sae_feature_vectors(model_path)
-            else:  # 'st'
-                feature_vectors = extract_st_feature_vectors(model_path)
-                
-            if feature_vectors is None:
-                print(f"Skipping {model_path}: Could not extract feature vectors")
+            if not results:
                 skipped.append(model_path)
-                continue
                 
-            # Calculate distances using each metric
-            for metric in metrics:
-                try:
-                    # Process each metric separately to isolate errors
-                    distance_stats = compute_feature_distances(feature_vectors, metric=metric)
-                    centroid_stats = compute_average_centroid_distance(
-                        feature_vectors, num_clusters=num_clusters, metric=metric)
-                    
-                    if distance_stats is None or centroid_stats is None:
-                        continue
-                        
-                    # Combine all stats
-                    result = {
-                        'model_path': model_path,
-                        'metric': metric,
-                        **metadata,
-                        **distance_stats,
-                        **centroid_stats
-                    }
-                    
-                    results.append(result)
-                except Exception as metric_error:
-                    print(f"Error processing metric {metric} for {model_path}: {metric_error}")
-                    
-        except Exception as model_error:
-            print(f"Error processing model {model_path}: {model_error}")
+        except Exception as e:
+            print(f"Error processing model {model_path}: {e}")
             skipped.append(model_path)
     
     # Report on skipped models
@@ -385,7 +750,7 @@ def analyze_models_distances(models_dict, metrics=None, num_clusters=10):
         print(f"Skipped {len(skipped)} models due to errors")
         
     # Convert to DataFrame
-    results_df = pd.DataFrame(results)
+    results_df = pd.DataFrame(all_results)
     return results_df
 
 def create_comparison_visualizations(results_df, output_dir='model_comparison'):
@@ -402,15 +767,30 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
     os.makedirs(output_dir, exist_ok=True)
     visualizations = []
     
-    # Add explanation about centroid calculation without dimensionality reduction
+    # Add explanation about centroid calculation and dimension normalization
     info_text = """
-    Note: All centroid distances were calculated in the original feature space.
-    No dimensionality reduction was applied before centroid calculation to preserve
-    all feature relationships and avoid information loss.
+    # Label-Based Centroids Analysis
+
+    This analysis uses **label-based centroids** instead of k-means clustering. Each centroid 
+    corresponds to a known class in the dataset, providing more interpretable results.
+
+    ## Key Features
+
+    - **No Dimensionality Reduction**: All centroid distances were calculated in the original 
+      feature space without dimensionality reduction to preserve all feature relationships.
+    
+    - **Dimension Normalization**: For fair comparison between models with different feature 
+      dimensions, Euclidean distances are normalized by the square root of feature dimension.
+    
+    - **True Feature Activations**: This analysis uses the true feature activations 
+      (f_x for SAE models, f for ST models) rather than just model weights.
+      
+    - **Class Separation**: Larger distances between class centroids indicate better 
+      class separation in the feature space.
     """
     
     # Create information text file
-    info_path = os.path.join(output_dir, 'analysis_information.txt')
+    info_path = os.path.join(output_dir, 'analysis_information.md')
     with open(info_path, 'w') as f:
         f.write(info_text)
     visualizations.append(info_path)
@@ -427,12 +807,18 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
         
         if metric_df.empty:
             continue
-            
-        # 1. Bar chart comparing average centroid distances by model type and function
-        plt.figure(figsize=(14, 8))
         
-        # Ensure feature_dimension is numeric - now using the copy
-        metric_df['feature_dimension'] = pd.to_numeric(metric_df['feature_dimension'])
+        # Ensure feature_dimension is numeric
+        try:
+            metric_df['feature_dimension'] = pd.to_numeric(metric_df['feature_dimension'])
+        except:
+            print("Warning: Could not convert feature_dimension to numeric.")
+            
+        # Add a 'model_config' column that combines model_type and function_type
+        metric_df['model_config'] = metric_df['model_type'] + '-' + metric_df['function_type']
+            
+        # 1. Dimension-normalized bar chart comparing models
+        plt.figure(figsize=(14, 8))
         
         # Group by model type and function type
         grouped = metric_df.groupby(['model_type', 'function_type'])['avg_centroid_distance'].mean().reset_index()
@@ -443,90 +829,162 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
         # Plot
         ax = pivot_df.plot(kind='bar', rot=45)
         plt.title(f'Average Centroid Distance by Model Type and Function ({metric} metric)')
-        plt.ylabel('Average Centroid Distance')
+        plt.ylabel('Average Centroid Distance (normalized)')
         plt.xlabel('Function Type')
+        plt.grid(alpha=0.3, axis='y')
         plt.tight_layout()
         
         # Save figure
         bar_path = os.path.join(output_dir, f'avg_centroid_distance_{metric}.png')
-        plt.savefig(bar_path)
+        plt.savefig(bar_path, dpi=300)
         visualizations.append(bar_path)
         plt.close()
         
-        # 2. Heatmap comparing average centroid distances by model type and function
-        plt.figure(figsize=(12, 10))
-        
-        # Create pivot table for heatmap
-        pivot_table = metric_df.pivot_table(
-            values='avg_centroid_distance', 
-            index=['model_type', 'function_type'],
-            columns=['feature_dimension'],
-            aggfunc='mean'
-        )
-        
-        # Create heatmap
-        sns.heatmap(pivot_table, annot=True, cmap='viridis', fmt='.3f')
-        plt.title(f'Average Centroid Distance by Configuration ({metric} metric)')
-        plt.tight_layout()
-        
-        # Save figure
-        heatmap_path = os.path.join(output_dir, f'centroid_distance_heatmap_{metric}.png')
-        plt.savefig(heatmap_path)
-        visualizations.append(heatmap_path)
-        plt.close()
-        
-        # 3. Scatter plot of centroid distance vs. feature dimension
-        plt.figure(figsize=(10, 6))
+        # 2. Feature dimension vs. centroid distance
+        plt.figure(figsize=(12, 8))
         
         # Create scatter plot with different colors for model types
-        for model_type, group in metric_df.groupby('model_type'):
-            plt.scatter(
-                group['feature_dimension'], 
-                group['avg_centroid_distance'],
-                label=model_type,
-                alpha=0.7
-            )
+        sns.scatterplot(
+            data=metric_df,
+            x='feature_dimension',
+            y='avg_centroid_distance',
+            hue='model_type',
+            style='function_type',
+            s=100,
+            alpha=0.7
+        )
             
-        plt.title(f'Average Centroid Distance vs. Feature Dimension ({metric} metric)')
+        plt.title(f'Centroid Distance vs. Feature Dimension ({metric} metric)')
         plt.xlabel('Feature Dimension')
-        plt.ylabel('Average Centroid Distance')
-        plt.legend()
+        plt.ylabel('Average Centroid Distance (normalized)')
         plt.grid(alpha=0.3)
+        
+        # Add best fit lines for each model type
+        for model_type, group in metric_df.groupby('model_type'):
+            if len(group) >= 2:  # Need at least 2 points for a line
+                try:
+                    sns.regplot(
+                        x='feature_dimension',
+                        y='avg_centroid_distance',
+                        data=group,
+                        scatter=False,
+                        line_kws={'linestyle': '--', 'linewidth': 2}
+                    )
+                except:
+                    print(f"Could not create regression line for {model_type}")
+        
         plt.tight_layout()
         
         # Save figure
         scatter_path = os.path.join(output_dir, f'centroid_distance_vs_dimension_{metric}.png')
-        plt.savefig(scatter_path)
+        plt.savefig(scatter_path, dpi=300)
         visualizations.append(scatter_path)
         plt.close()
         
-        # 4. Comparison of centroid distance and feature distance
-        plt.figure(figsize=(10, 6))
+        # 3. Feature activation dimension for each model
+        if 'feature_activation_dim' in metric_df.columns:
+            plt.figure(figsize=(14, 8))
+            
+            # Plot actual feature activation dimensions
+            ax = sns.barplot(
+                data=metric_df,
+                x='model_config',
+                y='feature_activation_dim',
+                hue='model_type'
+            )
+            
+            plt.title(f'Feature Activation Dimensions by Model Configuration')
+            plt.xlabel('Model Configuration')
+            plt.ylabel('Feature Dimension')
+            plt.xticks(rotation=45, ha='right')
+            plt.grid(alpha=0.3, axis='y')
+            plt.tight_layout()
+            
+            # Save figure
+            dim_path = os.path.join(output_dir, f'feature_activation_dimensions.png')
+            plt.savefig(dim_path, dpi=300)
+            visualizations.append(dim_path)
+            plt.close()
+            
+        # 4. Number of classes vs. average distance
+        plt.figure(figsize=(10, 8))
         
-        plt.scatter(
-            metric_df['avg_distance'],
-            metric_df['avg_centroid_distance'],
-            c=metric_df['feature_dimension'].astype(float),
-            cmap='viridis',
+        # Create scatter plot showing relationship between number of centroids and distance
+        sns.scatterplot(
+            data=metric_df,
+            x='num_centroids',
+            y='avg_centroid_distance',
+            hue='model_type',
+            style='function_type',
+            s=100,
             alpha=0.7
         )
         
-        plt.title(f'Centroid Distance vs. Feature Distance ({metric} metric)')
-        plt.xlabel('Average Feature Distance')
-        plt.ylabel('Average Centroid Distance')
-        plt.colorbar(label='Feature Dimension')
+        plt.title(f'Centroid Distance vs. Number of Classes ({metric} metric)')
+        plt.xlabel('Number of Class Centroids')
+        plt.ylabel('Average Centroid Distance (normalized)')
         plt.grid(alpha=0.3)
         plt.tight_layout()
         
         # Save figure
-        compare_path = os.path.join(output_dir, f'centroid_vs_feature_distance_{metric}.png')
-        plt.savefig(compare_path)
-        visualizations.append(compare_path)
+        class_path = os.path.join(output_dir, f'centroid_distance_vs_classes_{metric}.png')
+        plt.savefig(class_path, dpi=300)
+        visualizations.append(class_path)
+        plt.close()
+        
+        # 5. Model ranking by centroid distance
+        plt.figure(figsize=(14, 10))
+        
+        # Sort by centroid distance (higher is better for class separation)
+        top_models = metric_df.sort_values('avg_centroid_distance', ascending=False).head(15)
+        
+        # Create labels that include feature dimension
+        top_models['plot_label'] = top_models.apply(
+            lambda x: f"{x['model_type']}-{x['function_type']} (dim={x['feature_dimension']})",
+            axis=1
+        )
+        
+        # Create horizontal bar chart
+        ax = sns.barplot(
+            data=top_models,
+            y='plot_label',
+            x='avg_centroid_distance',
+            hue='model_type',
+            dodge=False
+        )
+        
+        # Add value annotations
+        for i, bar in enumerate(ax.patches):
+            width = bar.get_width()
+            ax.text(
+                width + 0.01,
+                bar.get_y() + bar.get_height()/2,
+                f"{width:.3f}",
+                ha='left',
+                va='center'
+            )
+        
+        plt.title(f'Top 15 Models by Class Separation ({metric} metric)')
+        plt.xlabel('Average Centroid Distance (normalized)')
+        plt.ylabel('Model Configuration')
+        plt.grid(alpha=0.3, axis='x')
+        plt.tight_layout()
+        
+        # Save figure
+        ranking_path = os.path.join(output_dir, f'model_ranking_{metric}.png')
+        plt.savefig(ranking_path, dpi=300)
+        visualizations.append(ranking_path)
         plt.close()
     
-    # 5. Create a comprehensive comparison table
+    # 6. Create a comprehensive comparison table
+    # Add feature activation dimension if available
+    if 'feature_activation_dim' in results_df.columns:
+        pivot_vars = ['avg_centroid_distance', 'std_centroid_distance', 'avg_distance', 'feature_activation_dim']
+    else:
+        pivot_vars = ['avg_centroid_distance', 'std_centroid_distance', 'avg_distance']
+    
     table_df = results_df.pivot_table(
-        values=['avg_centroid_distance', 'std_centroid_distance', 'avg_distance'],
+        values=pivot_vars,
         index=['model_type', 'function_type', 'feature_dimension'],
         columns=['metric'],
         aggfunc='mean'
@@ -550,36 +1008,161 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
     
     return visualizations
 
+def load_labeled_data(data_path, label_column='label', feature_columns=None, num_samples=None, separator=','):
+    """
+    Load labeled data from a CSV file.
+    
+    Args:
+        data_path: Path to CSV file
+        label_column: Name of the column containing labels
+        feature_columns: Names of columns containing features (if None, all except label)
+        num_samples: Number of samples to load (if None, load all)
+        separator: Delimiter used in the CSV file (default: ',')
+        
+    Returns:
+        Dictionary with 'features' array and 'labels' array
+    """
+    try:
+        # Load the data
+        df = pd.read_csv(data_path, sep=separator)
+        
+        # Ensure label column exists
+        if label_column not in df.columns:
+            print(f"Error: Label column '{label_column}' not found in dataset.")
+            return None
+        
+        # Determine feature columns
+        if feature_columns is None:
+            feature_columns = [col for col in df.columns if col != label_column]
+        elif isinstance(feature_columns, str):
+            # If a single string is provided, convert it to a list
+            feature_columns = [feature_columns]
+        
+        # Verify all feature columns exist
+        missing_columns = [col for col in feature_columns if col not in df.columns]
+        if missing_columns:
+            print(f"Error: Feature columns not found in dataset: {missing_columns}")
+            return None
+        
+        # Sample data if requested
+        if num_samples is not None and num_samples < len(df):
+            df = df.sample(n=num_samples, random_state=42)
+        
+        # Extract features and labels
+        features = df[feature_columns].values
+        labels = df[label_column].values
+        
+        print(f"Evaluation dataset: {len(features)} samples with {len(feature_columns)} feature columns")
+        print(f"Number of unique classes/labels: {len(np.unique(labels))}")
+        
+        return {
+            'features': features,
+            'labels': labels,
+            'feature_columns': feature_columns,
+            'label_column': label_column
+        }
+        
+    except Exception as e:
+        print(f"Error loading labeled data: {e}")
+        return None
+
 def main():
-    parser = argparse.ArgumentParser(description='Analyze centroid distances of trained models')
+    parser = argparse.ArgumentParser(description='Analyze centroids using labeled data')
     parser.add_argument('--base_dir', type=str, default='models',
                       help='Base directory containing models')
     parser.add_argument('--output_dir', type=str, default='model_comparison',
                       help='Directory to save comparison results')
     parser.add_argument('--metrics', type=str, nargs='+', default=['cosine', 'euclidean'],
                       help='Distance metrics to use')
-    parser.add_argument('--num_clusters', type=int, default=10,
-                      help='Number of clusters for centroid computation')
     parser.add_argument('--device', type=str, default='cpu',
                       help='Device to use for model loading (cpu or cuda)')
+    parser.add_argument('--data_path', type=str, required=True,
+                      help='Path to labeled dataset (CSV file)')
+    parser.add_argument('--label_column', type=str, default='label',
+                      help='Name of column containing labels')
+    parser.add_argument('--feature_columns', type=str, nargs='+', default=None,
+                      help='Names of columns containing features (if None, all except label)')
+    parser.add_argument('--num_samples', type=int, default=None,
+                      help='Number of samples to use (if None, use all)')
+    parser.add_argument('--delimiter', type=str, default=',',
+                      help='Delimiter used in the CSV file (default: ,)')
+    parser.add_argument('--single_model', type=str, default=None,
+                      help='Analyze a single model instead of all models in base_dir')
+    parser.add_argument('--normalize_by_dimension', action='store_true', default=True,
+                      help='Normalize distances by feature dimension for fair comparison')
     
     args = parser.parse_args()
     
-    # Find all models
-    print(f"Searching for models in {args.base_dir}...")
-    models_dict = find_all_models(args.base_dir)
+    # Verify device
+    device = args.device
+    if device == 'cuda' and not torch.cuda.is_available():
+        print("CUDA requested but not available. Falling back to CPU.")
+        device = 'cpu'
+    
+    # Load labeled data first to validate
+    print(f"Loading labeled data from {args.data_path}...")
+    labeled_data = load_labeled_data(
+        args.data_path,
+        label_column=args.label_column,
+        feature_columns=args.feature_columns,
+        num_samples=args.num_samples,
+        separator=args.delimiter
+    )
+    
+    if labeled_data is None:
+        print("Failed to load labeled data. Exiting.")
+        return
+
+    # Find models to analyze
+    if args.single_model:
+        print(f"Analyzing single model: {args.single_model}")
+        models_dict = {args.single_model: {'model_type': 'sae' if 'sae' in args.single_model else 'st'}}
+    else:
+        print(f"Searching for models in {args.base_dir}...")
+        models_dict = find_all_models(args.base_dir)
     
     if not models_dict:
-        print("No models found. Check the base directory path.")
+        print("No models found. Check the base directory path or provide a valid single model path.")
         return
     
-    # Analyze model distances
-    print(f"Analyzing models using metrics: {args.metrics}")
-    results = analyze_models_distances(models_dict, metrics=args.metrics, num_clusters=args.num_clusters)
+    # Analyze model distances using labeled data
+    print(f"Analyzing models using metrics: {args.metrics} on device: {device}")
+    print(f"Using dimension normalization: {args.normalize_by_dimension}")
+    
+    # Pass normalize_by_dimension to analyze_model_with_labeled_data
+    def analyze_wrapper(model_path, metadata, labeled_data, metrics, device):
+        return analyze_model_with_labeled_data(
+            model_path, metadata, labeled_data, metrics, device, 
+            normalize_by_dimension=args.normalize_by_dimension
+        )
+    
+    # Use the wrapper function in analyze_models_distances
+    results = []
+    skipped = []
+    
+    for model_path, metadata in tqdm(models_dict.items(), desc="Analyzing models"):
+        try:
+            # Analyze this model
+            model_results = analyze_wrapper(model_path, metadata, labeled_data, args.metrics, device)
+            results.extend(model_results)
+            
+            if not model_results:
+                skipped.append(model_path)
+                
+        except Exception as e:
+            print(f"Error processing model {model_path}: {e}")
+            skipped.append(model_path)
+    
+    # Report on skipped models
+    if skipped:
+        print(f"Skipped {len(skipped)} models due to errors")
+        
+    # Convert to DataFrame
+    results_df = pd.DataFrame(results)
     
     # Create visualizations
     print(f"Creating comparison visualizations in {args.output_dir}...")
-    visualizations = create_comparison_visualizations(results, output_dir=args.output_dir)
+    visualizations = create_comparison_visualizations(results_df, output_dir=args.output_dir)
     
     print(f"Analysis complete. Generated {len(visualizations)} visualizations and reports.")
     print(f"Results saved to: {args.output_dir}")

@@ -1,0 +1,445 @@
+#!/usr/bin/env python3
+"""
+Enhanced Organize Best Models from Centroid Analysis
+
+This script finds the top-performing models based on centroid distances,
+copies them to a dedicated folder structure, and provides detailed metrics information.
+"""
+
+import os
+import shutil
+import pandas as pd
+import argparse
+from tabulate import tabulate
+import json
+from pathlib import Path
+import sys
+
+# Import functionality from find_best_models if available, or define it here
+try:
+    from find_best_models import find_best_models, display_model_info
+except ImportError:
+    # Define the functions here as fallback
+    def find_best_models(results_path='model_comparison/full_results.csv', top_n=5, metrics=None, 
+                    sort_by='avg_centroid_distance', ascending=False, filter_params=None):
+        """
+        Find the best models from centroid analysis results.
+        
+        Args:
+            results_path: Path to the full_results.csv file
+            top_n: Number of top models to return
+            metrics: List of metrics to consider (if None, use all available)
+            sort_by: Metric to sort by (default: avg_centroid_distance)
+            ascending: Whether to sort in ascending order (default: False, meaning higher is better)
+            filter_params: Dict of column-value pairs to filter by (e.g., {'model_type': 'sae'})
+            
+        Returns:
+            DataFrame with top models for each metric
+        """
+        # Check if results file exists
+        if not os.path.exists(results_path):
+            print(f"Error: Results file not found at {results_path}")
+            return None
+        
+        # Load results
+        try:
+            results_df = pd.read_csv(results_path)
+            print(f"Loaded {len(results_df)} model evaluation results")
+        except Exception as e:
+            print(f"Error loading results file: {e}")
+            return None
+        
+        # Ensure the required columns exist
+        required_columns = ['model_path', 'model_type', 'function_type', 'feature_dimension', 'metric', sort_by]
+        missing_columns = [col for col in required_columns if col not in results_df.columns]
+        if missing_columns:
+            print(f"Error: Required columns missing in results: {missing_columns}")
+            return None
+        
+        # Filter by requested metrics
+        if metrics is not None:
+            results_df = results_df[results_df['metric'].isin(metrics)]
+            print(f"Filtered to {len(results_df)} results with metrics: {metrics}")
+        
+        # Apply additional filters
+        if filter_params:
+            for column, value in filter_params.items():
+                if column in results_df.columns:
+                    # Handle lists of values
+                    if isinstance(value, list):
+                        results_df = results_df[results_df[column].isin(value)]
+                        print(f"Filtered by {column} in {value}: {len(results_df)} results remaining")
+                    else:
+                        results_df = results_df[results_df[column] == value]
+                        print(f"Filtered by {column} = {value}: {len(results_df)} results remaining")
+            
+        if results_df.empty:
+            print("No results match the specified criteria.")
+            return None
+        
+        # Group by metric and get top models for each
+        top_models = []
+        for metric_name, metric_group in results_df.groupby('metric'):
+            # Sort within each metric group
+            sorted_group = metric_group.sort_values(sort_by, ascending=ascending)
+            
+            # Get top N models
+            metric_top = sorted_group.head(top_n)
+            print(f"Found {len(metric_top)} top models for metric: {metric_name}")
+            top_models.append(metric_top)
+        
+        # Combine all top models
+        if top_models:
+            combined_top = pd.concat(top_models)
+            return combined_top
+        else:
+            return None
+            
+    def display_model_info(model_df, output_format='text', output_file=None):
+        """
+        Display model information in a readable format.
+        
+        Args:
+            model_df: DataFrame with model information
+            output_format: Format to display results ('text', 'csv', 'json', or 'markdown')
+            output_file: Optional file path to save the output
+            
+        Returns:
+            None (prints to console or saves to file)
+        """
+        if model_df is None or model_df.empty:
+            print("No models to display.")
+            return
+        
+        # Select key columns for display
+        display_columns = [
+            'model_type', 'function_type', 'feature_dimension', 
+            'metric', 'avg_centroid_distance', 'std_centroid_distance',
+            'model_path'
+        ]
+        
+        # Add additional columns if they exist
+        optional_columns = ['avg_distance', 'l1_lambda', 'num_centroids', 'dead_ratio', 'sparsity']
+        for col in optional_columns:
+            if col in model_df.columns:
+                display_columns.append(col)
+        
+        # Filter columns that exist in the DataFrame
+        display_columns = [col for col in display_columns if col in model_df.columns]
+        
+        # Create a display DataFrame
+        display_df = model_df[display_columns].copy()
+        
+        # Round numeric columns
+        numeric_columns = display_df.select_dtypes(include=['float']).columns
+        display_df[numeric_columns] = display_df[numeric_columns].round(4)
+        
+        # Format feature_dimension as integer if it's numeric
+        if 'feature_dimension' in display_df.columns:
+            try:
+                display_df['feature_dimension'] = display_df['feature_dimension'].astype(int)
+            except:
+                pass
+        
+        # Format model path to be more readable
+        if 'model_path' in display_df.columns:
+            display_df['model_path'] = display_df['model_path'].apply(lambda p: os.path.relpath(p) if os.path.isabs(p) else p)
+        
+        # Generate output
+        output_content = None
+        if output_format.lower() == 'text':
+            output_content = "\nBest Models by Centroid Distance:\n"
+            output_content += tabulate(display_df, headers='keys', tablefmt='pretty', showindex=False)
+        elif output_format.lower() == 'csv':
+            output_content = display_df.to_csv(index=False)
+        elif output_format.lower() == 'json':
+            output_content = display_df.to_json(orient='records', indent=2)
+        elif output_format.lower() == 'markdown':
+            output_content = "## Best Models by Centroid Distance\n\n"
+            output_content += display_df.to_markdown(index=False)
+        else:
+            output_content = "Unsupported output format. Using text format:\n"
+            output_content += tabulate(display_df, headers='keys', tablefmt='pretty', showindex=False)
+        
+        # Save to file or print to console
+        if output_file:
+            with open(output_file, 'w') as f:
+                f.write(output_content)
+            print(f"Results saved to {output_file}")
+        else:
+            print(output_content)
+        
+        return display_df
+
+def create_folder_name(args):
+    """Create a descriptive folder name based on the filtering criteria"""
+    parts = []
+    
+    # Always include top_n in the name
+    parts.append(f"top{args.top_n}")
+    
+    # Add metrics if specified
+    if args.metrics:
+        metric_str = "_".join(args.metrics)
+        parts.append(metric_str)
+    
+    # Add model type if filtered
+    if args.model_type:
+        model_type_str = "_".join(args.model_type)
+        parts.append(model_type_str)
+    
+    # Add function type if filtered
+    if args.function_type:
+        fn_type_str = "_".join(args.function_type)
+        parts.append(fn_type_str)
+    
+    # Add feature dimensions if filtered
+    if args.feature_dimension:
+        dim_str = "dim" + "_".join(str(d) for d in args.feature_dimension)
+        parts.append(dim_str)
+    
+    # Add sorting information
+    sort_str = args.sort_by
+    if args.ascending:
+        sort_str += "_asc"
+    else:
+        sort_str += "_desc"
+    parts.append(sort_str)
+    
+    # Combine all parts
+    folder_name = "-".join(parts)
+    
+    return folder_name
+
+def copy_model_files(best_models_df, output_dir, verify=True):
+    """
+    Copy the model files to the specified directory structure.
+    
+    Args:
+        best_models_df: DataFrame with the best models information
+        output_dir: Base directory to create the organized structure
+        verify: Whether to verify that the model files exist
+        
+    Returns:
+        Dictionary with information about the copied models
+    """
+    if best_models_df is None or best_models_df.empty:
+        print("No models to copy.")
+        return None
+    
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Prepare information for summary
+    summary = {
+        "total_models": len(best_models_df),
+        "metrics": best_models_df['metric'].unique().tolist(),
+        "copied_models": [],
+        "errors": []
+    }
+    
+    # Track metrics for organizing in subdirectories
+    metric_models = {}
+    for metric in best_models_df['metric'].unique():
+        metric_dir = os.path.join(output_dir, f"metric_{metric}")
+        os.makedirs(metric_dir, exist_ok=True)
+        metric_models[metric] = best_models_df[best_models_df['metric'] == metric]
+    
+    # Process each model
+    for idx, row in best_models_df.iterrows():
+        model_path = row['model_path']
+        metric = row['metric']
+        model_type = row['model_type']
+        function_type = row['function_type']
+        
+        # Check if model file exists
+        if verify and not os.path.exists(model_path):
+            error = f"Model file not found: {model_path}"
+            summary["errors"].append(error)
+            print(f"Error: {error}")
+            continue
+        
+        try:
+            # Create a descriptive name for the model copy
+            model_basename = os.path.basename(model_path)
+            feature_dim = str(row.get('feature_dimension', ''))
+            avg_distance = f"{row.get('avg_centroid_distance', 0):.4f}"
+            
+            # Create a new filename that includes key stats
+            new_filename = f"{model_type}_{function_type}_{feature_dim}_{avg_distance}_{model_basename}"
+            
+            # Create a more readable record keeping the original full path
+            new_filename_with_rank = f"{idx+1:02d}_{model_type}_{function_type}_{feature_dim}_{avg_distance}_{model_basename}"
+            
+            # Copy to main directory
+            main_copy_path = os.path.join(output_dir, new_filename_with_rank)
+            shutil.copy2(model_path, main_copy_path)
+            
+            # Copy to metric-specific directory
+            metric_copy_path = os.path.join(output_dir, f"metric_{metric}", new_filename)
+            if not os.path.exists(metric_copy_path):  # Avoid duplicate copies
+                shutil.copy2(model_path, metric_copy_path)
+            
+            # Add to successful models
+            summary["copied_models"].append({
+                "original_path": model_path,
+                "copy_path": main_copy_path,
+                "model_type": model_type,
+                "function_type": function_type,
+                "feature_dimension": str(row.get('feature_dimension', '')),
+                "metric": metric,
+                "avg_centroid_distance": avg_distance
+            })
+            
+        except Exception as e:
+            error = f"Error processing {model_path}: {str(e)}"
+            summary["errors"].append(error)
+            print(f"Error: {error}")
+    
+    # Create an index file with the model information
+    index_file = os.path.join(output_dir, "index.json")
+    with open(index_file, 'w') as f:
+        json.dump(summary, f, indent=2)
+    
+    # Create a more human-readable summary
+    summary_file = os.path.join(output_dir, "README.md")
+    with open(summary_file, 'w') as f:
+        f.write("# Best Models Summary\n\n")
+        f.write(f"Total models: {summary['total_models']}\n\n")
+        f.write(f"Metrics: {', '.join(summary['metrics'])}\n\n")
+        
+        if summary["errors"]:
+            f.write("## Errors\n\n")
+            for error in summary["errors"]:
+                f.write(f"- {error}\n")
+            f.write("\n")
+        
+        f.write("## Copied Models\n\n")
+        
+        # Convert the copied models to a DataFrame for tabulate
+        models_df = pd.DataFrame(summary["copied_models"])
+        if not models_df.empty:
+            display_cols = ['model_type', 'function_type', 'feature_dimension', 
+                           'metric', 'avg_centroid_distance', 'original_path', 'copy_path']
+            # Filter columns that exist
+            display_cols = [col for col in display_cols if col in models_df.columns]
+            
+            f.write(models_df[display_cols].to_markdown(index=False))
+    
+    # Create a CSV file with the data
+    csv_file = os.path.join(output_dir, "best_models.csv")
+    best_models_df.to_csv(csv_file, index=False)
+    
+    # Create a detailed model metrics file
+    metrics_file = os.path.join(output_dir, "model_metrics.txt")
+    display_model_info(best_models_df, output_format='text', output_file=metrics_file)
+    
+    print(f"\nSuccessfully copied {len(summary['copied_models'])} models to {output_dir}")
+    if summary["errors"]:
+        print(f"Encountered {len(summary['errors'])} errors. See {summary_file} for details.")
+    
+    print(f"\nCreated the following files:")
+    print(f"- {index_file} (JSON with full model information)")
+    print(f"- {summary_file} (Markdown with human-readable summary)")
+    print(f"- {csv_file} (CSV with model data)")
+    print(f"- {metrics_file} (Detailed model metrics in text format)")
+    
+    # Create metric-specific readme files
+    for metric, metric_df in metric_models.items():
+        metric_dir = os.path.join(output_dir, f"metric_{metric}")
+        metric_readme = os.path.join(metric_dir, "README.md")
+        
+        with open(metric_readme, 'w') as f:
+            f.write(f"# Best Models - {metric} metric\n\n")
+            f.write(f"Total models: {len(metric_df)}\n\n")
+            
+            # Sort by avg_centroid_distance
+            sorted_df = metric_df.sort_values('avg_centroid_distance', ascending=False)
+            
+            # Display in markdown table
+            display_cols = ['model_type', 'function_type', 'feature_dimension', 
+                           'avg_centroid_distance', 'model_path']
+            # Filter columns that exist
+            display_cols = [col for col in display_cols if col in sorted_df.columns]
+            
+            f.write(sorted_df[display_cols].to_markdown(index=False))
+        
+        # Create a detailed metrics file for this metric
+        metric_metrics_file = os.path.join(metric_dir, "model_metrics.txt")
+        display_model_info(metric_df, output_format='text', output_file=metric_metrics_file)
+        
+        print(f"- {metric_readme} (Metric-specific README)")
+        print(f"- {metric_metrics_file} (Metric-specific detailed metrics)")
+    
+    # Display the tabular output directly in the console as well
+    print("\nDetailed Metrics for Selected Models:")
+    display_model_info(best_models_df, output_format='text')
+    
+    return summary
+
+def main():
+    parser = argparse.ArgumentParser(description='Copy best models from centroid analysis results')
+    parser.add_argument('--results_path', type=str, default='model_comparison/full_results.csv',
+                      help='Path to full_results.csv file from centroid analysis')
+    parser.add_argument('--top_n', type=int, default=10,
+                      help='Number of top models to organize for each metric')
+    parser.add_argument('--metrics', type=str, nargs='+', default=None,
+                      help='Metrics to consider (if None, use all available)')
+    parser.add_argument('--sort_by', type=str, default='avg_centroid_distance',
+                      help='Metric to sort by (default: avg_centroid_distance)')
+    parser.add_argument('--ascending', action='store_true', default=False,
+                      help='Sort in ascending order (default: False, higher values are better)')
+    parser.add_argument('--model_type', type=str, nargs='+', default=None,
+                      help='Filter by model type (e.g., sae, st)')
+    parser.add_argument('--function_type', type=str, nargs='+', default=None,
+                      help='Filter by function type (e.g., softmax, relu)')
+    parser.add_argument('--feature_dimension', type=int, nargs='+', default=None,
+                      help='Filter by feature dimension')
+    parser.add_argument('--output_dir', type=str, default=None,
+                      help='Directory to store copied models (default: auto-generated)')
+    parser.add_argument('--no_verify', action='store_true', default=False,
+                      help='Skip verification of model file existence')
+    
+    args = parser.parse_args()
+    
+    # Build filter parameters
+    filter_params = {}
+    if args.model_type:
+        filter_params['model_type'] = args.model_type
+    if args.function_type:
+        filter_params['function_type'] = args.function_type
+    if args.feature_dimension:
+        filter_params['feature_dimension'] = args.feature_dimension
+    
+    # Find best models
+    print("Finding best models based on criteria...")
+    best_models = find_best_models(
+        results_path=args.results_path,
+        top_n=args.top_n,
+        metrics=args.metrics,
+        sort_by=args.sort_by,
+        ascending=args.ascending,
+        filter_params=filter_params
+    )
+    
+    if best_models is None or best_models.empty:
+        print("No models found matching the criteria. Exiting.")
+        sys.exit(1)
+    
+    # Create auto-generated output directory name if not provided
+    if args.output_dir is None:
+        folder_name = create_folder_name(args)
+        # Create in a 'best_models' subdirectory
+        args.output_dir = os.path.join('best_models', folder_name)
+    
+    print(f"\nCopying {len(best_models)} models to {args.output_dir}")
+    
+    # Copy the models
+    copy_model_files(
+        best_models,
+        args.output_dir,
+        verify=not args.no_verify
+    )
+
+if __name__ == "__main__":
+    main()
