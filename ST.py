@@ -32,7 +32,7 @@ class SparseTransformer(nn.Module):
                  lambda_l1: float = 5.0, num_heads: int = 1, device: str = 'cuda',
                  window_size: int = 10_000_000, update_interval: int = 1_000,
                  activation_threshold: float = 1e-3, use_mixed_precision: bool = True,
-                 use_compile: bool = True, memory_strategy: str = 'diversity',
+                 use_compile: bool = False, memory_strategy: str = 'diversity',
                  log_level: str = 'INFO', use_direct_kv: bool = True,
                  activation: str = 'none', attention_fn: str = 'softmax'):
         """
