@@ -22,14 +22,22 @@ def find_all_models(base_dir="models"):
     """
     model_files = {}
     
-    # Walk through the directory structure
+    if not os.path.exists(base_dir):
+        print(f"DEBUG: Base directory does not exist: {base_dir}")
+        return {}
+        
+    # First level - dataset directories
     for dataset in os.listdir(base_dir):
         dataset_path = os.path.join(base_dir, dataset)
+        print(f"DEBUG: Found dataset dir: {dataset_path}")
+        
         if not os.path.isdir(dataset_path):
             continue
             
+        # Second level - model type (sae, st)
         for model_type in os.listdir(dataset_path):
             type_path = os.path.join(dataset_path, model_type)
+            print(f"DEBUG: Found model type dir: {type_path}")
             if not os.path.isdir(type_path) or model_type not in ['sae', 'st']:
                 continue
                 
@@ -525,11 +533,21 @@ def analyze_model_with_labeled_data(model_path, model_metadata, labeled_data, me
                 if distance_stats is None or centroid_stats is None:
                     continue
                     
+
+                # Extract dataset from model path
+                dataset = None
+                path_parts = model_path.replace('\\', '/').split('/')
+                for part in path_parts:
+                    if part in ['mnist', 'fashion_mnist', 'stack_exchange']:
+                        dataset = part
+                        break
+
                 # Combine all stats
                 result = {
                     'model_path': model_path,
                     'metric': metric,
                     'feature_activation_dim': feature_dimension,  # Actually used feature dimension
+                    'dataset': dataset,  # Add dataset info
                     **model_metadata,
                     **distance_stats,
                     **{k: v for k, v in centroid_stats.items() if k not in ['centroids', 'centroid_vectors', 'centroid_distances']}
@@ -767,6 +785,14 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
     os.makedirs(output_dir, exist_ok=True)
     visualizations = []
     
+    # Create dataset-specific directories if dataset column exists
+    if 'dataset' in results_df.columns:
+        datasets = results_df['dataset'].unique()
+        for dataset in datasets:
+            if dataset:  # Skip None values
+                dataset_dir = os.path.join(output_dir, f"dataset_{dataset}")
+                os.makedirs(dataset_dir, exist_ok=True)
+    
     # Add explanation about centroid calculation and dimension normalization
     info_text = """
     # Label-Based Centroids Analysis
@@ -800,14 +826,14 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
         print("No results to visualize.")
         return visualizations
     
-    # Create visualization for each metric
+    # Create visualization for each metric for all datasets combined
     for metric in results_df['metric'].unique():
         # Create an explicit copy of the filtered DataFrame to avoid SettingWithCopyWarning
         metric_df = results_df[results_df['metric'] == metric].copy()
         
         if metric_df.empty:
             continue
-        
+            
         # Ensure feature_dimension is numeric
         try:
             metric_df['feature_dimension'] = pd.to_numeric(metric_df['feature_dimension'])
@@ -834,147 +860,201 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
         plt.grid(alpha=0.3, axis='y')
         plt.tight_layout()
         
-        # Save figure
+        # Save figure - for all datasets combined this goes in the main output directory
         bar_path = os.path.join(output_dir, f'avg_centroid_distance_{metric}.png')
         plt.savefig(bar_path, dpi=300)
         visualizations.append(bar_path)
         plt.close()
         
-        # 2. Feature dimension vs. centroid distance
-        plt.figure(figsize=(12, 8))
-        
-        # Create scatter plot with different colors for model types
-        sns.scatterplot(
-            data=metric_df,
-            x='feature_dimension',
-            y='avg_centroid_distance',
-            hue='model_type',
-            style='function_type',
-            s=100,
-            alpha=0.7
-        )
+        # Other global visualizations would go here...
+    
+    # Now create dataset-specific visualizations if dataset column exists
+    if 'dataset' in results_df.columns:
+        for dataset in results_df['dataset'].unique():
+            if not dataset:  # Skip None values
+                continue
+                
+            dataset_dir = os.path.join(output_dir, f"dataset_{dataset}")
+            dataset_df = results_df[results_df['dataset'] == dataset].copy()
             
-        plt.title(f'Centroid Distance vs. Feature Dimension ({metric} metric)')
-        plt.xlabel('Feature Dimension')
-        plt.ylabel('Average Centroid Distance (normalized)')
-        plt.grid(alpha=0.3)
-        
-        # Add best fit lines for each model type
-        for model_type, group in metric_df.groupby('model_type'):
-            if len(group) >= 2:  # Need at least 2 points for a line
+            if dataset_df.empty:
+                continue
+                
+            print(f"\nCreating visualizations for dataset: {dataset}")
+            
+            for metric in dataset_df['metric'].unique():
+                dataset_metric_df = dataset_df[dataset_df['metric'] == metric].copy()
+            
+                if dataset_metric_df.empty:  # Fixed variable name
+                    continue
+                
+                # Ensure feature_dimension is numeric
                 try:
-                    sns.regplot(
-                        x='feature_dimension',
-                        y='avg_centroid_distance',
-                        data=group,
-                        scatter=False,
-                        line_kws={'linestyle': '--', 'linewidth': 2}
-                    )
+                    dataset_metric_df['feature_dimension'] = pd.to_numeric(dataset_metric_df['feature_dimension'])  # Fixed variable name
                 except:
-                    print(f"Could not create regression line for {model_type}")
-        
-        plt.tight_layout()
-        
-        # Save figure
-        scatter_path = os.path.join(output_dir, f'centroid_distance_vs_dimension_{metric}.png')
-        plt.savefig(scatter_path, dpi=300)
-        visualizations.append(scatter_path)
-        plt.close()
-        
-        # 3. Feature activation dimension for each model
-        if 'feature_activation_dim' in metric_df.columns:
-            plt.figure(figsize=(14, 8))
-            
-            # Plot actual feature activation dimensions
-            ax = sns.barplot(
-                data=metric_df,
-                x='model_config',
-                y='feature_activation_dim',
-                hue='model_type'
-            )
-            
-            plt.title(f'Feature Activation Dimensions by Model Configuration')
-            plt.xlabel('Model Configuration')
-            plt.ylabel('Feature Dimension')
-            plt.xticks(rotation=45, ha='right')
-            plt.grid(alpha=0.3, axis='y')
-            plt.tight_layout()
-            
-            # Save figure
-            dim_path = os.path.join(output_dir, f'feature_activation_dimensions.png')
-            plt.savefig(dim_path, dpi=300)
-            visualizations.append(dim_path)
-            plt.close()
-            
-        # 4. Number of classes vs. average distance
-        plt.figure(figsize=(10, 8))
-        
-        # Create scatter plot showing relationship between number of centroids and distance
-        sns.scatterplot(
-            data=metric_df,
-            x='num_centroids',
-            y='avg_centroid_distance',
-            hue='model_type',
-            style='function_type',
-            s=100,
-            alpha=0.7
-        )
-        
-        plt.title(f'Centroid Distance vs. Number of Classes ({metric} metric)')
-        plt.xlabel('Number of Class Centroids')
-        plt.ylabel('Average Centroid Distance (normalized)')
-        plt.grid(alpha=0.3)
-        plt.tight_layout()
-        
-        # Save figure
-        class_path = os.path.join(output_dir, f'centroid_distance_vs_classes_{metric}.png')
-        plt.savefig(class_path, dpi=300)
-        visualizations.append(class_path)
-        plt.close()
-        
-        # 5. Model ranking by centroid distance
-        plt.figure(figsize=(14, 10))
-        
-        # Sort by centroid distance (higher is better for class separation)
-        top_models = metric_df.sort_values('avg_centroid_distance', ascending=False).head(15)
-        
-        # Create labels that include feature dimension
-        top_models['plot_label'] = top_models.apply(
-            lambda x: f"{x['model_type']}-{x['function_type']} (dim={x['feature_dimension']})",
-            axis=1
-        )
-        
-        # Create horizontal bar chart
-        ax = sns.barplot(
-            data=top_models,
-            y='plot_label',
-            x='avg_centroid_distance',
-            hue='model_type',
-            dodge=False
-        )
-        
-        # Add value annotations
-        for i, bar in enumerate(ax.patches):
-            width = bar.get_width()
-            ax.text(
-                width + 0.01,
-                bar.get_y() + bar.get_height()/2,
-                f"{width:.3f}",
-                ha='left',
-                va='center'
-            )
-        
-        plt.title(f'Top 15 Models by Class Separation ({metric} metric)')
-        plt.xlabel('Average Centroid Distance (normalized)')
-        plt.ylabel('Model Configuration')
-        plt.grid(alpha=0.3, axis='x')
-        plt.tight_layout()
-        
-        # Save figure
-        ranking_path = os.path.join(output_dir, f'model_ranking_{metric}.png')
-        plt.savefig(ranking_path, dpi=300)
-        visualizations.append(ranking_path)
-        plt.close()
+                    print(f"Warning: Could not convert feature_dimension to numeric for dataset {dataset}.")
+                    
+                # Add a 'model_config' column that combines model_type and function_type
+                dataset_metric_df['model_config'] = dataset_metric_df['model_type'] + '-' + dataset_metric_df['function_type']  # Fixed variable name
+                    
+                # 1. Dimension-normalized bar chart comparing models
+                plt.figure(figsize=(14, 8))
+                
+                # Group by model type and function type
+                grouped = dataset_metric_df.groupby(['model_type', 'function_type'])['avg_centroid_distance'].mean().reset_index()  # Fixed variable name
+                
+                # Pivot for easier plotting
+                pivot_df = grouped.pivot(index='function_type', columns='model_type', values='avg_centroid_distance')
+                
+                # Plot
+                ax = pivot_df.plot(kind='bar', rot=45)
+                plt.title(f'Average Centroid Distance by Model Type and Function ({metric} metric) - {dataset}')
+                plt.ylabel('Average Centroid Distance (normalized)')
+                plt.xlabel('Function Type')
+                plt.grid(alpha=0.3, axis='y')
+                plt.tight_layout()
+                
+                # Save figure - now using dataset_dir instead of output_dir
+                bar_path = os.path.join(dataset_dir, f'avg_centroid_distance_{metric}.png')
+                plt.savefig(bar_path, dpi=300)
+                visualizations.append(bar_path)
+                plt.close()
+                
+                # 2. Feature dimension vs. centroid distance
+                plt.figure(figsize=(12, 8))
+                
+                # Create scatter plot with different colors for model types
+                sns.scatterplot(
+                    data=dataset_metric_df,  # Fixed variable name
+                    x='feature_dimension',
+                    y='avg_centroid_distance',
+                    hue='model_type',
+                    style='function_type',
+                    s=100,
+                    alpha=0.7
+                )
+                    
+                plt.title(f'Centroid Distance vs. Feature Dimension ({metric} metric) - {dataset}')
+                plt.xlabel('Feature Dimension')
+                plt.ylabel('Average Centroid Distance (normalized)')
+                plt.grid(alpha=0.3)
+                
+                # Add best fit lines for each model type
+                for model_type, group in dataset_metric_df.groupby('model_type'):  # Fixed variable name
+                    if len(group) >= 2:  # Need at least 2 points for a line
+                        try:
+                            sns.regplot(
+                                x='feature_dimension',
+                                y='avg_centroid_distance',
+                                data=group,
+                                scatter=False,
+                                line_kws={'linestyle': '--', 'linewidth': 2}
+                            )
+                        except:
+                            print(f"Could not create regression line for {model_type}")
+                
+                plt.tight_layout()
+                
+                # Save figure - now using dataset_dir instead of output_dir
+                scatter_path = os.path.join(dataset_dir, f'centroid_distance_vs_dimension_{metric}.png')
+                plt.savefig(scatter_path, dpi=300)
+                visualizations.append(scatter_path)
+                plt.close()
+                
+                # 3. Feature activation dimension for each model
+                if 'feature_activation_dim' in dataset_metric_df.columns:  # Fixed variable name
+                    plt.figure(figsize=(14, 8))
+                    
+                    # Plot actual feature activation dimensions
+                    ax = sns.barplot(
+                        data=dataset_metric_df,  # Fixed variable name
+                        x='model_config',
+                        y='feature_activation_dim',
+                        hue='model_type'
+                    )
+                    
+                    plt.title(f'Feature Activation Dimensions by Model Configuration - {dataset}')
+                    plt.xlabel('Model Configuration')
+                    plt.ylabel('Feature Dimension')
+                    plt.xticks(rotation=45, ha='right')
+                    plt.grid(alpha=0.3, axis='y')
+                    plt.tight_layout()
+                    
+                    # Save figure - now using dataset_dir instead of output_dir
+                    dim_path = os.path.join(dataset_dir, f'feature_activation_dimensions_{metric}.png')
+                    plt.savefig(dim_path, dpi=300)
+                    visualizations.append(dim_path)
+                    plt.close()
+                    
+                # 4. Number of classes vs. average distance
+                plt.figure(figsize=(10, 8))
+                
+                # Create scatter plot showing relationship between number of centroids and distance
+                sns.scatterplot(
+                    data=dataset_metric_df,  # Fixed variable name
+                    x='num_centroids',
+                    y='avg_centroid_distance',
+                    hue='model_type',
+                    style='function_type',
+                    s=100,
+                    alpha=0.7
+                )
+                
+                plt.title(f'Centroid Distance vs. Number of Classes ({metric} metric) - {dataset}')
+                plt.xlabel('Number of Class Centroids')
+                plt.ylabel('Average Centroid Distance (normalized)')
+                plt.grid(alpha=0.3)
+                plt.tight_layout()
+                
+                # Save figure - now using dataset_dir instead of output_dir
+                class_path = os.path.join(dataset_dir, f'centroid_distance_vs_classes_{metric}.png')
+                plt.savefig(class_path, dpi=300)
+                visualizations.append(class_path)
+                plt.close()
+                
+                # 5. Model ranking by centroid distance
+                plt.figure(figsize=(14, 10))
+                
+                # Sort by centroid distance (higher is better for class separation)
+                top_models = dataset_metric_df.sort_values('avg_centroid_distance', ascending=False).head(15)  # Fixed variable name
+                
+                # Create labels that include feature dimension
+                top_models['plot_label'] = top_models.apply(
+                    lambda x: f"{x['model_type']}-{x['function_type']} (dim={x['feature_dimension']})",
+                    axis=1
+                )
+                
+                # Create horizontal bar chart
+                ax = sns.barplot(
+                    data=top_models,
+                    y='plot_label',
+                    x='avg_centroid_distance',
+                    hue='model_type',
+                    dodge=False
+                )
+                
+                # Add value annotations
+                for i, bar in enumerate(ax.patches):
+                    width = bar.get_width()
+                    ax.text(
+                        width + 0.01,
+                        bar.get_y() + bar.get_height()/2,
+                        f"{width:.3f}",
+                        ha='left',
+                        va='center'
+                    )
+                
+                plt.title(f'Top 15 Models by Class Separation ({metric} metric) - {dataset}')
+                plt.xlabel('Average Centroid Distance (normalized)')
+                plt.ylabel('Model Configuration')
+                plt.grid(alpha=0.3, axis='x')
+                plt.tight_layout()
+                
+                # Save figure - now using dataset_dir instead of output_dir
+                ranking_path = os.path.join(dataset_dir, f'model_ranking_{metric}.png')
+                plt.savefig(ranking_path, dpi=300)
+                visualizations.append(ranking_path)
+                plt.close()
     
     # 6. Create a comprehensive comparison table
     # Add feature activation dimension if available
@@ -1005,6 +1085,45 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
     full_results_path = os.path.join(output_dir, 'full_results.csv')
     results_df.to_csv(full_results_path, index=False)
     visualizations.append(full_results_path)
+    
+    # Create dataset summary file if dataset column exists
+    if 'dataset' in results_df.columns:
+        summary_path = os.path.join(output_dir, 'dataset_summary.md')
+        with open(summary_path, 'w') as f:
+            f.write("# Dataset Analysis Summary\n\n")
+            
+            # Overall stats
+            f.write("## Overall Statistics\n\n")
+            f.write(f"Total models analyzed: {len(results_df)}\n")
+            f.write(f"Datasets: {', '.join(sorted([d for d in results_df['dataset'].unique() if d]))}\n")
+            f.write(f"Metrics: {', '.join(results_df['metric'].unique())}\n\n")
+            
+            # Dataset breakdown
+            f.write("## Dataset Breakdown\n\n")
+            for dataset in sorted([d for d in results_df['dataset'].unique() if d]):
+                dataset_df = results_df[results_df['dataset'] == dataset]
+                f.write(f"### {dataset}\n\n")
+                f.write(f"Models: {len(dataset_df)}\n")
+                f.write(f"Model types: {', '.join(dataset_df['model_type'].unique())}\n")
+                
+                # Summary metrics
+                for metric in dataset_df['metric'].unique():
+                    metric_df = dataset_df[dataset_df['metric'] == metric]
+                    f.write(f"\n**{metric} metric**:\n")
+                    f.write(f"- Average centroid distance: {metric_df['avg_centroid_distance'].mean():.4f}\n")
+                    
+                    # Make sure there are records before trying to find the max
+                    if not metric_df.empty:
+                        max_idx = metric_df['avg_centroid_distance'].idxmax()
+                        if max_idx is not None:
+                            f.write(f"- Best model: {metric_df.loc[max_idx]['model_path']}\n")
+                            f.write(f"- Distance: {metric_df['avg_centroid_distance'].max():.4f}\n\n")
+                    else:
+                        f.write("- No data available for this metric\n\n")
+                
+                f.write("\n")
+        
+        visualizations.append(summary_path)
     
     return visualizations
 
@@ -1090,7 +1209,8 @@ def main():
                       help='Analyze a single model instead of all models in base_dir')
     parser.add_argument('--normalize_by_dimension', action='store_true', default=True,
                       help='Normalize distances by feature dimension for fair comparison')
-    
+    parser.add_argument('--dataset_filter', type=str, default=None,
+                  help='Only analyze models trained on this dataset')
     args = parser.parse_args()
     
     # Verify device
@@ -1120,7 +1240,21 @@ def main():
     else:
         print(f"Searching for models in {args.base_dir}...")
         models_dict = find_all_models(args.base_dir)
-    
+    # Filter models by dataset if specified
+
+    if args.dataset_filter and not args.single_model:
+        original_count = len(models_dict)
+        filtered_models = {}
+        
+        for path, metadata in models_dict.items():
+            # Check if dataset name appears in the path
+            if args.dataset_filter in path:
+                # Add dataset to metadata
+                metadata['dataset'] = args.dataset_filter
+                filtered_models[path] = metadata
+        
+        models_dict = filtered_models
+        print(f"Filtered from {original_count} to {len(models_dict)} models matching dataset: {args.dataset_filter}")
     if not models_dict:
         print("No models found. Check the base directory path or provide a valid single model path.")
         return
