@@ -4,14 +4,71 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import argparse
-from typing import List, Optional
+from typing import List, Optional, Dict
 import warnings
-
+def load_and_combine_results(results_csv: str) -> pd.DataFrame:
+    """
+    Load results from a CSV file or directory with multiple dataset CSVs.
+    
+    Args:
+        results_csv: Path to CSV file or directory containing dataset CSVs
+        
+    Returns:
+        Combined DataFrame with all results
+    """
+    # Check if the path is a directory
+    if os.path.isdir(results_csv):
+        print(f"Loading results from directory: {results_csv}")
+        # Look for dataset-specific CSV files
+        dataset_csvs = glob.glob(os.path.join(results_csv, "dataset_*_results.csv"))
+        
+        if not dataset_csvs:
+            # If no dataset CSVs found, check for full_results.csv
+            if os.path.exists(os.path.join(results_csv, "full_results.csv")):
+                print(f"No dataset-specific CSVs found. Using full_results.csv")
+                return pd.read_csv(os.path.join(results_csv, "full_results.csv"))
+            else:
+                raise ValueError(f"No results CSV files found in {results_csv}")
+        
+        # Load and combine all dataset CSVs
+        print(f"Found {len(dataset_csvs)} dataset-specific CSV files")
+        all_dfs = []
+        
+        for csv_path in dataset_csvs:
+            try:
+                dataset_name = os.path.basename(csv_path).replace("dataset_", "").replace("_results.csv", "")
+                print(f"Loading data for dataset: {dataset_name}")
+                df = pd.read_csv(csv_path)
+                
+                # Ensure dataset column exists and is correctly set
+                if 'dataset' not in df.columns:
+                    df['dataset'] = dataset_name
+                
+                all_dfs.append(df)
+            except Exception as e:
+                print(f"Error loading {csv_path}: {e}")
+        
+        if not all_dfs:
+            raise ValueError("Failed to load any CSV files")
+        
+        # Combine all dataframes
+        combined_df = pd.concat(all_dfs, ignore_index=True)
+        print(f"Combined {len(combined_df)} rows from {len(all_dfs)} datasets")
+        return combined_df
+    
+    # If it's a file, just load it directly
+    elif os.path.isfile(results_csv):
+        print(f"Loading results from file: {results_csv}")
+        return pd.read_csv(results_csv)
+    
+    else:
+        raise ValueError(f"Invalid path: {results_csv}")
 def create_variable_visualizations(results_csv: str, 
                                   variable: str, 
                                   output_dir: Optional[str] = None,
                                   secondary_variable: Optional[str] = None,
-                                  metrics: Optional[List[str]] = None) -> List[str]:
+                                  metrics: Optional[List[str]] = None,
+                                  dataset_filter: Optional[str] = None) -> List[str]:
     """
     Create visualizations comparing model centroid distances in relation to a specified variable.
     
@@ -21,17 +78,13 @@ def create_variable_visualizations(results_csv: str,
         output_dir: Directory to save visualizations (default: visualization/{variable})
         secondary_variable: Optional second variable for more complex comparisons
         metrics: Which distance metrics to visualize (default: all available)
+        dataset_filter: Optional dataset to filter by
         
     Returns:
         List of generated visualization paths
     """
-    # Set up output directory
-    if output_dir is None:
-        output_dir = f"visualization/{variable}"
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Load results
-    df = pd.read_csv(results_csv)
+    # Load and combine results from CSV(s)
+    df = load_and_combine_results(results_csv)
     
     # Validate that the variable exists
     if variable not in df.columns:
@@ -51,11 +104,164 @@ def create_variable_visualizations(results_csv: str,
         else:
             metrics = ['unknown']
     
-    # Track generated visualizations
+    # Check if dataset column exists
+    has_dataset_column = 'dataset' in df.columns
     visualizations = []
     
-    # Create information file
-    info_text = f"""
+    # Handle output directory structure based on dataset information
+    if has_dataset_column:
+        # Create the base visualization directory
+        base_dir = "visualization"
+        if output_dir:
+            base_dir = output_dir
+        os.makedirs(base_dir, exist_ok=True)
+        
+        # Get unique datasets from CSV
+        all_datasets = sorted([d for d in df['dataset'].unique() if d])
+        
+        # ADDITION: Also check for dataset folders in the model_comparison directory
+        model_comp_dir = os.path.dirname(results_csv)
+        try:
+            import glob
+            dataset_dirs = glob.glob(os.path.join(model_comp_dir, "dataset_*"))
+            for dir_path in dataset_dirs:
+                dir_name = os.path.basename(dir_path)
+                if dir_name.startswith("dataset_"):
+                    dataset_name = dir_name[len("dataset_"):]
+                    if dataset_name not in all_datasets:
+                        all_datasets.append(dataset_name)
+                        print(f"Found additional dataset from directory structure: {dataset_name}")
+            all_datasets = sorted(all_datasets)
+        except Exception as e:
+            print(f"Error detecting dataset folders: {e}")
+            
+        print(f"All available datasets: {', '.join(all_datasets)}")
+        
+        # Create root level info file
+        root_info_path = os.path.join(base_dir, 'analysis_info.txt')
+        with open(root_info_path, 'w') as f:
+            f.write(f"""
+Variable Analysis for: {variable}
+===============================
+
+The visualizations are organized in dataset-specific directories.
+Please navigate to each dataset directory to see the visualizations.
+
+Source data: {results_csv}
+Metrics included: {', '.join(metrics)}
+Secondary variable (if used): {secondary_variable or 'None'}
+Datasets available: {', '.join(all_datasets)}
+Analysis date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
+""")
+        visualizations.append(root_info_path)
+        
+        # If dataset filter is provided, analyze only that dataset
+        if dataset_filter:
+            if dataset_filter in all_datasets:
+                datasets_to_analyze = [dataset_filter]
+                print(f"Filtering to single dataset: {dataset_filter}")
+            else:
+                print(f"Dataset {dataset_filter} not found in the data. Available datasets: {all_datasets}")
+                return visualizations
+        else:
+            datasets_to_analyze = all_datasets
+            
+        # Process each dataset
+        for dataset in datasets_to_analyze:
+            # MODIFICATION: For datasets found in directory but not in CSV, create placeholder
+            if dataset not in df['dataset'].unique():
+                print(f"Dataset {dataset} found in directory but not in CSV. Creating placeholder.")
+                dataset_dir = os.path.join(base_dir, dataset)
+                os.makedirs(dataset_dir, exist_ok=True)
+                
+                variable_dir = os.path.join(dataset_dir, variable)
+                os.makedirs(variable_dir, exist_ok=True)
+                
+                # Create dataset-specific info file
+                dataset_info_path = os.path.join(variable_dir, 'dataset_info.txt')
+                with open(dataset_info_path, 'w') as f:
+                    f.write(f"""
+Dataset: {dataset} - Variable: {variable}
+=======================================
+
+No data available for this dataset in the CSV file.
+This directory has been created as a placeholder.
+
+Please run centroid_analysis.py with --dataset_filter={dataset} to generate data for this dataset.
+""")
+                visualizations.append(dataset_info_path)
+                print(f"No data available for dataset: {dataset}. Created placeholder directory.")
+                continue
+                
+            dataset_df = df[df['dataset'] == dataset].copy()
+            if dataset_df.empty:
+                continue
+                
+            # Create dataset directory structure: visualization/dataset/variable
+            dataset_dir = os.path.join(base_dir, dataset)
+            os.makedirs(dataset_dir, exist_ok=True)
+            
+            variable_dir = os.path.join(dataset_dir, variable)
+            os.makedirs(variable_dir, exist_ok=True)
+            
+            # Create dataset-specific info file
+            dataset_info_path = os.path.join(variable_dir, 'dataset_info.txt')
+            with open(dataset_info_path, 'w') as f:
+                f.write(f"""
+Dataset: {dataset} - Variable: {variable}
+=======================================
+
+This directory contains visualizations showing the relationship between 
+{variable} and centroid distances for the {dataset} dataset.
+
+Number of models: {len(dataset_df)}
+Metrics included: {', '.join(dataset_df['metric'].unique().tolist())}
+Analysis date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
+""")
+            visualizations.append(dataset_info_path)
+            
+            # Determine if variable is numeric or categorical for this dataset
+            try:
+                dataset_df[variable] = pd.to_numeric(dataset_df[variable])
+                variable_type = 'numeric'
+            except:
+                variable_type = 'categorical'
+                
+            print(f"\nAnalyzing dataset: {dataset} - Variable: {variable} ({variable_type})")
+            
+            # Filter out any rows with NaN in the variable column
+            dataset_df = dataset_df.dropna(subset=[variable])
+            
+            if dataset_df.empty:
+                print(f"No valid data found for dataset {dataset} after filtering.")
+                continue
+                
+            # Generate dataset-specific visualizations
+            if variable_type == 'numeric':
+                dataset_vis = create_numeric_variable_plots(
+                    dataset_df, variable, variable_dir, metrics, 
+                    secondary_variable, dataset_name=dataset)
+                visualizations.extend(dataset_vis)
+            else:
+                dataset_vis = create_categorical_variable_plots(
+                    dataset_df, variable, variable_dir, metrics, 
+                    secondary_variable, dataset_name=dataset)
+                visualizations.extend(dataset_vis)
+            
+            # Create general analysis plots for this dataset
+            general_vis = create_general_analysis_plots(
+                dataset_df, variable, variable_dir, metrics, 
+                secondary_variable, dataset_name=dataset)
+            visualizations.extend(general_vis)
+            
+    else:
+        # No dataset column - use traditional structure
+        if output_dir is None:
+            output_dir = f"visualization/all_datasets/{variable}"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Create information file for single dataset case
+        info_text = f"""
 Variable Analysis for: {variable}
 ===============================
 
@@ -66,61 +272,65 @@ The visualizations were generated from: {results_csv}
 
 Metrics included: {', '.join(metrics)}
 Secondary variable (if used): {secondary_variable or 'None'}
-
 Analysis date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
-    
-    info_path = os.path.join(output_dir, 'analysis_info.txt')
-    with open(info_path, 'w') as f:
-        f.write(info_text)
-    visualizations.append(info_path)
-    
-    # Determine if variable is numeric or categorical
-    try:
-        df[variable] = pd.to_numeric(df[variable])
-        variable_type = 'numeric'
-    except:
-        variable_type = 'categorical'
-    
-    # Print information about the analysis
-    print(f"Analyzing relationship between '{variable}' ({variable_type}) and centroid distances")
-    print(f"Using metrics: {metrics}")
-    if secondary_variable:
-        print(f"Using secondary variable: {secondary_variable}")
-    
-    # Filter out any rows with NaN in the variable column
-    df = df.dropna(subset=[variable])
-    
-    if df.empty:
-        print("No valid data found after filtering.")
-        return visualizations
-    
-    # Generate visualizations based on variable type
-    if variable_type == 'numeric':
+        
+        info_path = os.path.join(output_dir, 'analysis_info.txt')
+        with open(info_path, 'w') as f:
+            f.write(info_text)
+        visualizations.append(info_path)
+        
+        # Determine if variable is numeric or categorical
+        try:
+            df[variable] = pd.to_numeric(df[variable])
+            variable_type = 'numeric'
+        except:
+            variable_type = 'categorical'
+        
+        print(f"Analyzing relationship between '{variable}' ({variable_type}) and centroid distances")
+        print(f"Using metrics: {metrics}")
+        if secondary_variable:
+            print(f"Using secondary variable: {secondary_variable}")
+        
+        # Filter out any rows with NaN in the variable column
+        df = df.dropna(subset=[variable])
+        
+        if df.empty:
+            print("No valid data found after filtering.")
+            return visualizations
+        
+        # Generate visualizations based on variable type
+        if variable_type == 'numeric':
+            visualizations.extend(
+                create_numeric_variable_plots(df, variable, output_dir, metrics, secondary_variable)
+            )
+        else:
+            visualizations.extend(
+                create_categorical_variable_plots(df, variable, output_dir, metrics, secondary_variable)
+            )
+        
+        # Create additional general analysis plots (works for both types)
         visualizations.extend(
-            create_numeric_variable_plots(df, variable, output_dir, metrics, secondary_variable)
+            create_general_analysis_plots(df, variable, output_dir, metrics, secondary_variable)
         )
-    else:
-        visualizations.extend(
-            create_categorical_variable_plots(df, variable, output_dir, metrics, secondary_variable)
-        )
-    
-    # Create additional general analysis plots (works for both types)
-    visualizations.extend(
-        create_general_analysis_plots(df, variable, output_dir, metrics, secondary_variable)
-    )
     
     return visualizations
-
 def create_numeric_variable_plots(df: pd.DataFrame, 
                                  variable: str, 
                                  output_dir: str, 
                                  metrics: List[str], 
-                                 secondary_variable: Optional[str] = None) -> List[str]:
+                                 secondary_variable: Optional[str] = None,
+                                 dataset_name: Optional[str] = None) -> List[str]:
     """
     Create plots specifically for numeric variables.
     """
     visualizations = []
+    
+    # Add dataset suffix for titles if provided
+    dataset_suffix = f" - {dataset_name}" if dataset_name else ""
+    
+    # Add dataset prefix for filenames if provided
+    file_prefix = f"{dataset_name}_" if dataset_name else ""
     
     # Process for each metric
     for metric in metrics:
@@ -171,12 +381,12 @@ def create_numeric_variable_plots(df: pd.DataFrame,
                     s=80
                 )
             
-            plt.title(f'Average Centroid Distance vs {variable.replace("_", " ").title()}{metric_suffix}')
+            plt.title(f'Average Centroid Distance vs {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
             plt.xlabel(variable.replace('_', ' ').title())
             plt.ylabel('Average Centroid Distance')
             plt.grid(alpha=0.3)
             
-            scatter_path = os.path.join(output_dir, f'scatter_{variable}{metric_suffix}.png')
+            scatter_path = os.path.join(output_dir, f'{file_prefix}scatter_{variable}{metric_suffix}.png')
             plt.savefig(scatter_path, dpi=300)
             visualizations.append(scatter_path)
             plt.close()
@@ -214,12 +424,12 @@ def create_numeric_variable_plots(df: pd.DataFrame,
                     markersize=8
                 )
             
-            plt.title(f'Centroid Distance Trend by {variable.replace("_", " ").title()}{metric_suffix}')
+            plt.title(f'Centroid Distance Trend by {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
             plt.xlabel(variable.replace('_', ' ').title())
             plt.ylabel('Average Centroid Distance')
             plt.grid(alpha=0.3)
             
-            trend_path = os.path.join(output_dir, f'trend_{variable}{metric_suffix}.png')
+            trend_path = os.path.join(output_dir, f'{file_prefix}trend_{variable}{metric_suffix}.png')
             plt.savefig(trend_path, dpi=300)
             visualizations.append(trend_path)
             plt.close()
@@ -247,17 +457,16 @@ def create_numeric_variable_plots(df: pd.DataFrame,
                         data=metric_df
                     )
                 
-                plt.title(f'Distribution of Centroid Distances by {variable.replace("_", " ").title()}{metric_suffix}')
+                plt.title(f'Distribution of Centroid Distances by {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
                 plt.xlabel(variable.replace('_', ' ').title())
                 plt.ylabel('Average Centroid Distance')
                 plt.grid(alpha=0.3, axis='y')
                 
-                box_path = os.path.join(output_dir, f'boxplot_{variable}{metric_suffix}.png')
+                box_path = os.path.join(output_dir, f'{file_prefix}boxplot_{variable}{metric_suffix}.png')
                 plt.savefig(box_path, dpi=300)
                 visualizations.append(box_path)
             else:
                 # For too many unique values, create a binned histogram instead
-                plt.title(f'Too many unique values ({unique_values}) for boxplot. See scatter plot instead.')
                 plt.close()
             
             plt.close()
@@ -292,12 +501,12 @@ def create_numeric_variable_plots(df: pd.DataFrame,
                         line_kws={'linewidth': 3}
                     )
                 
-                plt.title(f'Regression: Centroid Distance vs {variable.replace("_", " ").title()}{metric_suffix}')
+                plt.title(f'Regression: Centroid Distance vs {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
                 plt.xlabel(variable.replace('_', ' ').title())
                 plt.ylabel('Average Centroid Distance')
                 plt.grid(alpha=0.3)
                 
-                reg_path = os.path.join(output_dir, f'regression_{variable}{metric_suffix}.png')
+                reg_path = os.path.join(output_dir, f'{file_prefix}regression_{variable}{metric_suffix}.png')
                 plt.savefig(reg_path, dpi=300)
                 visualizations.append(reg_path)
                 plt.close()
@@ -313,11 +522,18 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                                      variable: str, 
                                      output_dir: str, 
                                      metrics: List[str],
-                                     secondary_variable: Optional[str] = None) -> List[str]:
+                                     secondary_variable: Optional[str] = None,
+                                     dataset_name: Optional[str] = None) -> List[str]:
     """
     Create plots specifically for categorical variables.
     """
     visualizations = []
+    
+    # Add dataset suffix for titles if provided
+    dataset_suffix = f" - {dataset_name}" if dataset_name else ""
+    
+    # Add dataset prefix for filenames if provided
+    file_prefix = f"{dataset_name}_" if dataset_name else ""
     
     # Process for each metric
     for metric in metrics:
@@ -359,7 +575,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                     alpha=0.7
                 )
             
-            plt.title(f'Average Centroid Distance by {variable.replace("_", " ").title()}{metric_suffix}')
+            plt.title(f'Average Centroid Distance by {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
             plt.xlabel(variable.replace('_', ' ').title())
             plt.ylabel('Average Centroid Distance')
             plt.grid(alpha=0.3, axis='y')
@@ -369,7 +585,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                 plt.xticks(rotation=45, ha='right')
             
             plt.tight_layout()
-            bar_path = os.path.join(output_dir, f'barplot_{variable}{metric_suffix}.png')
+            bar_path = os.path.join(output_dir, f'{file_prefix}barplot_{variable}{metric_suffix}.png')
             plt.savefig(bar_path, dpi=300)
             visualizations.append(bar_path)
             plt.close()
@@ -394,7 +610,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                     data=metric_df
                 )
             
-            plt.title(f'Distribution of Centroid Distances by {variable.replace("_", " ").title()}{metric_suffix}')
+            plt.title(f'Distribution of Centroid Distances by {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
             plt.xlabel(variable.replace('_', ' ').title())
             plt.ylabel('Average Centroid Distance')
             plt.grid(alpha=0.3, axis='y')
@@ -404,7 +620,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                 plt.xticks(rotation=45, ha='right')
                 
             plt.tight_layout()
-            box_path = os.path.join(output_dir, f'boxplot_{variable}{metric_suffix}.png')
+            box_path = os.path.join(output_dir, f'{file_prefix}boxplot_{variable}{metric_suffix}.png')
             plt.savefig(box_path, dpi=300)
             visualizations.append(box_path)
             plt.close()
@@ -433,7 +649,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                         inner='quartile'
                     )
                 
-                plt.title(f'Distribution Detail of Centroid Distances by {variable.replace("_", " ").title()}{metric_suffix}')
+                plt.title(f'Distribution Detail of Centroid Distances by {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
                 plt.xlabel(variable.replace('_', ' ').title())
                 plt.ylabel('Average Centroid Distance')
                 plt.grid(alpha=0.3, axis='y')
@@ -443,7 +659,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                     plt.xticks(rotation=45, ha='right')
                     
                 plt.tight_layout()
-                violin_path = os.path.join(output_dir, f'violin_{variable}{metric_suffix}.png')
+                violin_path = os.path.join(output_dir, f'{file_prefix}violin_{variable}{metric_suffix}.png')
                 plt.savefig(violin_path, dpi=300)
                 visualizations.append(violin_path)
                 plt.close()
@@ -459,11 +675,18 @@ def create_general_analysis_plots(df: pd.DataFrame,
                                  variable: str, 
                                  output_dir: str, 
                                  metrics: List[str],
-                                 secondary_variable: Optional[str] = None) -> List[str]:
+                                 secondary_variable: Optional[str] = None,
+                                 dataset_name: Optional[str] = None) -> List[str]:
     """
     Create general analysis plots that work for both numeric and categorical variables.
     """
     visualizations = []
+    
+    # Add dataset suffix for titles if provided
+    dataset_suffix = f" - {dataset_name}" if dataset_name else ""
+    
+    # Add dataset prefix for filenames if provided
+    file_prefix = f"{dataset_name}_" if dataset_name else ""
     
     # Process for each metric
     for metric in metrics:
@@ -494,10 +717,10 @@ def create_general_analysis_plots(df: pd.DataFrame,
                     
                     # Create heatmap
                     sns.heatmap(pivot_table, annot=True, cmap='viridis', fmt='.3f')
-                    plt.title(f'Centroid Distance by Function Type and {variable.replace("_", " ").title()}{metric_suffix}')
+                    plt.title(f'Centroid Distance by Function Type and {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
                     plt.tight_layout()
                     
-                    heatmap_path = os.path.join(output_dir, f'heatmap_{variable}{metric_suffix}.png')
+                    heatmap_path = os.path.join(output_dir, f'{file_prefix}heatmap_{variable}{metric_suffix}.png')
                     plt.savefig(heatmap_path, dpi=300)
                     visualizations.append(heatmap_path)
                     plt.close()
@@ -541,7 +764,7 @@ def create_general_analysis_plots(df: pd.DataFrame,
                         va='center'
                     )
                 
-                plt.title(f'Top and Bottom Models by Centroid Distance ({variable} comparison){metric_suffix}')
+                plt.title(f'Top and Bottom Models by Centroid Distance ({variable} comparison){metric_suffix}{dataset_suffix}')
                 plt.xlabel('Average Centroid Distance')
                 plt.ylabel('Model Configuration')
                 plt.grid(alpha=0.3, axis='x')
@@ -556,10 +779,46 @@ def create_general_analysis_plots(df: pd.DataFrame,
                 plt.legend(handles=legend_elements, loc='lower right')
                 
                 # Save
-                ranking_path = os.path.join(output_dir, f'top_bottom_{variable}{metric_suffix}.png')
+                ranking_path = os.path.join(output_dir, f'{file_prefix}top_bottom_{variable}{metric_suffix}.png')
                 plt.savefig(ranking_path, dpi=300)
                 visualizations.append(ranking_path)
                 plt.close()
+                
+            # 3. Variable impact summary
+            if len(metric_df) >= 5:  # Only create if we have enough data
+                try:
+                    plt.figure(figsize=(10, 8))
+                    
+                    # Group by the variable and calculate average centroid distance
+                    if metric_df[variable].dtype.name != 'category':
+                        impact_df = metric_df.groupby(variable)['avg_centroid_distance'].mean().reset_index()
+                        impact_df = impact_df.sort_values('avg_centroid_distance', ascending=False)
+                        
+                        # Create bar chart of variable impact
+                        sns.barplot(
+                            data=impact_df,
+                            x=variable,
+                            y='avg_centroid_distance',
+                            palette='viridis'
+                        )
+                        
+                        plt.title(f'Impact of {variable.replace("_", " ").title()} on Class Separation{metric_suffix}{dataset_suffix}')
+                        plt.xlabel(variable.replace('_', ' ').title())
+                        plt.ylabel('Average Centroid Distance')
+                        plt.grid(alpha=0.3, axis='y')
+                        
+                        # Rotate x-axis labels if needed
+                        if len(impact_df) > 3:
+                            plt.xticks(rotation=45, ha='right')
+                            
+                        plt.tight_layout()
+                        impact_path = os.path.join(output_dir, f'{file_prefix}impact_{variable}{metric_suffix}.png')
+                        plt.savefig(impact_path, dpi=300)
+                        visualizations.append(impact_path)
+                    plt.close()
+                except Exception as e:
+                    print(f"Error creating impact summary: {e}")
+                    plt.close()
                 
         except Exception as e:
             print(f"Error creating general plots for metric {metric}: {e}")
@@ -573,11 +832,14 @@ def main():
     parser.add_argument('--results_csv', type=str, default='model_comparison/full_results.csv',
                       help='Path to CSV file with analysis results')
     parser.add_argument('--output_dir', type=str, default=None,
-                      help='Directory to save visualizations (default: visualization/{variable})')
+                      help='Directory to save visualizations (default: visualization/dataset/variable)')
     parser.add_argument('--metrics', type=str, nargs='+', default=None,
                       help='Distance metrics to use (default: all available)')
     parser.add_argument('--secondary', type=str, default=None,
                       help='Secondary variable for additional insight')
+    # Add dataset filter argument
+    parser.add_argument('--dataset', type=str, default=None,
+                      help='Filter to a specific dataset')
     
     args = parser.parse_args()
     
@@ -591,11 +853,27 @@ def main():
         args.variable,
         args.output_dir,
         args.secondary,
-        args.metrics
+        args.metrics,
+        args.dataset
     )
     
     # Print results summary
-    output_dir = args.output_dir or f"visualization/{args.variable}"
+    base_dir = args.output_dir or "visualization"
+    if args.dataset:
+        output_dir = f"{base_dir}/{args.dataset}/{args.variable}"
+    else:
+        # If we have datasets in the result but no filter, mention them
+        try:
+            df = pd.read_csv(args.results_csv)
+            if 'dataset' in df.columns:
+                datasets = sorted([d for d in df['dataset'].unique() if d])
+                print(f"\nAnalyzed datasets: {', '.join(datasets)}")
+                output_dir = f"{base_dir} (with dataset-specific folders)"
+            else:
+                output_dir = f"{base_dir}/all_datasets/{args.variable}"
+        except:
+            output_dir = base_dir
+    
     print(f"\nGenerated {len(visualizations)} visualizations for {args.variable}.")
     print(f"Results saved to: {output_dir}")
 

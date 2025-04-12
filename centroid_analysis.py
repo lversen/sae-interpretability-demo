@@ -1081,10 +1081,41 @@ def create_comparison_visualizations(results_df, output_dir='model_comparison'):
     visualizations.append(table_path)
     visualizations.append(excel_path)
     
-    # Save full results
+
+    # Save dataset-specific results if dataset column exists
+    if 'dataset' in results_df.columns:
+        # Get unique datasets
+        datasets = results_df['dataset'].unique()
+        
+        # For each dataset, save a separate CSV
+        for dataset in datasets:
+            if dataset:  # Skip None values
+                dataset_df = results_df[results_df['dataset'] == dataset]
+                dataset_results_path = os.path.join(output_dir, f'dataset_{dataset}_results.csv')
+                dataset_df.to_csv(dataset_results_path, index=False)
+                visualizations.append(dataset_results_path)
+                print(f"Dataset-specific results saved to: {dataset_results_path}")
+
+    # Always save the full combined results
     full_results_path = os.path.join(output_dir, 'full_results.csv')
     results_df.to_csv(full_results_path, index=False)
     visualizations.append(full_results_path)
+
+    # Create a note about dataset-specific files
+    if 'dataset' in results_df.columns:
+        note_path = os.path.join(output_dir, 'dataset_results_note.txt')
+        with open(note_path, 'w') as f:
+            f.write("""
+    IMPORTANT: Dataset-specific results
+
+    Individual CSV files have been created for each dataset 
+    (dataset_[name]_results.csv). To analyze all datasets together,
+    use the full_results.csv file.
+
+    When running centroid_analysis.py with --dataset_filter, please 
+    use these individual files to avoid overwriting other dataset results.
+    """)
+        visualizations.append(note_path)
     
     # Create dataset summary file if dataset column exists
     if 'dataset' in results_df.columns:
@@ -1240,18 +1271,28 @@ def main():
     else:
         print(f"Searching for models in {args.base_dir}...")
         models_dict = find_all_models(args.base_dir)
-    # Filter models by dataset if specified
 
+    # Filter models by dataset if specified
     if args.dataset_filter and not args.single_model:
         original_count = len(models_dict)
         filtered_models = {}
         
         for path, metadata in models_dict.items():
-            # Check if dataset name appears in the path
-            if args.dataset_filter in path:
-                # Add dataset to metadata
+            # Split the path into components and check if dataset is a complete component
+            path_parts = path.replace('\\', '/').split('/')
+            
+            # Check if the dataset appears as a complete directory name
+            if args.dataset_filter in path_parts:
+                # Make sure it's not a substring of another directory name
                 metadata['dataset'] = args.dataset_filter
                 filtered_models[path] = metadata
+            # Also handle case where path includes /models/dataset/
+            elif f"/models/{args.dataset_filter}/" in path.replace('\\', '/'):
+                metadata['dataset'] = args.dataset_filter
+                filtered_models[path] = metadata
+        
+        models_dict = filtered_models
+        print(f"Filtered from {original_count} to {len(models_dict)} models matching dataset: {args.dataset_filter}")
         
         models_dict = filtered_models
         print(f"Filtered from {original_count} to {len(models_dict)} models matching dataset: {args.dataset_filter}")

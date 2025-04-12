@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAE Architecture Visualization</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1, h2, h3 {
+            color: #1f2937;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        h2 {
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+            margin-top: 30px;
+            font-size: 22px;
+        }
+        
+        h3 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        
+        .architecture-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .architecture {
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            position: relative;
+            background-color: #f8fafc;
+        }
+        
+        .section {
+            position: absolute;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .section-title {
+            position: absolute;
+            top: -25px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        
+        .input {
+            left: 50px;
+            top: 150px;
+            width: 40px;
+            height: 200px;
+            background-color: #60a5fa;
+        }
+        
+        .encoder {
+            left: 150px;
+            top: 70px;
+            width: 200px;
+            height: 260px;
+            background-color: #dbeafe;
+            border: 2px solid #93c5fd;
+            color: #1e40af;
+        }
+        
+        .latent {
+            left: 400px;
+            top: 160px;
+            width: 40px;
+            height: 180px;
+            background-color: #6366f1;
+        }
+        
+        .decoder {
+            left: 490px;
+            top: 70px;
+            width: 200px;
+            height: 260px;
+            background-color: #ede9fe;
+            border: 2px solid #c4b5fd;
+            color: #5b21b6;
+        }
+        
+        .output {
+            left: 740px;
+            top: 150px;
+            width: 40px;
+            height: 200px;
+            background-color: #a78bfa;
+        }
+        
+        .operation {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .weights {
+            position: absolute;
+            padding: 6px 10px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .we {
+            left: 180px;
+            top: 160px;
+            background-color: #3b82f6;
+        }
+        
+        .be {
+            left: 180px;
+            top: 240px;
+            background-color: #60a5fa;
+        }
+        
+        .activation {
+            left: 270px;
+            top: 160px;
+            background-color: #1d4ed8;
+        }
+        
+        .wd {
+            left: 520px;
+            top: 160px;
+            background-color: #8b5cf6;
+        }
+        
+        .bd {
+            left: 520px;
+            top: 240px;
+            background-color: #a78bfa;
+        }
+        
+        .add {
+            left: 650px;
+            top: 160px;
+            background-color: #7c3aed;
+        }
+        
+        .arrow {
+            position: absolute;
+            height: 2px;
+            background-color: #000;
+        }
+        
+        .arrow-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+        
+        .regularization {
+            position: absolute;
+            left: 400px;
+            top: 300px;
+            padding: 10px;
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .math-section {
+            background-color: #f3f4f6;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        
+        .math {
+            font-family: 'Courier New', monospace;
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            flex: 1;
+            margin: 0 10px;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .training-process {
+            margin-top: 30px;
+        }
+        
+        .training-step {
+            display: flex;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .step-number {
+            margin-right: 15px;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        
+        .implementation-note {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f3f4f6;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sparse Autoencoder (SAE) Architecture</h1>
+        
+        <div class="architecture-container">
+            <div class="architecture">
+                <!-- Input -->
+                <div class="section input">
+                    <span class="section-title">Input x</span>
+                    <span>n</span>
+                </div>
+                
+                <!-- Encoder Section -->
+                <div class="section encoder">
+                    <span class="section-title">Encoder</span>
+                </div>
+                
+                <div class="weights we">W<sub>e</sub></div>
+                <div class="weights be">b<sub>e</sub></div>
+                <div class="operation activation">ReLU</div>
+                
+                <!-- Latent Space -->
+                <div class="section latent">
+                    <span class="section-title">Features f<sub>x</sub></span>
+                    <span>m</span>
+                </div>
+                
+                <!-- Decoder Section -->
+                <div class="section decoder">
+                    <span class="section-title">Decoder</span>
+                </div>
+                
+                <div class="weights wd">W<sub>d</sub></div>
+                <div class="weights bd">b<sub>d</sub></div>
+                <div class="operation add">+</div>
+                
+                <!-- Output -->
+                <div class="section output">
+                    <span class="section-title">Output x̂</span>
+                    <span>n</span>
+                </div>
+                
+                <!-- Regularization -->
+                <div class="regularization">
+                    L1 Regularization: λ·||f<sub>x</sub>||<sub>1</sub>
+                </div>
+                
+                <!-- Arrows -->
+                <div class="arrow" style="left: 90px; top: 180px; width: 60px;"></div>
+                <div class="arrow-head" style="left: 150px; top: 175px; border-left: 8px solid #000;"></div>
+                
+                <div class="arrow" style="left: 350px; top: 180px; width: 50px;"></div>
+                <div class="arrow-head" style="left: 400px; top: 175px; border-left: 8px solid #000;"></div>
+                
+                <div class="arrow" style="left: 440px; top: 180px; width: 50px;"></div>
+                <div class="arrow-head" style="left: 490px; top: 175px; border-left: 8px solid #000;"></div>
+                
+                <div class="arrow" style="left: 690px; top: 180px; width: 50px;"></div>
+                <div class="arrow-head" style="left: 740px; top: 175px; border-left: 8px solid #000;"></div>
+            </div>
+        </div>
+        
+        <div class="math-section">
+            <h2>Mathematical Representation</h2>
+            
+            <h3>Forward Pass</h3>
+            <div class="math">
+                f<sub>x</sub> = activation(W<sub>e</sub> · x + b<sub>e</sub>)
+            </div>
+            <div class="math">
+                x̂ = W<sub>d</sub> · f<sub>x</sub> + b<sub>d</sub>
+            </div>
+            
+            <h3>Loss Function</h3>
+            <div class="math">
+                L = (1/|X|) · Σ||x - x̂||<sub>2</sub><sup>2</sup> + λ · Σ<sub>i</sub>|f<sub>i</sub>(x)| ||W<sub>d,i</sub>||<sub>2</sub>
+            </div>
+            <p>Where:</p>
+            <ul>
+                <li>The first term is the mean squared reconstruction error</li>
+                <li>The second term is the L1 sparsity penalty weighted by λ</li>
+                <li>||W<sub>d,i</sub>||<sub>2</sub> represents the L2 norm of the i-th decoder column (feature vector)</li>
+            </ul>
+        </div>
+        
+        <h2>Key Dimensions and Parameters</h2>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <h3>Dimensions</h3>
+                <ul>
+                    <li><strong>n</strong>: Input dimension (e.g., 784 for MNIST)</li>
+                    <li><strong>m</strong>: Feature dimension (typically m > n)</li>
+                    <li><strong>W<sub>e</sub></strong>: m × n encoder weight matrix</li>
+                    <li><strong>W<sub>d</sub></strong>: n × m decoder weight matrix</li>
+                    <li><strong>b<sub>e</sub></strong>: m-dimensional encoder bias</li>
+                    <li><strong>b<sub>d</sub></strong>: n-dimensional decoder bias</li>
+                </ul>
+            </div>
+            
+            <div class="stat-box">
+                <h3>Training Parameters</h3>
+                <ul>
+                    <li><strong>λ</strong>: L1 regularization strength (typically ~5.0)</li>
+                    <li><strong>Learning rate</strong>: ~5e-5 with linear decay</li>
+                    <li><strong>Batch size</strong>: 4096 (configurable)</li>
+                    <li><strong>Optimizer</strong>: Adam (β1=0.9, β2=0.999)</li>
+                    <li><strong>Target steps</strong>: ~200,000 steps</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h2>Training Process</h2>
+        
+        <div class="training-process">
+            <div class="training-step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Initialization</strong>: Decoder columns have random directions with L2 norms between 0.05 and 1.0. Encoder weights are initialized as W<sub>e</sub> = W<sub>d</sub><sup>T</sup>
+                </div>
+            </div>
+            
+            <div class="training-step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Preprocessing</strong>: Scale dataset so that E<sub>x</sub>[||x||<sub>2</sub>] = √n
+                </div>
+            </div>
+            
+            <div class="training-step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>Lambda Warmup</strong>: Linearly increase λ from 0 to final value over first 5% of training
+                </div>
+            </div>
+            
+            <div class="training-step">
+                <div class="step-number">4</div>
+                <div>
+                    <strong>Forward Pass</strong>: Calculate feature activations and reconstructions
+                </div>
+            </div>
+            
+            <div class="training-step">
+                <div class="step-number">5</div>
+                <div>
+                    <strong>Loss Calculation</strong>: Compute MSE reconstruction loss and L1 penalty term
+                </div>
+            </div>
+            
+            <div class="training-step">
+                <div class="step-number">6</div>
+                <div>
+                    <strong>Backward Pass</strong>: Update weights with Adam optimizer and gradient clipping (norm 1.0)
+                </div>
+            </div>
+            
+            <div class="training-step">
+                <div class="step-number">7</div>
+                <div>
+                    <strong>Dead Feature Tracking</strong>: Monitor features that remain inactive for extended periods
+                </div>
+            </div>
+            
+            <div class="training-step">
+                <div class="step-number">8</div>
+                <div>
+                    <strong>Learning Rate Decay</strong>: Linear decay to zero over last 20% of training
+                </div>
+            </div>
+        </div>
+        
+        <div class="implementation-note">
+            <h3>Implementation Notes</h3>
+            <p>The SAE implementation in your code uses PyTorch with a focus on efficient training. Key considerations:</p>
+            <ul>
+                <li>Batch processing with configurable batch size</li>
+                <li>Periodic checkpoint saving during training</li>
+                <li>Dead feature tracking with 10M sample window</li>
+                <li>Flexible activation functions (ReLU default, but configurable)</li>
+                <li>Normalization of data to have consistent scale (E[||x||₂] = √n)</li>
+                <li>Weighted L1 regularization using decoder column norms</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
