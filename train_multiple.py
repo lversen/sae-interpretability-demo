@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Script to train models and save them in a customized hierarchical folder structure:
-- SAE: models/sae/activation_function/feature_dimension/
-- ST: models/st/attention_function/feature_dimension/
+Enhanced version of train_multiple.py that adds support for training on
+GPT Neo embeddings. This script builds on the original train_multiple.py
+but adds functionality to use extracted GPT Neo features as training data.
 
-Supports multiple runs of the same configuration with automatic naming:
-- First run: model.pth
-- Second run: model_2.pth 
-- Third run: model_3.pth
-- etc.
+Features:
+- Support for using GPT Neo features extracted by extract_gptneo_features.py
+- Control over which layers to train on
+- All existing functionality of train_multiple.py
 """
 import concurrent.futures
 from functools import partial
@@ -23,14 +22,15 @@ import glob
 import shutil
 from datetime import datetime
 import torch
+import numpy as np
 
 def parse_args():
-    """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description='Train models with hierarchical organization')
+    """Parse command line arguments with added GPT Neo support"""
+    parser = argparse.ArgumentParser(description='Train models with hierarchical organization and GPT Neo support')
     
     # Model configuration parameters
     parser.add_argument('--datasets', type=str, nargs='+', default=['mnist'],
-                      help='List of datasets to use')
+                      help='List of datasets to use, including "gptneo" for GPT Neo features')
     parser.add_argument('--model_types', type=str, nargs='+', default=['st'],
                       help='List of model types to train (sae, st, both)')
     parser.add_argument('--attention_fns', type=str, nargs='+', default=['softmax'],
@@ -76,6 +76,13 @@ def parse_args():
     parser.add_argument('--continue_numbering', action='store_true',
                       help='Continue run numbering from highest existing run')
     
+    # GPT Neo specific options (NEW)
+    gptneo_group = parser.add_argument_group('GPT Neo Options')
+    gptneo_group.add_argument('--gptneo_features_dir', type=str, default='gptneo_features',
+                      help='Directory containing extracted GPT Neo features')
+    gptneo_group.add_argument('--gptneo_layers', type=int, nargs='+', default=None,
+                      help='GPT Neo layers to use (defaults to all available in features_dir)')
+    
     # Other options
     parser.add_argument('--skip_existing', action='store_true',
                       help='Skip training if model already exists')
@@ -90,6 +97,31 @@ def parse_args():
     parser.add_argument('--workers', type=int, default=4,
                       help='Number of parallel training jobs to run')
     return parser.parse_args()
+
+def get_available_gptneo_layers(features_dir):
+    """Get all available GPT Neo layers from extracted features directory"""
+    if not os.path.exists(features_dir):
+        print(f"Warning: GPT Neo features directory {features_dir} not found")
+        return []
+        
+    # Look for layer*_features.npz or layer*_features.pt files
+    layer_files = glob.glob(os.path.join(features_dir, "layer*_features.np*"))
+    
+    if not layer_files:
+        print(f"Warning: No GPT Neo feature files found in {features_dir}")
+        return []
+    
+    # Extract layer numbers from filenames
+    # Format: layer{NUMBER}_features.npz or layer{NUMBER}_features.pt
+    layer_nums = []
+    for file_path in layer_files:
+        file_name = os.path.basename(file_path)
+        match = re.match(r"layer(\d+)_features\.", file_name)
+        if match:
+            layer_nums.append(int(match.group(1)))
+    
+    # Sort and return unique layer numbers
+    return sorted(set(layer_nums))
 
 def get_steps_version_of_path(path):
     """
@@ -153,7 +185,7 @@ def model_exists_with_autosteps(base_path):
     return False, base_path
 
 def generate_combinations(args):
-    """Generate all combinations of parameters to try"""
+    """Generate all combinations of parameters to try, with GPT Neo support"""
     combinations = []
     
     # Handle None values
@@ -162,7 +194,7 @@ def generate_combinations(args):
     target_steps = args.target_steps if args.target_steps != [None] else [None]
     eval_freqs = args.eval_freqs if args.eval_freqs != [None] else [None]
     
-    # Create product of all specified parameters
+    # Create initial product of all specified parameters
     param_grid = itertools.product(
         args.datasets,
         args.model_types,
@@ -188,9 +220,7 @@ def generate_combinations(args):
             # Set the activation function to ReLU for SAE models
             activation = 'relu'
             
-        # For ST models, make sure attention function is valid
-        # No need to filter SAE models based on attention function anymore
-        
+        # Create base combination
         combo = {
             'dataset': dataset,
             'model_type': model_type,
@@ -206,13 +236,43 @@ def generate_combinations(args):
             'eval_freq': eval_freq,
             'auto_steps_base': auto_steps_base
         }
-        combinations.append(combo)
+        
+        # Handle GPT Neo dataset specially - we need to create a separate
+        # combination for each layer we want to use
+        if dataset == 'gptneo':
+            # Get available layers from the features directory
+            available_layers = get_available_gptneo_layers(args.gptneo_features_dir)
+            
+            # Filter to requested layers if specified
+            if args.gptneo_layers is not None:
+                # Find intersection of available and requested layers
+                layers_to_use = [l for l in args.gptneo_layers if l in available_layers]
+                if not layers_to_use:
+                    print(f"Warning: None of the requested GPT Neo layers {args.gptneo_layers} were found in {args.gptneo_features_dir}")
+                    print(f"Available layers: {available_layers}")
+                    continue  # Skip this combination
+            else:
+                # Use all available layers
+                layers_to_use = available_layers
+            
+            # Create a separate combination for each layer
+            for layer in layers_to_use:
+                layer_combo = combo.copy()
+                layer_combo['gptneo_layer'] = layer
+                combinations.append(layer_combo)
+        else:
+            # For regular datasets, just add the combination as is
+            combinations.append(combo)
     
     return combinations
 
 def get_model_id(combination, args):
-    """Create a unique model_id based on the combination"""
-    base_id = f"{combination['dataset']}_{combination['model_type']}_{combination['feature_dimension']}"
+    """Create a unique model_id based on the combination, with GPT Neo support"""
+    # For GPT Neo, include layer information in the base ID
+    if combination['dataset'] == 'gptneo':
+        base_id = f"gptneo_layer{combination['gptneo_layer']}_{combination['model_type']}_{combination['feature_dimension']}"
+    else:
+        base_id = f"{combination['dataset']}_{combination['model_type']}_{combination['feature_dimension']}"
     
     # Add attention function for ST models
     if combination['model_type'] in ['st', 'both']:
@@ -317,29 +377,49 @@ def get_simplified_filename(model_type_prefix, combination, args):
     return filename
 
 def get_hierarchical_model_path(combination, model_type_prefix, args, run_index=0):
-    """Get hierarchical path for a model using the custom directory structure"""
-    # For SAE: models/[dataset]/sae/activation_function/feature_dimension/bs_lr_steps.pth
-    # For ST: models/[dataset]/st/attention_function/feature_dimension/bs_lr_steps.pth
-    
-    # Add dataset at the top level
-    if model_type_prefix == 'sae':
-        # Use activation function for SAE
-        hierarchy_path = os.path.join(
-            'models',
-            combination['dataset'],  # Dataset at the top level
-            'sae',                   # Model type
-            combination['activation'],  # Activation function
-            str(combination['feature_dimension'])  # Feature dimension
-        )
-    else:  # ST model
-        # Use attention function for ST
-        hierarchy_path = os.path.join(
-            'models',
-            combination['dataset'],  # Dataset at the top level
-            'st',                    # Model type
-            combination['attention_fn'],  # Attention function
-            str(combination['feature_dimension'])  # Feature dimension
-        )
+    """Get hierarchical path for a model with GPT Neo support"""
+    # Special handling for GPT Neo dataset
+    if combination['dataset'] == 'gptneo':
+        if model_type_prefix == 'sae':
+            # For SAE on GPT Neo: models/gptneo/layer{layer}/sae/activation_function/feature_dimension/...
+            hierarchy_path = os.path.join(
+                'models',
+                'gptneo',                       # Dataset name
+                f"layer{combination['gptneo_layer']}",  # Layer number
+                'sae',                          # Model type
+                combination['activation'],      # Activation function
+                str(combination['feature_dimension'])  # Feature dimension
+            )
+        else:  # ST model
+            # For ST on GPT Neo: models/gptneo/layer{layer}/st/attention_function/feature_dimension/...
+            hierarchy_path = os.path.join(
+                'models',
+                'gptneo',                       # Dataset name
+                f"layer{combination['gptneo_layer']}",  # Layer number
+                'st',                           # Model type
+                combination['attention_fn'],    # Attention function
+                str(combination['feature_dimension'])  # Feature dimension
+            )
+    else:
+        # Original path structure for other datasets
+        if model_type_prefix == 'sae':
+            # Use activation function for SAE
+            hierarchy_path = os.path.join(
+                'models',
+                combination['dataset'],  # Dataset at the top level
+                'sae',                   # Model type
+                combination['activation'],  # Activation function
+                str(combination['feature_dimension'])  # Feature dimension
+            )
+        else:  # ST model
+            # Use attention function for ST
+            hierarchy_path = os.path.join(
+                'models',
+                combination['dataset'],  # Dataset at the top level
+                'st',                    # Model type
+                combination['attention_fn'],  # Attention function
+                str(combination['feature_dimension'])  # Feature dimension
+            )
     
     # Create the directory path
     os.makedirs(hierarchy_path, exist_ok=True)
@@ -454,12 +534,22 @@ def find_model_files(model_id):
             f"models/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_pattern}_*.pth", # With extra params
         ]
         
+        # Add patterns for GPT Neo
+        gptneo_patterns = [
+            f"models/gptneo/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_pattern}*.pth",  # Basic pattern
+            f"models/gptneo/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_pattern}_*.pth", # With extra params
+        ]
+        
+        new_patterns.extend(gptneo_patterns)
+        
         # Also search for steps versions of autosteps patterns
         if 'autosteps' in steps_pattern:
             steps_version = steps_pattern.replace('autosteps', 'steps')
             new_patterns.extend([
                 f"models/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_version}*.pth",
                 f"models/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_version}_*.pth",
+                f"models/gptneo/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_version}*.pth",
+                f"models/gptneo/*/*/*/*/{bs_pattern}_{lr_pattern}_{steps_version}_*.pth",
             ])
     else:
         new_patterns = []
@@ -574,7 +664,7 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
     else:
         st_path = None
     
-    # CRITICAL FIX: Check if renamed versions of these paths exist and update them
+    # Check if renamed versions of these paths exist and update them
     if args.auto_steps:
         if sae_path and 'autosteps' in sae_path:
             sae_exists, actual_sae_path = model_exists_with_autosteps(sae_path)
@@ -627,13 +717,45 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
     # Build command for running main.py
     cmd = [
         "python", "main.py",
-        "--dataset", combination['dataset'],
         "--model_type", combination['model_type'],
         "--feature_dimension", str(combination['feature_dimension']),
         "--learning_rate", str(combination['learning_rate']),
         "--l1_lambda", str(combination['l1_lambda']),
         "--model_id", model_id,
     ]
+    
+    # Handle dataset - special case for GPT Neo
+    if combination['dataset'] == 'gptneo':
+        cmd.extend(["--dataset", "custom"])  # Use custom dataset in main.py
+        
+        # Add path to GPT Neo features
+        layer_num = combination['gptneo_layer']
+        features_file = os.path.join(args.gptneo_features_dir, f"layer{layer_num}_features.npz")
+        cmd.extend(["--custom_features_file", features_file])
+        
+        # Check if the features file exists
+        if not os.path.exists(features_file):
+            print(f"Error: GPT Neo features file {features_file} not found")
+            # Try PT format as fallback
+            pt_file = features_file.replace('.npz', '.pt')
+            if os.path.exists(pt_file):
+                print(f"Found alternate format: {pt_file}")
+                cmd[-1] = pt_file  # Replace the last parameter with PT file
+            else:
+                print("Features not found. Make sure to extract them first with extract_gptneo_features.py")
+                return {
+                    'model_id': model_id,
+                    'returncode': 1,
+                    'combination': combination,
+                    'error': f"Features file not found: {features_file}",
+                    'skipped': False,
+                    'sae_path': sae_path,
+                    'st_path': st_path,
+                    'run_index': actual_run_index
+                }
+    else:
+        # For regular datasets
+        cmd.extend(["--dataset", combination['dataset']])
     
     # Add model-specific parameters based on model type
     if combination['model_type'] in ['st', 'both']:
@@ -699,6 +821,8 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
     # Print status
     print(f"\n\n{'='*80}")
     print(f"Training combination {idx+1}/{total}: {display_model_id}")
+    if combination['dataset'] == 'gptneo':
+        print(f"GPT Neo layer: {combination['gptneo_layer']}")
     print(f"SAE save path: {sae_path}")
     print(f"ST save path: {st_path}")
     print(f"Command: {' '.join(cmd)}")
@@ -840,6 +964,20 @@ def create_summary(results, args):
         f.write("                  |-- bs{batch}_lr{lr}_steps{steps}_3.pth       # Run 3\n")
         f.write("```\n\n")
         
+        # For GPT Neo, add special structure description
+        f.write("For GPT Neo, a special structure is used:\n")
+        f.write("```\n")
+        f.write("models/\n")
+        f.write("  |-- gptneo/\n")
+        f.write("      |-- layer{layer_number}/         # e.g., layer0, layer6, layer12\n")
+        f.write("          |-- sae/\n")
+        f.write("          |   |-- [activation_function]/\n")
+        f.write("          |   |   |-- [feature_dimension]/\n")
+        f.write("          |-- st/\n")
+        f.write("              |-- [attention_function]/\n")
+        f.write("                  |-- [feature_dimension]/\n")
+        f.write("```\n\n")
+        
         # Group successful models by configuration
         if successful:
             # Group by model_id (without run index)
@@ -885,13 +1023,57 @@ def create_summary(results, args):
             f.write("## Failed Models\n\n")
             for result in failed:
                 run_info = f" (run {result.get('run_index', 0) + 1})" if args.num_runs > 1 else ""
-                f.write(f"- {result['model_id']}{run_info} (return code: {result['returncode']})\n")
+                error_msg = f" - {result.get('error', '')}" if 'error' in result else ""
+                f.write(f"- {result['model_id']}{run_info} (return code: {result['returncode']}){error_msg}\n")
     
     print(f"\nSummary written to {summary_path}")
     return summary_path
+
+def check_gptneo_features(args):
+    """Check if the required GPT Neo features are available"""
+    if 'gptneo' not in args.datasets:
+        return True  # Not using GPT Neo features, so no check needed
+    
+    if not args.gptneo_features_dir or not os.path.exists(args.gptneo_features_dir):
+        print(f"Error: GPT Neo features directory '{args.gptneo_features_dir}' not found")
+        print("Please extract features first using extract_gptneo_features.py")
+        return False
+    
+    # Get available layers
+    available_layers = get_available_gptneo_layers(args.gptneo_features_dir)
+    if not available_layers:
+        print(f"Error: No GPT Neo feature files found in {args.gptneo_features_dir}")
+        print("Please extract features first using extract_gptneo_features.py")
+        return False
+    
+    # Check if requested layers exist
+    if args.gptneo_layers:
+        for layer in args.gptneo_layers:
+            if layer not in available_layers:
+                print(f"Warning: Requested GPT Neo layer {layer} not found in {args.gptneo_features_dir}")
+                print(f"Available layers: {available_layers}")
+        
+        # Check if any requested layers are available
+        if not any(layer in available_layers for layer in args.gptneo_layers):
+            print(f"Error: None of the requested GPT Neo layers {args.gptneo_layers} are available")
+            print(f"Available layers: {available_layers}")
+            return False
+    
+    print(f"Found GPT Neo features for layers: {available_layers}")
+    return True
+
 def main():
     """Main function with parallelization"""
     args = parse_args()
+    
+    # Check for GPT Neo features if needed
+    if 'gptneo' in args.datasets and not check_gptneo_features(args):
+        print("\nPlease extract GPT Neo features first with extract_gptneo_features.py")
+        print("Example usage:")
+        print("  python extract_gptneo_features.py --model EleutherAI/gpt-neo-125m --layers 0 6 12")
+        print("  python extract_gptneo_features.py --local_model_path models/gpt-neo --text_file inputs.txt")
+        return
+    
     # Generate combinations
     combinations = generate_combinations(args)
     
@@ -952,5 +1134,6 @@ def main():
 def run_training_task(combo, idx, total, run_idx, base_run_index, args):
     """Wrapper for run_training to use with concurrent.futures"""
     return run_training(combo, args, idx, total, run_idx, base_run_index)
+
 if __name__ == "__main__":
     main()
