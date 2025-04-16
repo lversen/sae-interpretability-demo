@@ -3,14 +3,15 @@
 Extract Features from GPT Neo for Model Training
 
 This script extracts hidden layer activations from GPT Neo models, preprocesses them,
-and saves them in a format suitable for training SAE and ST models.
+and saves them in a format suitable for training SAE and ST models. It now includes
+text-based train/validation splitting for better model evaluation.
 
 Example usage:
-    # Extract features with default preprocessing
+    # Extract features with default preprocessing and text-based split
     python extract_gptneo_features.py --texts "Neural networks are powerful"
 
-    # Extract with specific preprocessing method
-    python extract_gptneo_features.py --preprocess robust_norm --layers 0 6 12 --text_file input.txt
+    # Extract with specific preprocessing method and validation ratio
+    python extract_gptneo_features.py --preprocess robust_norm --val_ratio 0.2 --layers 0 6 12 --text_file input.txt
 
     # Use a locally downloaded model with different preprocessing
     python extract_gptneo_features.py --local_model_path models/gpt-neo-125m --preprocess standardize
@@ -19,13 +20,18 @@ import os
 import argparse
 import numpy as np
 import torch
-from analyze_gptneo import ModelAnalyzer
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from datetime import datetime
+from transformers import (
+    GPTNeoForCausalLM, GPTNeoConfig, AutoTokenizer,
+    GPT2LMHeadModel, GPT2Config, GPT2Tokenizer,
+    AutoConfig, AutoModelForCausalLM
+)
 
 def parse_args():
-    """Parse command-line arguments"""
-    parser = argparse.ArgumentParser(description='Extract features from GPT Neo with preprocessing')
+    """Parse command-line arguments with added train/val split options"""
+    parser = argparse.ArgumentParser(description='Extract features from GPT Neo with preprocessing and text-based train/val split')
     
     # Model options
     parser.add_argument('--model', type=str, default='EleutherAI/gpt-neo-125m',
@@ -55,7 +61,7 @@ def parse_args():
     parser.add_argument('--save_format', type=str, default='npz', choices=['npz', 'pt'],
                        help='Format to save extracted features (npz or pt)')
     
-    # Preprocessing options (NEW)
+    # Preprocessing options
     parser.add_argument('--preprocess', type=str, default='robust_norm',
                       choices=['none', 'robust_norm', 'standardize', 'minmax', 'tanh_norm'],
                       help='Preprocessing method to apply to features before saving')
@@ -65,6 +71,14 @@ def parse_args():
                       help='Suffix to add to raw (unprocessed) feature files')
     parser.add_argument('--skip_raw', action='store_true',
                       help='Skip saving raw (unprocessed) features')
+    
+    # Train/Val split options (NEW)
+    parser.add_argument('--val_ratio', type=float, default=0.2,
+                      help='Ratio of texts to use for validation (default: 0.2)')
+    parser.add_argument('--random_seed', type=int, default=42,
+                      help='Random seed for text-based train/val split')
+    parser.add_argument('--save_combined', action='store_true',
+                      help='Save combined features file for backward compatibility')
     
     # Other options
     parser.add_argument('--timeout', type=int, default=300,
@@ -327,6 +341,58 @@ def preprocess_features(features, method='robust_norm'):
     else:
         return preprocessed.numpy()
 
+def create_text_based_split(token_to_text_map, val_ratio=0.2, random_seed=42):
+    """
+    Create train/validation splits based on texts rather than tokens.
+    This ensures all tokens from the same text stay together in either
+    the training or validation set.
+    
+    Args:
+        token_to_text_map: Array mapping each token to its source text index
+        val_ratio: Ratio of texts to use for validation (default: 0.2)
+        random_seed: Random seed for reproducibility
+        
+    Returns:
+        Tuple of (train_indices, val_indices) arrays
+    """
+    import numpy as np
+    
+    # Set random seed for reproducibility
+    np.random.seed(random_seed)
+    
+    # Get unique text indices
+    unique_texts = np.unique(token_to_text_map)
+    n_texts = len(unique_texts)
+    
+    print(f"Found {n_texts} unique text groups in token map")
+    
+    # Shuffle the text indices
+    np.random.shuffle(unique_texts)
+    
+    # Determine split point
+    val_size = max(1, int(n_texts * val_ratio))  # Ensure at least 1 text in validation
+    train_size = n_texts - val_size
+    
+    # Split texts into train and validation sets
+    train_text_indices = unique_texts[:train_size]
+    val_text_indices = unique_texts[train_size:]
+    
+    print(f"Split texts into {train_size} for training and {val_size} for validation")
+    
+    # Create masks for tokens
+    train_mask = np.isin(token_to_text_map, train_text_indices)
+    val_mask = np.isin(token_to_text_map, val_text_indices)
+    
+    # Get token indices
+    train_indices = np.where(train_mask)[0]
+    val_indices = np.where(val_mask)[0]
+    
+    # Print token counts
+    print(f"Train set: {len(train_indices)} tokens from {train_size} texts")
+    print(f"Validation set: {len(val_indices)} tokens from {val_size} texts")
+    
+    return train_indices, val_indices
+
 def extract_features(args, texts):
     """Extract features from the GPT Neo model"""
     print("\nInitializing model analyzer...")
@@ -335,25 +401,196 @@ def extract_features(args, texts):
     os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = str(args.timeout)
     os.environ["TRANSFORMERS_REQUEST_TIMEOUT"] = str(args.timeout)
     
+    # Determine device to use
+    if args.device:
+        device = args.device
+    else:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    
+    # Set extended timeouts via environment variables
+    os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "300"  # 5 minutes
+    os.environ["TRANSFORMERS_REQUEST_TIMEOUT"] = "300"  # 5 minutes
+    
+    # Determine model path and type
+    using_local_model = args.local_model_path is not None
+    model_path = args.local_model_path if using_local_model else args.model
+    
+    # Detect model type from name
+    if 'gpt-neo' in args.model.lower():
+        model_type = 'gpt-neo'
+    elif 'gpt2' in args.model.lower():
+        model_type = 'gpt2'
+    elif 'opt' in args.model.lower():
+        model_type = 'opt'
+    else:
+        model_type = 'auto'  # Try to auto-detect
+    
+    print(f"Loading model '{args.model}' (type: {model_type}) on {device}...")
+    
     try:
-        analyzer = ModelAnalyzer(
-            model_name=args.model,
-            device=args.device,
-            local_model_path=args.local_model_path
-        )
+        # Load tokenizer
+        if using_local_model:
+            # Check for tokenizer in different possible locations
+            if os.path.exists(os.path.join(args.local_model_path, "tokenizer")):
+                tokenizer_path = os.path.join(args.local_model_path, "tokenizer")
+            else:
+                tokenizer_path = args.local_model_path
+            
+            print(f"Loading tokenizer from {tokenizer_path}")
+            tokenizer = AutoTokenizer.from_pretrained(
+                tokenizer_path,
+                local_files_only=True
+            )
+        else:
+            # Select appropriate tokenizer based on model type
+            if model_type == 'gpt-neo' or model_type == 'gpt2':
+                tokenizer = GPT2Tokenizer.from_pretrained(args.model)
+            else:
+                tokenizer = AutoTokenizer.from_pretrained(args.model)
+        
+        # Ensure padding token is set
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+        
+        # Load model with proper configuration for getting all hidden states
+        if using_local_model:
+            # Check for model in different possible locations
+            if os.path.exists(os.path.join(args.local_model_path, "model")):
+                model_weights_path = os.path.join(args.local_model_path, "model")
+            else:
+                model_weights_path = args.local_model_path
+            
+            print(f"Loading model from {model_weights_path}")
+            # Load configuration first to set output_hidden_states
+            if model_type == 'gpt-neo':
+                config = GPTNeoConfig.from_pretrained(
+                    model_weights_path, 
+                    output_hidden_states=True
+                )
+                model = GPTNeoForCausalLM.from_pretrained(
+                    model_weights_path,
+                    config=config,
+                    local_files_only=True,
+                    low_cpu_mem_usage=True,
+                    torch_dtype=torch.float16 if device == 'cuda' else torch.float32
+                )
+            elif model_type == 'gpt2':
+                config = GPT2Config.from_pretrained(
+                    model_weights_path, 
+                    output_hidden_states=True
+                )
+                model = GPT2LMHeadModel.from_pretrained(
+                    model_weights_path,
+                    config=config,
+                    local_files_only=True,
+                    low_cpu_mem_usage=True,
+                    torch_dtype=torch.float16 if device == 'cuda' else torch.float32
+                )
+            else:
+                config = AutoConfig.from_pretrained(
+                    model_weights_path, 
+                    output_hidden_states=True
+                )
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_weights_path,
+                    config=config,
+                    local_files_only=True,
+                    low_cpu_mem_usage=True,
+                    torch_dtype=torch.float16 if device == 'cuda' else torch.float32
+                )
+        else:
+            # Load from HuggingFace with appropriate configuration
+            if model_type == 'gpt-neo':
+                config = GPTNeoConfig.from_pretrained(args.model, output_hidden_states=True)
+                model = GPTNeoForCausalLM.from_pretrained(
+                    args.model,
+                    config=config,
+                    low_cpu_mem_usage=True,
+                    torch_dtype=torch.float16 if device == 'cuda' else torch.float32
+                )
+            elif model_type == 'gpt2':
+                config = GPT2Config.from_pretrained(args.model, output_hidden_states=True)
+                model = GPT2LMHeadModel.from_pretrained(
+                    args.model,
+                    config=config,
+                    low_cpu_mem_usage=True,
+                    torch_dtype=torch.float16 if device == 'cuda' else torch.float32
+                )
+            else:
+                config = AutoConfig.from_pretrained(args.model, output_hidden_states=True)
+                model = AutoModelForCausalLM.from_pretrained(
+                    args.model,
+                    config=config,
+                    low_cpu_mem_usage=True,
+                    torch_dtype=torch.float16 if device == 'cuda' else torch.float32
+                )
+        
+        model = model.to(device)
+        model.eval()  # Set to evaluation mode
+        
+        # Get number of layers
+        try:
+            if model_type == 'gpt-neo':
+                num_layers = len(model.transformer.h)
+            elif model_type == 'gpt2':
+                num_layers = len(model.transformer.h)
+            elif model_type == 'opt':
+                num_layers = len(model.model.decoder.layers)
+            else:
+                # Try to identify model structure
+                if hasattr(model, 'transformer') and hasattr(model.transformer, 'h'):
+                    num_layers = len(model.transformer.h)
+                elif hasattr(model, 'model') and hasattr(model.model, 'decoder') and hasattr(model.model.decoder, 'layers'):
+                    num_layers = len(model.model.decoder.layers)
+                else:
+                    num_layers = 12  # Default fallback
+            print(f"Model has {num_layers} layers")
+        except AttributeError:
+            # For different model architectures
+            print("Couldn't determine number of layers. Using default range of 12 layers.")
+            num_layers = 12
         
         print(f"\nExtracting features from {len(texts)} texts using {len(args.layers)} layers: {args.layers}")
         
-        # Process texts
-        hidden_states, token_to_text_map, token_lengths, full_text = analyzer.process_texts(
-            texts, args.layers
-        )
+        # Process texts using the same approach from analyze_gptneo.py
+        # Concatenate all texts with a space, exactly like reason.ipynb
+        input_text = " ".join(texts)
         
-        print(f"\nExtracted features from {len(hidden_states)} layers")
-        for layer_name, activations in hidden_states.items():
-            print(f"  {layer_name}: shape {activations.shape}")
+        # Tokenize and get token lengths for each paragraph
+        input_texts_token_lengths = [
+            len(tokenizer.encode(paragraph))
+            for paragraph in texts
+        ]
+        print("Token lengths per paragraph:", input_texts_token_lengths)
         
-        return hidden_states, token_to_text_map, token_lengths, full_text
+        # Calculate cumulative sums for tracking token positions
+        cumulative_lengths = np.cumsum(input_texts_token_lengths)
+        print("Cumulative sums:", cumulative_lengths)
+        
+        # Encode the entire text at once
+        inputs = tokenizer(input_text, return_tensors="pt").to(device)
+        
+        # Run the model with output_hidden_states=True to get all layer states
+        with torch.no_grad():
+            outputs = model(**inputs)
+        
+        # Extract all hidden states
+        all_hidden_states = outputs.hidden_states
+        
+        # Get total sequence length
+        seq_len = all_hidden_states[0].size(1)
+        token_indices = np.arange(seq_len)
+        
+        # Assign text group IDs to tokens using searchsorted (exact match to reason.ipynb)
+        group_ids = np.searchsorted(cumulative_lengths, token_indices, side="right")
+        
+        # Filter hidden states to only include requested layers
+        hidden_states = {
+            f"layer_{i}": all_hidden_states[i].cpu().squeeze().numpy()
+            for i in args.layers if i < len(all_hidden_states)
+        }
+        
+        return hidden_states, group_ids, input_texts_token_lengths, input_text
         
     except Exception as e:
         print(f"\nError during initialization: {e}")
@@ -363,7 +600,7 @@ def extract_features(args, texts):
         raise
 
 def save_features(args, hidden_states, token_to_text_map, token_lengths, texts):
-    """Save extracted features to disk with preprocessing"""
+    """Save extracted features to disk with preprocessing and text-based train/val split"""
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)
     
@@ -371,7 +608,7 @@ def save_features(args, hidden_states, token_to_text_map, token_lengths, texts):
     saved_paths = []
     
     print("\n" + "="*50)
-    print(f"PREPROCESSING AND SAVING FEATURES: {args.preprocess}")
+    print(f"PREPROCESSING AND TRAIN/VAL SPLITTING: {args.preprocess}")
     print("="*50)
     
     for layer_name, activations in hidden_states.items():
@@ -401,6 +638,22 @@ def save_features(args, hidden_states, token_to_text_map, token_lengths, texts):
             preprocessed_features = activations
             print("No preprocessing applied.")
         
+        # Create text-based train/val split
+        print("\nCreating text-based train/validation split...")
+        train_indices, val_indices = create_text_based_split(
+            token_to_text_map,
+            val_ratio=args.val_ratio,
+            random_seed=args.random_seed
+        )
+        
+        # Split features into train and validation sets
+        train_features = preprocessed_features[train_indices]
+        val_features = preprocessed_features[val_indices]
+        
+        # Split token maps
+        train_token_map = token_to_text_map[train_indices]
+        val_token_map = token_to_text_map[val_indices]
+        
         # Save raw features (optional)
         if not args.skip_raw:
             if args.save_format == 'npz':
@@ -425,42 +678,133 @@ def save_features(args, hidden_states, token_to_text_map, token_lengths, texts):
             
             saved_paths.append(raw_path)
         
-        # Save preprocessed features
+        # Save train features
         if args.save_format == 'npz':
-            output_path = os.path.join(args.output_dir, f"layer{layer_num}_features.npz")
+            train_path = os.path.join(args.output_dir, f"layer{layer_num}_train_features.npz")
             np.savez_compressed(
-                output_path,
-                features=preprocessed_features,
-                token_to_text_map=token_to_text_map,
+                train_path,
+                features=train_features,
+                token_to_text_map=train_token_map,
                 token_lengths=token_lengths,
                 texts=np.array(texts, dtype=object),
                 preprocessing_method=args.preprocess,
-                preprocessing_timestamp=datetime.now().isoformat()
+                preprocessing_timestamp=datetime.now().isoformat(),
+                split_method="text_based",
+                train_indices=train_indices,
+                val_ratio=args.val_ratio
             )
         else:  # pytorch format
-            output_path = os.path.join(args.output_dir, f"layer{layer_num}_features.pt")
+            train_path = os.path.join(args.output_dir, f"layer{layer_num}_train_features.pt")
             # Convert to tensor if numpy
-            if isinstance(preprocessed_features, np.ndarray):
-                preprocessed_tensor = torch.from_numpy(preprocessed_features)
+            if isinstance(train_features, np.ndarray):
+                train_tensor = torch.from_numpy(train_features)
             else:
-                preprocessed_tensor = preprocessed_features
+                train_tensor = train_features
                 
-            if isinstance(token_to_text_map, np.ndarray):
-                token_map_tensor = torch.from_numpy(token_to_text_map)
+            if isinstance(train_token_map, np.ndarray):
+                train_token_tensor = torch.from_numpy(train_token_map)
             else:
-                token_map_tensor = token_to_text_map
+                train_token_tensor = train_token_map
                 
             torch.save({
-                'features': preprocessed_tensor,
-                'token_to_text_map': token_map_tensor,
+                'features': train_tensor,
+                'token_to_text_map': train_token_tensor,
                 'token_lengths': token_lengths,
                 'texts': texts,
                 'preprocessing_method': args.preprocess,
-                'preprocessing_timestamp': datetime.now().isoformat()
-            }, output_path)
+                'preprocessing_timestamp': datetime.now().isoformat(),
+                'split_method': "text_based",
+                'train_indices': train_indices,
+                'val_ratio': args.val_ratio
+            }, train_path)
         
-        saved_paths.append(output_path)
-        print(f"Saved preprocessed features to {output_path}")
+        saved_paths.append(train_path)
+        print(f"Saved training features to {train_path}")
+        
+        # Save validation features
+        if args.save_format == 'npz':
+            val_path = os.path.join(args.output_dir, f"layer{layer_num}_val_features.npz")
+            np.savez_compressed(
+                val_path,
+                features=val_features,
+                token_to_text_map=val_token_map,
+                token_lengths=token_lengths,
+                texts=np.array(texts, dtype=object),
+                preprocessing_method=args.preprocess,
+                preprocessing_timestamp=datetime.now().isoformat(),
+                split_method="text_based",
+                val_indices=val_indices,
+                val_ratio=args.val_ratio
+            )
+        else:  # pytorch format
+            val_path = os.path.join(args.output_dir, f"layer{layer_num}_val_features.pt")
+            # Convert to tensor if numpy
+            if isinstance(val_features, np.ndarray):
+                val_tensor = torch.from_numpy(val_features)
+            else:
+                val_tensor = val_features
+                
+            if isinstance(val_token_map, np.ndarray):
+                val_token_tensor = torch.from_numpy(val_token_map)
+            else:
+                val_token_tensor = val_token_map
+                
+            torch.save({
+                'features': val_tensor,
+                'token_to_text_map': val_token_tensor,
+                'token_lengths': token_lengths,
+                'texts': texts,
+                'preprocessing_method': args.preprocess,
+                'preprocessing_timestamp': datetime.now().isoformat(),
+                'split_method': "text_based",
+                'val_indices': val_indices,
+                'val_ratio': args.val_ratio
+            }, val_path)
+        
+        saved_paths.append(val_path)
+        print(f"Saved validation features to {val_path}")
+        
+        # Also save combined features for backward compatibility
+        if args.save_combined:
+            if args.save_format == 'npz':
+                output_path = os.path.join(args.output_dir, f"layer{layer_num}_features.npz")
+                np.savez_compressed(
+                    output_path,
+                    features=preprocessed_features,
+                    token_to_text_map=token_to_text_map,
+                    token_lengths=token_lengths,
+                    texts=np.array(texts, dtype=object),
+                    preprocessing_method=args.preprocess,
+                    preprocessing_timestamp=datetime.now().isoformat(),
+                    train_indices=train_indices,
+                    val_indices=val_indices
+                )
+            else:  # pytorch format
+                output_path = os.path.join(args.output_dir, f"layer{layer_num}_features.pt")
+                # Convert to tensor if numpy
+                if isinstance(preprocessed_features, np.ndarray):
+                    preprocessed_tensor = torch.from_numpy(preprocessed_features)
+                else:
+                    preprocessed_tensor = preprocessed_features
+                    
+                if isinstance(token_to_text_map, np.ndarray):
+                    token_map_tensor = torch.from_numpy(token_to_text_map)
+                else:
+                    token_map_tensor = token_to_text_map
+                    
+                torch.save({
+                    'features': preprocessed_tensor,
+                    'token_to_text_map': token_map_tensor,
+                    'token_lengths': token_lengths,
+                    'texts': texts,
+                    'preprocessing_method': args.preprocess,
+                    'preprocessing_timestamp': datetime.now().isoformat(),
+                    'train_indices': train_indices,
+                    'val_indices': val_indices
+                }, output_path)
+            
+            saved_paths.append(output_path)
+            print(f"Saved combined features to {output_path} (for backward compatibility)")
     
     # Create a metadata file with information about the extraction and preprocessing
     metadata_path = os.path.join(args.output_dir, "metadata.json")
@@ -473,6 +817,9 @@ def save_features(args, hidden_states, token_to_text_map, token_lengths, texts):
         'total_tokens': sum(token_lengths),
         'feature_dimensions': {layer_name: activations.shape[1] for layer_name, activations in hidden_states.items()},
         'preprocessing_method': args.preprocess,
+        'split_method': "text_based",
+        'val_ratio': args.val_ratio,
+        'random_seed': args.random_seed,
         'text_samples': texts[:3] + ["..."] if len(texts) > 3 else texts,
         'extraction_date': datetime.now().isoformat()
     }
@@ -486,11 +833,11 @@ def save_features(args, hidden_states, token_to_text_map, token_lengths, texts):
     return saved_paths
 
 def main():
-    """Main function for feature extraction with preprocessing"""
+    """Main function for feature extraction with text-based train/val split"""
     args = parse_args()
     
     print("\n" + "="*50)
-    print("GPT NEO FEATURE EXTRACTOR WITH PREPROCESSING")
+    print("GPT NEO FEATURE EXTRACTOR WITH TEXT-BASED TRAIN/VAL SPLIT")
     print("="*50)
     
     # Get texts for feature extraction
@@ -499,20 +846,21 @@ def main():
     # Extract features
     hidden_states, token_to_text_map, token_lengths, full_text = extract_features(args, texts)
     
-    # Preprocess and save features
+    # Preprocess, split, and save features
     saved_paths = save_features(args, hidden_states, token_to_text_map, token_lengths, texts)
     
     # Print instructions for training
     print("\n" + "="*50)
     print("NEXT STEPS FOR TRAINING")
     print("="*50)
-    print("To train models using these preprocessed features:")
+    print("To train models using these preprocessed features with text-based splits:")
     print(f"\npython train_multiple.py --datasets gptneo --gptneo_features_dir {args.output_dir} \\")
     print(f"  --gptneo_layers {' '.join(map(str, args.layers))} --model_types sae st --feature_dimensions 200")
     
-    # Explicitly note these have been preprocessed
-    print(f"\nNOTE: Features have been preprocessed with '{args.preprocess}' method.")
-    print("No additional preprocessing is needed in SAE or ST models.")
+    # Explicitly note these have been preprocessed and split
+    print(f"\nNOTE: Features have been preprocessed with '{args.preprocess}' method and split into")
+    print(f"train/validation sets using a text-based approach with {args.val_ratio*100:.0f}% validation ratio.")
+    print("The main.py script should be updated to load the separate train/val files.")
 
 if __name__ == "__main__":
     main()

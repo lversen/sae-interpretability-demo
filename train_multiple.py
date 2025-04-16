@@ -104,24 +104,33 @@ def get_available_gptneo_layers(features_dir):
         print(f"Warning: GPT Neo features directory {features_dir} not found")
         return []
         
-    # Look for layer*_features.npz or layer*_features.pt files
-    layer_files = glob.glob(os.path.join(features_dir, "layer*_features.np*"))
+    # Look for both combined and split files
+    layer_patterns = [
+        os.path.join(features_dir, "layer*_features.np*"),  # Combined features
+        os.path.join(features_dir, "layer*_train_features.np*"),  # Train features
+        os.path.join(features_dir, "layer*_val_features.np*")  # Val features
+    ]
     
-    if not layer_files:
+    all_layer_files = []
+    for pattern in layer_patterns:
+        all_layer_files.extend(glob.glob(pattern))
+    
+    if not all_layer_files:
         print(f"Warning: No GPT Neo feature files found in {features_dir}")
         return []
     
     # Extract layer numbers from filenames
-    # Format: layer{NUMBER}_features.npz or layer{NUMBER}_features.pt
+    # Formats: layer{NUMBER}_features.npz, layer{NUMBER}_train_features.npz, or layer{NUMBER}_val_features.npz
     layer_nums = []
-    for file_path in layer_files:
+    for file_path in all_layer_files:
         file_name = os.path.basename(file_path)
-        match = re.match(r"layer(\d+)_features\.", file_name)
+        match = re.match(r"layer(\d+)_(?:features|train_features|val_features)\.", file_name)
         if match:
             layer_nums.append(int(match.group(1)))
     
     # Sort and return unique layer numbers
     return sorted(set(layer_nums))
+
 
 def get_steps_version_of_path(path):
     """
@@ -376,6 +385,7 @@ def get_simplified_filename(model_type_prefix, combination, args):
     
     return filename
 
+
 def get_hierarchical_model_path(combination, model_type_prefix, args, run_index=0):
     """Get hierarchical path for a model with GPT Neo support"""
     # Special handling for GPT Neo dataset
@@ -437,7 +447,53 @@ def get_hierarchical_model_path(combination, model_type_prefix, args, run_index=
     model_path = os.path.join(hierarchy_path, filename)
     
     return model_path
-
+def find_layer_files(features_dir, layer_num):
+    """
+    Find combined and split files for a specific layer
+    
+    Args:
+        features_dir: Directory containing feature files
+        layer_num: Layer number to find files for
+        
+    Returns:
+        Tuple of (combined_file, train_file, val_file) - any may be None if not found
+    """
+    # Define patterns for different file types and formats
+    combined_patterns = [
+        os.path.join(features_dir, f"layer{layer_num}_features.npz"),
+        os.path.join(features_dir, f"layer{layer_num}_features.pt")
+    ]
+    
+    train_patterns = [
+        os.path.join(features_dir, f"layer{layer_num}_train_features.npz"),
+        os.path.join(features_dir, f"layer{layer_num}_train_features.pt")
+    ]
+    
+    val_patterns = [
+        os.path.join(features_dir, f"layer{layer_num}_val_features.npz"),
+        os.path.join(features_dir, f"layer{layer_num}_val_features.pt")
+    ]
+    
+    # Find matching files
+    combined_file = None
+    for pattern in combined_patterns:
+        if os.path.exists(pattern):
+            combined_file = pattern
+            break
+            
+    train_file = None
+    for pattern in train_patterns:
+        if os.path.exists(pattern):
+            train_file = pattern
+            break
+            
+    val_file = None
+    for pattern in val_patterns:
+        if os.path.exists(pattern):
+            val_file = pattern
+            break
+    
+    return combined_file, train_file, val_file
 def find_all_run_files(base_path):
     """Find all existing run files for a given base path"""
     if base_path is None:
@@ -730,29 +786,47 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
         
         # Add path to GPT Neo features
         layer_num = combination['gptneo_layer']
-        features_file = os.path.join(args.gptneo_features_dir, f"layer{layer_num}_features.npz")
-        cmd.extend(["--custom_features_file", features_file])
         
-        # Check if the features file exists
-        if not os.path.exists(features_file):
-            print(f"Error: GPT Neo features file {features_file} not found")
-            # Try PT format as fallback
-            pt_file = features_file.replace('.npz', '.pt')
-            if os.path.exists(pt_file):
-                print(f"Found alternate format: {pt_file}")
-                cmd[-1] = pt_file  # Replace the last parameter with PT file
+        # Find all available files for this layer
+        combined_file, train_file, val_file = find_layer_files(args.gptneo_features_dir, layer_num)
+        
+        # Check if split files exist
+        if train_file and val_file:
+            print(f"Using text-based split files for layer {layer_num}:")
+            print(f"  Train: {train_file}")
+            print(f"  Val: {val_file}")
+            
+            # Combined file is still needed for backward compatibility
+            if combined_file:
+                cmd.extend([
+                    "--custom_features_file", combined_file,
+                    "--custom_train_file", train_file,
+                    "--custom_val_file", val_file
+                ])
             else:
-                print("Features not found. Make sure to extract them first with extract_gptneo_features.py")
-                return {
-                    'model_id': model_id,
-                    'returncode': 1,
-                    'combination': combination,
-                    'error': f"Features file not found: {features_file}",
-                    'skipped': False,
-                    'sae_path': sae_path,
-                    'st_path': st_path,
-                    'run_index': actual_run_index
-                }
+                # If no combined file, use train file as main file
+                cmd.extend([
+                    "--custom_features_file", train_file, 
+                    "--custom_train_file", train_file,
+                    "--custom_val_file", val_file
+                ])
+        elif combined_file:
+            # Fall back to combined file
+            cmd.extend(["--custom_features_file", combined_file])
+            print(f"Using combined features file: {combined_file}")
+        else:
+            # No files found
+            print(f"Error: No GPT Neo features found for layer {layer_num}")
+            return {
+                'model_id': model_id,
+                'returncode': 1,
+                'combination': combination,
+                'error': f"No features found for layer {layer_num}",
+                'skipped': False,
+                'sae_path': sae_path,
+                'st_path': st_path,
+                'run_index': actual_run_index
+            }
     else:
         # For regular datasets
         cmd.extend(["--dataset", combination['dataset']])
@@ -921,6 +995,7 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
         'run_index': actual_run_index
     }
 
+
 def create_summary(results, args):
     """Create a summary of training results with run information"""
     summary_path = args.summary_file
@@ -1059,7 +1134,21 @@ def check_gptneo_features(args):
             print(f"Available layers: {available_layers}")
             return False
     
+    # Print details about available layers
     print(f"Found GPT Neo features for layers: {available_layers}")
+    
+    # Check if we have text-based split files
+    split_layers = []
+    for layer in available_layers:
+        _, train_file, val_file = find_layer_files(args.gptneo_features_dir, layer)
+        if train_file and val_file:
+            split_layers.append(layer)
+    
+    if split_layers:
+        print(f"Found text-based train/val splits for layers: {split_layers}")
+    else:
+        print("No text-based train/val splits found. Using default 80/20 sequential split.")
+    
     return True
 
 def main():
