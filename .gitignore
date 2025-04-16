@@ -12,6 +12,7 @@
 /model_comparison
 /visualization
 /best_models
-/analysis_results
-/cluster_analysis
-/data
+*.png
+*.gif
+*.pyc
+*.pyc
