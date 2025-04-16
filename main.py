@@ -47,15 +47,6 @@ DATASET_CONFIGS = {
         "feature_column": "sentences",
         "label_column": "labels",
         "input_dimension": 1024,
-    },
-    # Add custom dataset type for GPT Neo features
-    "custom": {
-        "train_dataset": None,  # Will be set at runtime
-        "val_dataset": None,    # Will be set at runtime
-        "data_type": "custom",  # Special data type for pre-extracted features
-        "feature_column": None, # Will be set at runtime
-        "label_column": None,   # Will be determined from features
-        "input_dimension": None # Will be determined from features
     }
 }
 
@@ -63,93 +54,6 @@ DATASET_CONFIGS = {
 LLM_MODELS = {
     "gte-large": "Alibaba-NLP/gte-large-en-v1.5"
 }
-
-def is_preprocessed(custom_features_file):
-    """
-    Check if a features file contains preprocessed data
-    
-    Args:
-        custom_features_file: Path to the features file
-    
-    Returns:
-        tuple: (is_preprocessed, preprocessing_method)
-    """
-    try:
-        if custom_features_file.endswith('.npz'):
-            # Load NPZ file
-            with np.load(custom_features_file, allow_pickle=True) as data:
-                # Check for preprocessing metadata
-                if 'preprocessing_method' in data:
-                    return True, str(data['preprocessing_method'])
-                
-                # Check for raw suffix in filename
-                if '_raw' in os.path.basename(custom_features_file):
-                    return False, 'none'
-                
-        elif custom_features_file.endswith('.pt'):
-            # Load PyTorch file
-            data = torch.load(custom_features_file, map_location='cpu')
-            if isinstance(data, dict) and 'preprocessing_method' in data:
-                return True, data['preprocessing_method']
-            
-            # Check for raw suffix in filename
-            if '_raw' in os.path.basename(custom_features_file):
-                return False, 'none'
-    except Exception as e:
-        print(f"Warning: Could not determine preprocessing status: {e}")
-    
-    # Default: assume not preprocessed if we can't determine
-    return False, 'none'
-
-def analyze_feature_statistics(features, title="Feature Statistics"):
-    """Analyze and log basic statistics of feature matrices"""
-    # Convert to numpy if tensor
-    if isinstance(features, torch.Tensor):
-        features_np = features.detach().cpu().numpy()
-    else:
-        features_np = features
-    
-    # Basic statistics
-    mean_val = np.mean(features_np)
-    median_val = np.median(features_np)
-    std_val = np.std(features_np)
-    min_val = np.min(features_np)
-    max_val = np.max(features_np)
-    
-    # Norm statistics
-    sample_norms = np.linalg.norm(features_np, axis=1)
-    mean_norm = np.mean(sample_norms)
-    median_norm = np.median(sample_norms)
-    min_norm = np.min(sample_norms)
-    max_norm = np.max(sample_norms)
-    
-    # Check for NaNs or Infs
-    has_nan = np.isnan(features_np).any()
-    has_inf = np.isinf(features_np).any()
-    
-    # Percentiles for outlier detection
-    p01 = np.percentile(features_np, 1)
-    p99 = np.percentile(features_np, 99)
-    
-    print(f"\n===== {title} =====")
-    print(f"Shape: {features_np.shape}")
-    print(f"Values - Mean: {mean_val:.6f}, Median: {median_val:.6f}, Std: {std_val:.6f}")
-    print(f"Range - Min: {min_val:.6f}, Max: {max_val:.6f}, Span: {max_val-min_val:.6f}")
-    print(f"Percentiles - P01: {p01:.6f}, P99: {p99:.6f}")
-    print(f"Sample Norms - Mean: {mean_norm:.6f}, Median: {median_norm:.6f}")
-    print(f"Norm Range - Min: {min_norm:.6f}, Max: {max_norm:.6f}, Ratio: {max_norm/min_norm:.2f}")
-    print(f"Target norm (√n): {np.sqrt(features_np.shape[1]):.6f}")
-    print(f"Contains NaN: {has_nan}, Contains Inf: {has_inf}")
-    
-    return {
-        'mean': mean_val,
-        'std': std_val,
-        'min': min_val,
-        'max': max_val,
-        'mean_norm': mean_norm,
-        'has_nan': has_nan,
-        'has_inf': has_inf
-    }
 
 def calculate_attention_dim_for_equal_params(n, m, use_direct_kv=False):
     """
@@ -317,14 +221,15 @@ def parse_args():
     dataset_group.add_argument('--val_dataset', type=str, default=None,
                         help='Path to validation dataset (overrides dataset config)')
     dataset_group.add_argument('--data_type', type=str, default=None, 
-                        choices=['text', 'vector', 'custom'],
-                        help='Type of data (text, vector, or custom, overrides dataset config)')
+                        choices=['text', 'vector'],
+                        help='Type of data (text or vector, overrides dataset config)')
     dataset_group.add_argument('--feature_column', type=str, nargs='+', default=None,
                         help='Column(s) containing features (overrides dataset config)')
     dataset_group.add_argument('--label_column', type=str, default=None,
                         help='Column containing labels (overrides dataset config)')
     dataset_group.add_argument('--input_dimension', type=int, default=None,
                         help='Input dimension (n) (overrides dataset config)')
+<<<<<<< HEAD
     # Add argument for custom features file
     dataset_group.add_argument('--custom_features_file', type=str, default=None,
                         help='Path to pre-extracted features file (.npz or .pt) for custom dataset')
@@ -333,6 +238,8 @@ def parse_args():
                         help='Path to pre-extracted training features file (.npz or .pt) for custom dataset')
     dataset_group.add_argument('--custom_val_file', type=str, default=None,
                         help='Path to pre-extracted validation features file (.npz or .pt) for custom dataset')
+=======
+>>>>>>> parent of 466e95f (checkpoint)
     
     # Embedding model selection for text data
     embedding_group = parser.add_argument_group('Embedding Model Configuration')
@@ -489,19 +396,12 @@ def parse_args():
     if args.input_dimension is None:
         args.input_dimension = dataset_config['input_dimension']
     
-    # Special handling for custom dataset (like GPT Neo features)
-    if args.dataset == 'custom' or args.data_type == 'custom':
-        if args.custom_features_file is None:
-            print("Warning: Using custom dataset type but no custom_features_file specified")
-        else:
-            print(f"Using custom features file: {args.custom_features_file}")
-    
     # Set model_id based on dataset if not explicitly provided
     if args.model_id is None:
         args.model_id = args.dataset
     
     # Apply default values for training/validation set sizes based on actual dataset sizes
-    if (args.n_train is None or args.n_val is None) and args.data_type != 'custom':
+    if args.n_train is None or args.n_val is None:
         import pandas as pd
         import os
         
@@ -573,7 +473,6 @@ def parse_args():
         save_config_to_file(args)
     
     return args
-
 def get_hierarchical_model_path(args, model_type):
     """
     Generate a hierarchical path for model saving based on model parameters.
@@ -588,31 +487,11 @@ def get_hierarchical_model_path(args, model_type):
     Returns:
         Path string for saving the model
     """
-    # Special case for GPT Neo (dataset == 'custom' and custom_features_file contains gptneo)
-    is_gptneo = (args.dataset == 'custom' and args.custom_features_file and 
-                'gptneo' in args.custom_features_file.lower())
-    
-    # Extract layer number for GPT Neo
-    gptneo_layer = None
-    if is_gptneo:
-        import re
-        # Try to extract layer number from filename (e.g., layer6_features.npz)
-        match = re.search(r'layer(\d+)_features', args.custom_features_file)
-        if match:
-            gptneo_layer = match.group(1)
-            print(f"Detected GPT Neo layer: {gptneo_layer}")
-    
-    # Base directory
-    if is_gptneo:
-        # For GPT Neo: models/gptneo/layer{layer_number}/...
-        base_dir = os.path.join('models', 'gptneo', f"layer{gptneo_layer}")
-    else:
-        # For other datasets: models/dataset/...
-        base_dir = os.path.join('models', args.dataset)
+    # Base directory is always models/dataset/
+    base_dir = os.path.join('models', args.dataset)
     
     if model_type.lower() == 'sae':
         # SAE: models/[dataset]/sae/[activation]/[feature_dimension]/
-        # or for GPT Neo: models/gptneo/layer{layer}/sae/[activation]/[feature_dimension]/
         hierarchy_path = os.path.join(
             base_dir,
             'sae',
@@ -621,7 +500,6 @@ def get_hierarchical_model_path(args, model_type):
         )
     else:  # ST model
         # ST: models/[dataset]/st/[attention_fn]/[feature_dimension]/
-        # or for GPT Neo: models/gptneo/layer{layer}/st/[attention_fn]/[feature_dimension]/
         hierarchy_path = os.path.join(
             base_dir,
             'st',
@@ -670,7 +548,6 @@ def get_hierarchical_model_path(args, model_type):
     
     # Full hierarchical path
     return os.path.join(hierarchy_path, filename)
-
 def get_feature_extraction_fn(data_type: str):
     """
     Factory function to return appropriate feature extraction function based on data type.
@@ -679,8 +556,6 @@ def get_feature_extraction_fn(data_type: str):
         return feature_extraction_with_store
     elif data_type == 'vector':
         return direct_vector_feature_extraction
-    elif data_type == 'custom':
-        return custom_feature_extraction
     else:
         raise ValueError(f"Unknown data type: {data_type}")
 
@@ -697,6 +572,7 @@ def direct_vector_feature_extraction(df: pd.DataFrame, full_df: pd.DataFrame = N
     feature_matrix = df[feature_columns].values if feature_columns else df[content_column].values
     return feature_matrix.astype(np.float32)
 
+<<<<<<< HEAD
 def custom_feature_extraction(df: pd.DataFrame, full_df: pd.DataFrame = None, 
                             model: str = None, n: int = None,
                             dataset_name: str = None, content_column: str = None,
@@ -962,6 +838,8 @@ def custom_feature_extraction(df: pd.DataFrame, full_df: pd.DataFrame = None,
         
         return train_features, val_features
 
+=======
+>>>>>>> parent of 466e95f (checkpoint)
 def train_and_evaluate_decision_tree(X, y, test_size=0.2, random_state=42):
     """Train and evaluate a decision tree classifier"""
     X_train, X_test, y_train, y_test = train_test_split(
@@ -1009,14 +887,8 @@ def create_graphs(df, feature_activations, args):
     subset_df = df.iloc[:subset_size].copy()
     
     # Determine title column and category column
-    # For custom datasets like GPT Neo, use token_group if available
-    if args.data_type == 'custom' and 'token_group' in subset_df.columns:
-        title_column = 'token_group'
-        category_column = 'token_group'
-        print(f"Using token_group column for graph visualization")
-    else:
-        title_column = args.label_column  # Use label column as node title by default
-        category_column = args.label_column  # Use the same for category
+    title_column = args.label_column  # Use label column as node title by default
+    category_column = args.label_column  # Use the same for category
     
     # Select random labels for consistent visualization
     selected_labels = select_random_labels(
@@ -1036,14 +908,7 @@ def create_graphs(df, feature_activations, args):
         subset_features = features[:subset_size]
         
         # Create graph file path
-        if args.data_type == 'custom' and 'gptneo' in args.custom_features_file.lower():
-            # For GPT Neo, include layer info in the filename
-            import re
-            layer_match = re.search(r'layer(\d+)_features', args.custom_features_file)
-            layer_info = f"_layer{layer_match.group(1)}" if layer_match else ""
-            graph_file = os.path.join(graphs_dir, f"gptneo{layer_info}_{model_name}_{args.feature_dimension}_{args.gephi_subset_size}.gexf")
-        else:
-            graph_file = os.path.join(graphs_dir, f"{args.model_id}_{model_name}_{args.feature_dimension}_{args.gephi_subset_size}.gexf")
+        graph_file = os.path.join(graphs_dir, f"{args.model_id}_{model_name}_{args.feature_dimension}_{args.gephi_subset_size}.gexf")
         
         # Create the graph
         create_gephi_graph(
@@ -1060,7 +925,6 @@ def create_graphs(df, feature_activations, args):
         print(f"Graph saved to: {graph_file}")
     
     print("\nGraph creation completed!")
-
 def main():
     """Main function to run the SAE and ST training with enhanced dataset and model options"""
     args = parse_args()
@@ -1070,6 +934,7 @@ def main():
     print("CONFIGURATION SUMMARY")
     print("="*50)
     print(f"Dataset: {args.dataset}")
+<<<<<<< HEAD
     
     # Handle special case for custom dataset (GPT Neo)
     is_gptneo = (args.dataset == 'custom' and args.custom_features_file and 
@@ -1100,6 +965,18 @@ def main():
             print(f"  Custom Features File: {args.custom_features_file}")
         print(f"  Feature Column(s): {args.feature_column}")
         print(f"  Label Column: {args.label_column}")
+=======
+    print(f"  Train: {args.train_dataset} (n={args.n_train})")
+    print(f"  Val: {args.val_dataset} (n={args.n_val})")
+    print(f"  Data Type: {args.data_type}")
+    if args.data_type == 'text':
+        print(f"  Embedding Model: {args.embedding_model} ({args.embedding_model_path})")
+    print(f"  Feature Column(s): {args.feature_column}")
+    print(f"  Label Column: {args.label_column}")
+    print(f"Model: {args.model_type.upper()}")
+    print(f"  Input Dimension (n): {args.input_dimension}")
+    print(f"  Feature Dimension (m): {args.feature_dimension or 100}")
+>>>>>>> parent of 466e95f (checkpoint)
     
     # Set device
     if args.device:
@@ -1107,6 +984,7 @@ def main():
     else:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
+<<<<<<< HEAD
     
     # For custom datasets (like GPT Neo), we need to load features first to determine input dimension
     if args.data_type == 'custom' and args.custom_features_file:
@@ -1147,14 +1025,11 @@ def main():
         # Use specified input dimension for standard datasets
         n = args.input_dimension
         
+=======
+>>>>>>> parent of 466e95f (checkpoint)
     # Setup feature dimensions
+    n = args.input_dimension
     m = args.feature_dimension if args.feature_dimension else 100
-    
-    # Ensure we have valid dimensions before calculating attention dimension
-    if n is None:
-        print("Warning: Input dimension is not set. Using default of 1024.")
-        n = 1024
-        args.input_dimension = n
     
     # Calculate default attention dimension to match parameter count, considering the implementation and approach
     if args.attention_dimension is None:
@@ -1247,6 +1122,7 @@ def main():
         'force_retrain': args.force_retrain,
     }
     
+<<<<<<< HEAD
     # Load datasets or custom features based on data type
     # For custom datasets (like GPT Neo), we need to load features first to determine input dimension
     if args.data_type == 'custom' and args.custom_features_file:
@@ -1420,80 +1296,75 @@ def main():
         if train_feature_extract.shape[1] != n:
             print(f"Input dimension updated from {n} to {train_feature_extract.shape[1]} based on extracted features")
             n = train_feature_extract.shape[1]
+=======
+    # Load datasets
+    try:
+        print(f"Loading datasets: {args.train_dataset}, {args.val_dataset}")
+        train_df = pd.read_csv(args.train_dataset)
+        val_df = pd.read_csv(args.val_dataset)
+        
+        print(f"Train dataset shape: {train_df.shape}")
+        print(f"Validation dataset shape: {val_df.shape}")
+    except Exception as e:
+        print(f"Error loading datasets: {e}")
+        print("Please check that the dataset files exist and are valid CSV files.")
+        return
+>>>>>>> parent of 466e95f (checkpoint)
     
-    # Update parameters based on actual data dimensions
-    args.input_dimension = n
+    # Get feature extraction function
+    feature_extraction_fn = get_feature_extraction_fn(args.data_type)
+    
+    # Get consistent samples
+    print(f"Getting consistent samples for training and validation")
+    train_sample_df, train_indices = get_consistent_samples(
+        train_df, args.n_train, f"{os.path.basename(args.train_dataset)}_train", args.model_id)
+    val_sample_df, val_indices = get_consistent_samples(
+        val_df, args.n_val, f"{os.path.basename(args.val_dataset)}_val", args.model_id)
+    
+    # Extract features
+    print(f"Extracting features...")
+    if args.data_type == 'text':
+        print(f"Using embedding model: {args.embedding_model_path}")
+        train_feature_extract = feature_extraction_fn(
+            train_sample_df, train_df, args.embedding_model_path, len(train_sample_df),
+            f"{os.path.basename(args.train_dataset)}_train", args.feature_column[0] if isinstance(args.feature_column, list) else args.feature_column,
+            force_new_embeddings=args.force_reembedding
+        )
+        val_feature_extract = feature_extraction_fn(
+            val_sample_df, val_df, args.embedding_model_path, len(val_sample_df),
+            f"{os.path.basename(args.val_dataset)}_val", args.feature_column[0] if isinstance(args.feature_column, list) else args.feature_column,
+            force_new_embeddings=args.force_reembedding
+        )
+    else:
+        train_feature_extract = feature_extraction_fn(
+            train_sample_df, train_df, 
+            feature_columns=args.feature_column if isinstance(args.feature_column, list) else [args.feature_column]
+        )
+        val_feature_extract = feature_extraction_fn(
+            val_sample_df, val_df, 
+            feature_columns=args.feature_column if isinstance(args.feature_column, list) else [args.feature_column]
+        )
+    
+    print(f"Feature matrix shapes - Train: {train_feature_extract.shape}, Val: {val_feature_extract.shape}")
+    
+    # Update input dimension if needed based on actual feature dimensionality
+    if train_feature_extract.shape[1] != n:
+        print(f"Input dimension updated from {n} to {train_feature_extract.shape[1]} based on extracted features")
+        n = train_feature_extract.shape[1]
     # Update m and a accordingly if they were not explicitly set
     if args.feature_dimension is None:
-        # Default feature dimension to input_dimension * 8 for GPT Neo (common in Sparse Autoencoders for LLMs)
-        if is_gptneo:
-            m = n * 8
-            print(f"Setting default feature dimension for GPT Neo: {m} (8x input dimension)")
-        else:
-            m = 100
-            print("No feature dimension specified, defaulting to 100")
-        args.feature_dimension = m
+        print("No feature dimension specified, defaulting to 100")
+        args.feature_dimension = 100
     if args.attention_dimension is None:
-        a = calculate_attention_dim_for_equal_params(n, m, not args.use_memory_bank)
-        args.attention_dimension = a
-        print(f"  Attention Dimension updated to: {a} (to maintain balanced parameter count)")
+        a = calculate_attention_dim_for_equal_params(n, m)
+        print(f"  Attention Dimension also updated to: {a} (to maintain balanced parameter count)")
     
     # Create model directories
     os.makedirs('models', exist_ok=True)
-
-    # If using GPT Neo features, check if they're preprocessed and analyze
-    if args.dataset == 'custom' and args.custom_features_file and 'gptneo' in args.custom_features_file.lower():
-        is_prep, prep_method = is_preprocessed(args.custom_features_file)
-        
-        # Analyze features to understand their distribution
-        analyze_feature_statistics(train_feature_extract, "GPT Neo Features")
-        
-        if is_prep:
-            print(f"\nDetected preprocessed features with method: {prep_method}")
-            print("Disabling additional preprocessing in models")
-            
-            # Define replacement methods that won't further modify our data
-            def identity_preprocess_sae(self, X):
-                """Identity preprocessing function that doesn't change the data"""
-                if isinstance(X, np.ndarray):
-                    X = torch.from_numpy(X.astype(np.float32)).to(self.device)
-                elif isinstance(X, torch.Tensor) and X.device != self.device:
-                    X = X.to(self.device)
-                # Return 1.0 to effectively disable additional preprocessing
-                return 1.0
-            
-            def identity_preprocess_st(self, X):
-                """Identity preprocessing function that doesn't change the data"""
-                X = self.type_check(X)
-                # Return 1.0 to effectively disable additional preprocessing
-                return 1.0
-            
-            # Store original methods for potential restoration
-            if args.model_type in ["sae", "both"]:
-                original_sae_preprocess = SparseAutoencoder.preprocess
-                SparseAutoencoder.preprocess = identity_preprocess_sae
-            
-            if args.model_type in ["st", "both"]:
-                if args.use_old_st:
-                    original_st_preprocess = ST_old.SparseTransformer.preprocess
-                    ST_old.SparseTransformer.preprocess = identity_preprocess_st
-                else:
-                    original_st_preprocess = ST.SparseTransformer.preprocess
-                    ST.SparseTransformer.preprocess = identity_preprocess_st
     
     # Create tensors
     train_tensor = torch.from_numpy(train_feature_extract).float().to(device)
     val_tensor = torch.from_numpy(val_feature_extract).float().to(device)
-    
-    # Adjust batch size if needed to ensure we have enough batches
-    original_batch_size = args.batch_size
-    if len(train_tensor) < args.batch_size * 5:  # Ensure we have at least 5 batches
-        adjusted_batch_size = max(1, len(train_tensor) // 5)
-        print(f"Warning: Dataset too small for batch size {args.batch_size}.")
-        print(f"Adjusting batch size from {args.batch_size} to {adjusted_batch_size} to ensure at least 5 batches.")
-        args.batch_size = adjusted_batch_size
-        # Update model parameters
-        model_params['batch_size'] = args.batch_size
     
     # Initialize results
     all_feature_activations = {}
@@ -1508,6 +1379,11 @@ def main():
         print("Training SAE model...")
         print("="*50)
         
+        # Create model path
+        dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
+        model_suffix = f"{args.model_id}_{args.feature_dimension}"
+        if args.data_type == 'text':
+            model_suffix += f"_{args.embedding_model}"
         # For SAE model path
         if args.sae_save_path:
             sae_model_path = args.sae_save_path
@@ -1551,23 +1427,12 @@ def main():
             print(f"SAE model training completed and saved to {sae_model_path}")
         else:
             print(f"Loading pre-trained SAE model from {sae_model_path}")
-            try:
-                checkpoint = torch.load(sae_model_path, map_location=device)
-                if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
-                    sae_model.load_state_dict(checkpoint['model_state_dict'])
-                else:
-                    sae_model.load_state_dict(checkpoint)
-                print(f"Model loaded successfully.")
-            except Exception as e:
-                print(f"Error loading model: {e}")
-                print("Training new model instead...")
-                sae_model.train_and_validate(
-                    train_tensor,
-                    val_tensor,
-                    learning_rate=model_params['learning_rate'],
-                    batch_size=model_params['batch_size'],
-                    target_steps=model_params['target_steps']
-                )
+            checkpoint = torch.load(sae_model_path)
+            if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+                sae_model.load_state_dict(checkpoint['model_state_dict'])
+            else:
+                sae_model.load_state_dict(checkpoint)
+            print(f"Model loaded successfully.")
         
         # Calculate feature activations
         with torch.no_grad():
@@ -1587,13 +1452,38 @@ def main():
         print("Training ST model...")
         print("="*50)
         
-        # For ST model path
-        if args.st_save_path:
-            st_model_path = args.st_save_path
+        dataset_name = os.path.splitext(os.path.basename(args.train_dataset))[0]
+        model_suffix = f"{args.model_id}_{args.attention_dimension}_{args.feature_dimension}_{args.attention_fn}"
+        if args.data_type == 'text':
+            model_suffix += f"_{args.embedding_model}"
+        
+        # Add suffix based on implementation and architecture approach
+        if args.use_old_st:
+            model_suffix += "_old"
+            # Add architecture approach suffix for old implementation too
+            if args.use_memory_bank:
+                model_suffix += "_memory"
+            else:
+                model_suffix += "_direct"  # Direct K-V is default for both implementations
+            if args.st_save_path:
+                st_model_path = args.st_save_path
+            else:
+                # Use hierarchical path
+                st_model_path = get_hierarchical_model_path(args, 'st')
+            print(f"ST model will be saved to: {st_model_path}")
+
         else:
-            # Use hierarchical path
-            st_model_path = get_hierarchical_model_path(args, 'st')
-        print(f"ST model will be saved to: {st_model_path}")
+            if args.use_memory_bank:
+                model_suffix += "_memory"
+            else:
+                model_suffix += "_direct"
+            if args.st_save_path:
+                st_model_path = args.st_save_path
+            else:
+                # Use hierarchical path
+                st_model_path = get_hierarchical_model_path(args, 'st')
+            print(f"ST model will be saved to: {st_model_path}")
+
         
         print(f"ST model path: {st_model_path}")
         model_exists = os.path.exists(st_model_path)
@@ -1684,7 +1574,8 @@ def main():
             # Different training methods based on implementation
             if args.use_old_st:
                 # Old ST implementation has simpler train_and_validate
-                st_model.train_and_validate(train_tensor,
+                st_model.train_and_validate(
+                    train_tensor,
                     val_tensor,
                     learning_rate=model_params['learning_rate'],
                     batch_size=model_params['batch_size'],
@@ -1700,40 +1591,18 @@ def main():
                     target_steps=model_params['target_steps'],
                     grad_accum_steps=args.grad_accum_steps,
                     eval_freq=args.eval_freq,
-                    resume_from=None
+                    resume_from=st_model_path+".step150000" if not os.path.exists(st_model_path) else None
                 )
             
             print(f"ST model training completed and saved to {st_model_path}")
         else:
             print(f"Loading pre-trained ST model from {st_model_path}")
-            try:
-                checkpoint = torch.load(st_model_path, map_location=device)
-                if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
-                    st_model.load_state_dict(checkpoint['model_state_dict'])
-                else:
-                    st_model.load_state_dict(checkpoint)
-                print(f"Model loaded successfully.")
-            except Exception as e:
-                print(f"Error loading model: {e}")
-                print("Training new model instead...")
-                if args.use_old_st:
-                    st_model.train_and_validate(
-                        train_tensor,
-                        val_tensor,
-                        learning_rate=model_params['learning_rate'],
-                        batch_size=model_params['batch_size'],
-                        target_steps=model_params['target_steps']
-                    )
-                else:
-                    st_model.train_and_validate(
-                        train_tensor,
-                        val_tensor,
-                        learning_rate=model_params['learning_rate'],
-                        batch_size=model_params['batch_size'],
-                        target_steps=model_params['target_steps'],
-                        grad_accum_steps=args.grad_accum_steps,
-                        eval_freq=args.eval_freq
-                    )
+            checkpoint = torch.load(st_model_path)
+            if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+                st_model.load_state_dict(checkpoint['model_state_dict'])
+            else:
+                st_model.load_state_dict(checkpoint)
+            print(f"Model loaded successfully.")
         
         # Calculate feature activations
         with torch.no_grad():
@@ -1787,37 +1656,25 @@ def main():
         print("="*50)
     
     # Perform classification if requested
-    if args.perform_classification:
+    if args.perform_classification and args.label_column in train_sample_df.columns:
         print("\n" + "="*50)
         print("Performing classification...")
         print("="*50)
         
-        # Determine the label column to use for classification
-        if args.data_type == 'custom' and 'token_group' in train_sample_df.columns:
-            label_column = 'token_group'
-            print(f"Using token_group column for classification")
-        elif args.label_column and args.label_column in train_sample_df.columns:
-            label_column = args.label_column
-            print(f"Using {label_column} column for classification")
-        else:
-            print("No suitable label column found for classification")
-            label_column = None
-        
-        if label_column is not None:
-            for model_suffix in all_feature_activations.keys():
-                features = all_feature_activations[model_suffix]
-                clf, accuracy, report = train_and_evaluate_decision_tree(
-                    features, train_sample_df[label_column])
-                
-                classification_results[f"{model_suffix}"] = {
-                    "accuracy": accuracy,
-                    "report": report
-                }
-                
-                print(f"\nClassification results for {model_suffix}:")
-                print(f"Accuracy: {accuracy:.4f}")
-                print("Classification Report:")
-                print(report)
+        for model_suffix in all_feature_activations.keys():
+            features = all_feature_activations[model_suffix]
+            clf, accuracy, report = train_and_evaluate_decision_tree(
+                features, train_sample_df[args.label_column])
+            
+            classification_results[f"{model_suffix}"] = {
+                "accuracy": accuracy,
+                "report": report
+            }
+            
+            print(f"\nClassification results for {model_suffix}:")
+            print(f"Accuracy: {accuracy:.4f}")
+            print("Classification Report:")
+            print(report)
     
     # Create graph visualizations if requested
     if args.create_graph:
@@ -1841,10 +1698,9 @@ def main():
                 print(f"ST features dimension: {all_feature_activations['st'].shape}")
                 
                 # If classification was performed, show accuracy comparison
-                if args.perform_classification and classification_results:
+                if args.perform_classification:
                     print("\nClassification Accuracy:")
                     for model_name, results in classification_results.items():
                         print(f"  {model_name}: {results['accuracy']:.4f}")
-
 if __name__ == "__main__":
     main()
