@@ -200,3 +200,262 @@ To use these models with analyze_gptneo.py, run:
 2025-04-17 16:30:50,756 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-1.3B --decomposition st --st_model_path models/st --visualize
 2025-04-17 16:30:50,756 - __main__ - INFO - ==================================================
 2025-04-17 16:40:20,417 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:46:05,626 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:46:05,628 - __main__ - INFO - Training models for layers: [16]
+2025-04-17 16:46:05,629 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:46:05,629 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:46:05,647 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:46:11,706 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:46:11,708 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:46:13,932 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-17 16:46:13,932 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:46:13,933 - __main__ - INFO - Prepared 1 training tasks
+2025-04-17 16:46:13,933 - __main__ - INFO - 
+==================================================
+2025-04-17 16:46:13,933 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-17 16:46:13,933 - __main__ - INFO - ==================================================
+2025-04-17 16:46:13,933 - __main__ - INFO - Model: EleutherAI/gpt-neo-1.3B
+2025-04-17 16:46:13,933 - __main__ - INFO - Layers: [16]
+2025-04-17 16:46:13,933 - __main__ - INFO - Decomposition: st
+2025-04-17 16:46:13,933 - __main__ - INFO - Feature dimension: 8000
+2025-04-17 16:46:13,933 - __main__ - INFO - Attention dimension: None
+2025-04-17 16:46:13,934 - __main__ - INFO - Attention function: softmax
+2025-04-17 16:46:13,934 - __main__ - INFO - Use memory bank: False
+2025-04-17 16:46:13,934 - __main__ - INFO - Use old ST: False
+2025-04-17 16:46:13,934 - __main__ - INFO - Mixed precision: True
+2025-04-17 16:46:13,934 - __main__ - INFO - Gradient accumulation steps: 1
+2025-04-17 16:46:13,934 - __main__ - INFO - L1 lambda: 5.0
+2025-04-17 16:46:13,934 - __main__ - INFO - Auto steps: Enabled (base: 200000, min: 5000, max: 1000000)
+2025-04-17 16:46:13,935 - __main__ - INFO - Batch size: 256
+2025-04-17 16:46:13,935 - __main__ - INFO - Learning rate: 5e-05
+2025-04-17 16:46:13,935 - __main__ - INFO - ==================================================
+
+2025-04-17 16:46:13,935 - __main__ - INFO - Training models sequentially
+2025-04-17 16:46:13,939 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:46:13,940 - __main__ - INFO - Model already exists at models\st\layer_16_st.pt. Skipping training.
+2025-04-17 16:46:13,941 - __main__ - INFO - 
+==================================================
+2025-04-17 16:46:13,941 - __main__ - INFO - TRAINING COMPLETE
+2025-04-17 16:46:13,941 - __main__ - INFO - ==================================================
+2025-04-17 16:46:13,941 - __main__ - INFO - Total time: 0:00:08
+2025-04-17 16:46:13,941 - __main__ - INFO - Successful models: 1/1
+2025-04-17 16:46:13,941 - __main__ - INFO - Failed models: 0/1
+2025-04-17 16:46:13,941 - __main__ - INFO - 
+Trained models:
+2025-04-17 16:46:13,941 - __main__ - INFO - 
+ST models:
+2025-04-17 16:46:13,941 - __main__ - INFO -   models\st\layer_16_st.pt
+2025-04-17 16:46:13,942 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-17 16:46:13,942 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-1.3B --decomposition st --st_model_path models/st --layers 16 --visualize
+2025-04-17 16:46:13,942 - __main__ - INFO - ==================================================
+2025-04-17 16:46:42,036 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:46:42,039 - __main__ - INFO - Training models for layers: [16]
+2025-04-17 16:46:42,039 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:46:42,040 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:46:42,072 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:46:46,586 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:46:46,586 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:46:48,811 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-17 16:46:48,811 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:46:48,811 - __main__ - INFO - Prepared 1 training tasks
+2025-04-17 16:46:48,812 - __main__ - INFO - 
+==================================================
+2025-04-17 16:46:48,812 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-17 16:46:48,812 - __main__ - INFO - ==================================================
+2025-04-17 16:46:48,812 - __main__ - INFO - Model: EleutherAI/gpt-neo-1.3B
+2025-04-17 16:46:48,812 - __main__ - INFO - Layers: [16]
+2025-04-17 16:46:48,813 - __main__ - INFO - Decomposition: st
+2025-04-17 16:46:48,813 - __main__ - INFO - Feature dimension: 8000
+2025-04-17 16:46:48,813 - __main__ - INFO - Attention dimension: None
+2025-04-17 16:46:48,813 - __main__ - INFO - Attention function: softmax
+2025-04-17 16:46:48,813 - __main__ - INFO - Use memory bank: False
+2025-04-17 16:46:48,813 - __main__ - INFO - Use old ST: False
+2025-04-17 16:46:48,813 - __main__ - INFO - Mixed precision: True
+2025-04-17 16:46:48,813 - __main__ - INFO - Gradient accumulation steps: 1
+2025-04-17 16:46:48,814 - __main__ - INFO - L1 lambda: 5.0
+2025-04-17 16:46:48,814 - __main__ - INFO - Auto steps: Enabled (base: 200000, min: 5000, max: 1000000)
+2025-04-17 16:46:48,814 - __main__ - INFO - Batch size: 256
+2025-04-17 16:46:48,814 - __main__ - INFO - Learning rate: 5e-05
+2025-04-17 16:46:48,814 - __main__ - INFO - ==================================================
+
+2025-04-17 16:46:48,814 - __main__ - INFO - Training models sequentially
+2025-04-17 16:46:48,816 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:46:48,817 - __main__ - INFO - Auto-calculated optimal steps: 140188 (was: 5000)
+2025-04-17 16:46:48,884 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 256
+2025-04-17 16:46:48,884 - __main__ - INFO - Using regular ST implementation
+2025-04-17 16:46:49,085 - SparseTransformer_2004802056224 - INFO - Using direct K-V matrices approach
+2025-04-17 16:46:49,086 - SparseTransformer_2004802056224 - INFO - Using activation function: none
+2025-04-17 16:46:49,086 - SparseTransformer_2004802056224 - INFO - Using attention function: softmax
+2025-04-17 16:51:02,755 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:51:02,758 - __main__ - INFO - Training models for layers: [16]
+2025-04-17 16:51:02,758 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:51:02,759 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:51:02,782 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:51:06,266 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:51:06,266 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:51:08,416 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-17 16:51:08,417 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:51:08,417 - __main__ - INFO - Prepared 1 training tasks
+2025-04-17 16:51:08,417 - __main__ - INFO - 
+==================================================
+2025-04-17 16:51:08,418 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-17 16:51:08,418 - __main__ - INFO - ==================================================
+2025-04-17 16:51:08,418 - __main__ - INFO - Model: EleutherAI/gpt-neo-1.3B
+2025-04-17 16:51:08,418 - __main__ - INFO - Layers: [16]
+2025-04-17 16:51:08,418 - __main__ - INFO - Decomposition: st
+2025-04-17 16:51:08,418 - __main__ - INFO - Feature dimension: 8000
+2025-04-17 16:51:08,419 - __main__ - INFO - Attention dimension: Auto-calculated to match SAE params
+2025-04-17 16:51:08,419 - __main__ - INFO - Attention function: softmax
+2025-04-17 16:51:08,419 - __main__ - INFO - Use memory bank: False
+2025-04-17 16:51:08,419 - __main__ - INFO - Use old ST: False
+2025-04-17 16:51:08,419 - __main__ - INFO - Mixed precision: True
+2025-04-17 16:51:08,419 - __main__ - INFO - Gradient accumulation steps: 1
+2025-04-17 16:51:08,419 - __main__ - INFO - L1 lambda: 5.0
+2025-04-17 16:51:08,419 - __main__ - INFO - Auto steps: Enabled (base: 200000, min: 5000, max: 1000000)
+2025-04-17 16:51:08,419 - __main__ - INFO - Batch size: 256
+2025-04-17 16:51:08,421 - __main__ - INFO - Learning rate: 5e-05
+2025-04-17 16:51:08,421 - __main__ - INFO - ==================================================
+
+2025-04-17 16:51:08,421 - __main__ - INFO - Training models sequentially
+2025-04-17 16:51:08,422 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-17 16:51:08,422 - __main__ - INFO - Auto-calculated optimal steps: 140188 (was: 5000)
+2025-04-17 16:51:08,488 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-17 16:51:08,488 - __main__ - INFO - Using regular ST implementation
+2025-04-17 16:51:08,769 - SparseTransformer_1649323728416 - INFO - Using direct K-V matrices approach
+2025-04-17 16:51:08,770 - SparseTransformer_1649323728416 - INFO - Using activation function: none
+2025-04-17 16:51:08,770 - SparseTransformer_1649323728416 - INFO - Using attention function: softmax
+2025-04-17 16:53:30,358 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:53:30,361 - __main__ - INFO - Training models for layers: [16]
+2025-04-17 16:53:30,361 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:53:30,361 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:53:30,378 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:53:34,322 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:53:34,323 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:53:36,266 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-17 16:53:36,267 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:53:36,267 - __main__ - INFO - Prepared 1 training tasks
+2025-04-17 16:53:36,268 - __main__ - INFO - 
+==================================================
+2025-04-17 16:53:36,268 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-17 16:53:36,268 - __main__ - INFO - ==================================================
+2025-04-17 16:53:36,268 - __main__ - INFO - Model: EleutherAI/gpt-neo-1.3B
+2025-04-17 16:53:36,268 - __main__ - INFO - Layers: [16]
+2025-04-17 16:53:36,269 - __main__ - INFO - Decomposition: st
+2025-04-17 16:53:36,269 - __main__ - INFO - Feature dimension: 8000
+2025-04-17 16:53:36,269 - __main__ - INFO - Attention dimension: Auto-calculated to match SAE params
+2025-04-17 16:53:36,269 - __main__ - INFO - Attention function: softmax
+2025-04-17 16:53:36,269 - __main__ - INFO - Use memory bank: False
+2025-04-17 16:53:36,269 - __main__ - INFO - Use old ST: False
+2025-04-17 16:53:36,270 - __main__ - INFO - Mixed precision: True
+2025-04-17 16:53:36,270 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-17 16:53:36,270 - __main__ - INFO - L1 lambda: 5.0
+2025-04-17 16:53:36,270 - __main__ - INFO - Auto steps: Enabled (base: 200000, min: 5000, max: 1000000)
+2025-04-17 16:53:36,270 - __main__ - INFO - Batch size: 128
+2025-04-17 16:53:36,270 - __main__ - INFO - Learning rate: 5e-05
+2025-04-17 16:53:36,270 - __main__ - INFO - ==================================================
+
+2025-04-17 16:53:36,271 - __main__ - INFO - Training models sequentially
+2025-04-17 16:53:36,272 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-17 16:53:36,273 - __main__ - INFO - Auto-calculated optimal steps: 140188 (was: 5000)
+2025-04-17 16:53:36,341 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-17 16:53:36,341 - __main__ - INFO - Using regular ST implementation
+2025-04-17 16:53:36,625 - SparseTransformer_2600874008672 - INFO - Using direct K-V matrices approach
+2025-04-17 16:53:36,625 - SparseTransformer_2600874008672 - INFO - Using activation function: none
+2025-04-17 16:53:36,625 - SparseTransformer_2600874008672 - INFO - Using attention function: softmax
+2025-04-17 16:55:53,103 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:55:53,106 - __main__ - INFO - Training models for layers: [16]
+2025-04-17 16:55:53,106 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:55:53,106 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:55:53,124 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:55:56,597 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:55:56,597 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:55:58,516 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-17 16:55:58,516 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:55:58,518 - __main__ - INFO - Prepared 1 training tasks
+2025-04-17 16:55:58,518 - __main__ - INFO - 
+==================================================
+2025-04-17 16:55:58,518 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-17 16:55:58,518 - __main__ - INFO - ==================================================
+2025-04-17 16:55:58,518 - __main__ - INFO - Model: EleutherAI/gpt-neo-1.3B
+2025-04-17 16:55:58,518 - __main__ - INFO - Layers: [16]
+2025-04-17 16:55:58,518 - __main__ - INFO - Decomposition: st
+2025-04-17 16:55:58,518 - __main__ - INFO - Feature dimension: 100
+2025-04-17 16:55:58,518 - __main__ - INFO - Attention dimension: Auto-calculated to match SAE params
+2025-04-17 16:55:58,519 - __main__ - INFO - Attention function: softmax
+2025-04-17 16:55:58,519 - __main__ - INFO - Use memory bank: False
+2025-04-17 16:55:58,519 - __main__ - INFO - Use old ST: False
+2025-04-17 16:55:58,519 - __main__ - INFO - Mixed precision: True
+2025-04-17 16:55:58,519 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-17 16:55:58,519 - __main__ - INFO - L1 lambda: 5.0
+2025-04-17 16:55:58,519 - __main__ - INFO - Auto steps: Enabled (base: 200000, min: 5000, max: 1000000)
+2025-04-17 16:55:58,519 - __main__ - INFO - Batch size: 128
+2025-04-17 16:55:58,519 - __main__ - INFO - Learning rate: 5e-05
+2025-04-17 16:55:58,520 - __main__ - INFO - ==================================================
+
+2025-04-17 16:55:58,520 - __main__ - INFO - Training models sequentially
+2025-04-17 16:55:58,521 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 96
+2025-04-17 16:55:58,522 - __main__ - INFO - Auto-calculated optimal steps: 6000 (was: 5000)
+2025-04-17 16:55:58,586 - __main__ - INFO - Creating ST model with dims: 2048 -> 100, attention dim: 96
+2025-04-17 16:55:58,586 - __main__ - INFO - Using regular ST implementation
+2025-04-17 16:55:58,650 - SparseTransformer_1315308179952 - INFO - Using direct K-V matrices approach
+2025-04-17 16:55:58,650 - SparseTransformer_1315308179952 - INFO - Using activation function: none
+2025-04-17 16:55:58,650 - SparseTransformer_1315308179952 - INFO - Using attention function: softmax
+2025-04-17 17:03:18,690 - SparseTransformer_1315308179952 - INFO - Final model saved to models\st\layer_16_st.pt
+2025-04-17 17:03:20,310 - SparseTransformer_1315308179952 - INFO - Training history plot saved to models\st\layer_16_st_history.png
+2025-04-17 17:03:20,311 - SparseTransformer_1315308179952 - INFO - Training history plot saved to models\st\layer_16_st_history.png
+2025-04-17 17:03:20,312 - __main__ - INFO - ST model for layer 16 saved to models\st\layer_16_st.pt
+2025-04-17 17:03:20,314 - __main__ - INFO - 
+==================================================
+2025-04-17 17:03:20,314 - __main__ - INFO - TRAINING COMPLETE
+2025-04-17 17:03:20,314 - __main__ - INFO - ==================================================
+2025-04-17 17:03:20,314 - __main__ - INFO - Total time: 0:07:27
+2025-04-17 17:03:20,314 - __main__ - INFO - Successful models: 1/1
+2025-04-17 17:03:20,315 - __main__ - INFO - Failed models: 0/1
+2025-04-17 17:03:20,315 - __main__ - INFO - 
+Trained models:
+2025-04-17 17:03:20,315 - __main__ - INFO - 
+ST models:
+2025-04-17 17:03:20,315 - __main__ - INFO -   models\st\layer_16_st.pt
+2025-04-17 17:03:20,315 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-17 17:03:20,316 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-1.3B --decomposition st --st_model_path models/st --layers 16 --visualize
+2025-04-17 17:03:20,316 - __main__ - INFO - ==================================================
+2025-04-17 17:04:55,801 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 17:04:55,801 - __main__ - INFO - Training models for layers: [16]
+2025-04-17 17:04:55,801 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 17:04:55,805 - __main__ - INFO - Loaded 5 texts
+2025-04-17 17:04:55,822 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 17:04:59,315 - __main__ - INFO - Model has 24 layers
+2025-04-17 17:04:59,315 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 17:05:01,266 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-17 17:05:01,266 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 17:05:01,266 - __main__ - INFO - Prepared 1 training tasks
+2025-04-17 17:05:01,266 - __main__ - INFO - 
+==================================================
+2025-04-17 17:05:01,266 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-17 17:05:01,266 - __main__ - INFO - ==================================================
+2025-04-17 17:05:01,266 - __main__ - INFO - Model: EleutherAI/gpt-neo-1.3B
+2025-04-17 17:05:01,266 - __main__ - INFO - Layers: [16]
+2025-04-17 17:05:01,270 - __main__ - INFO - Decomposition: st
+2025-04-17 17:05:01,270 - __main__ - INFO - Feature dimension: 4096
+2025-04-17 17:05:01,270 - __main__ - INFO - Attention dimension: Auto-calculated to match SAE params
+2025-04-17 17:05:01,270 - __main__ - INFO - Attention function: softmax
+2025-04-17 17:05:01,270 - __main__ - INFO - Use memory bank: False
+2025-04-17 17:05:01,270 - __main__ - INFO - Use old ST: False
+2025-04-17 17:05:01,270 - __main__ - INFO - Mixed precision: True
+2025-04-17 17:05:01,270 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-17 17:05:01,270 - __main__ - INFO - L1 lambda: 5.0
+2025-04-17 17:05:01,270 - __main__ - INFO - Auto steps: Enabled (base: 200000, min: 5000, max: 1000000)
+2025-04-17 17:05:01,270 - __main__ - INFO - Batch size: 128
+2025-04-17 17:05:01,270 - __main__ - INFO - Learning rate: 5e-05
+2025-04-17 17:05:01,270 - __main__ - INFO - ==================================================
+
+2025-04-17 17:05:01,270 - __main__ - INFO - Training models sequentially
+2025-04-17 17:05:01,274 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1366
+2025-04-17 17:05:01,275 - __main__ - INFO - Auto-calculated optimal steps: 84852 (was: 5000)
+2025-04-17 17:05:01,340 - __main__ - INFO - Creating ST model with dims: 2048 -> 4096, attention dim: 1366
+2025-04-17 17:05:01,340 - __main__ - INFO - Using regular ST implementation
+2025-04-17 17:05:01,542 - SparseTransformer_2680047259376 - INFO - Using direct K-V matrices approach
+2025-04-17 17:05:01,542 - SparseTransformer_2680047259376 - INFO - Using activation function: none
+2025-04-17 17:05:01,542 - SparseTransformer_2680047259376 - INFO - Using attention function: softmax

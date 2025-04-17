@@ -475,13 +475,26 @@ class ModelTrainer:
             }
         
         return hidden_states, group_ids, input_texts_token_lengths, input_text
-    
+    #
     def train_model_for_layer(self, layer_idx: int, activations: np.ndarray, 
                             model_type: str = 'sae', output_dir: str = 'models', 
                             feature_dim: int = None, attention_dim: int = None,
                             lambda_l1: float = 1.0, batch_size: int = 256,
                             learning_rate: float = 1e-4, target_steps: int = 5000,
-                            force_retrain: bool = False):
+                            force_retrain: bool = False,
+                            # New parameters
+                            use_mixed_precision: bool = False,
+                            grad_accum_steps: int = 1,
+                            eval_freq: int = None,
+                            attention_fn: str = 'softmax',
+                            use_memory_bank: bool = False,
+                            use_old_st: bool = False,
+                            activation_threshold: float = 1e-3,
+                            auto_steps: bool = False,
+                            auto_steps_base: int = 200000,
+                            auto_steps_min: int = 5000,
+                            auto_steps_max: int = 1000000,
+                            auto_attention_dim: bool = False):
         """
         Train a decomposition model (SAE or ST) for a specific layer's activations.
         
@@ -497,6 +510,17 @@ class ModelTrainer:
             learning_rate: Learning rate
             target_steps: Number of training steps
             force_retrain: Whether to retrain existing models
+            use_mixed_precision: Enable mixed precision training for ST model
+            grad_accum_steps: Number of gradient accumulation steps
+            eval_freq: Evaluation frequency during training
+            attention_fn: Function to use for attention score processing
+            use_memory_bank: Use memory bank approach instead of direct K-V matrices
+            use_old_st: Use the original ST implementation
+            activation_threshold: Threshold for feature activation
+            auto_steps: Automatically calculate optimal training steps
+            auto_steps_base: Base steps for auto calculation
+            auto_steps_min: Minimum steps for auto calculation
+            auto_steps_max: Maximum steps for auto calculation
             
         Returns:
             Path to the saved model
@@ -511,9 +535,19 @@ class ModelTrainer:
         
         # For ST models, calculate attention dimension if not specified
         if model_type == 'st' and attention_dim is None:
-            # Use a calculation that gives balanced parameter count with SAE
-            attention_dim = max(20, hidden_dim // 8)
-            logger.info(f"Using default attention dimension: {attention_dim}")
+            # Check if we should auto-calculate the attention dimension
+            if 'auto_attention_dim' in locals() and auto_attention_dim:
+                # Calculate attention dimension to match SAE parameter count
+                attention_dim = calculate_attention_dim_for_equal_params(
+                    n=hidden_dim, 
+                    m=feature_dim,
+                    use_direct_kv=not use_memory_bank
+                )
+                logger.info(f"Auto-calculated attention dimension to match SAE params: {attention_dim}")
+            else:
+                # Use a simple heuristic
+                attention_dim = max(20, hidden_dim // 8)
+                logger.info(f"Using default attention dimension: {attention_dim}")
         
         # Create model directory structure compatible with analyze_gptneo.py
         # Format: {output_dir}/{decomp_type}/layer_{layer_idx}_{decomp_type}.pt
@@ -528,6 +562,19 @@ class ModelTrainer:
         if os.path.exists(model_path) and not force_retrain:
             logger.info(f"Model already exists at {model_path}. Skipping training.")
             return model_path
+        
+        # Calculate optimal steps if auto_steps is enabled
+        if auto_steps:
+            original_target_steps = target_steps
+            target_steps = calculate_optimal_training_steps(
+                feature_dimension=feature_dim,
+                input_dimension=hidden_dim,
+                model_type=model_type,
+                base_steps=auto_steps_base,
+                min_steps=auto_steps_min,
+                max_steps=auto_steps_max
+            )
+            logger.info(f"Auto-calculated optimal steps: {target_steps} (was: {original_target_steps})")
         
         # Convert to PyTorch tensor
         activation_tensor = torch.from_numpy(activations).float().to(self.device)
@@ -547,7 +594,8 @@ class ModelTrainer:
                     m=feature_dim,
                     lambda_l1=lambda_l1,
                     device=self.device,
-                    sae_model_path=model_path  # Pass model path to constructor
+                    sae_model_path=model_path,  # Pass model path to constructor
+                    activation='relu'  # SAE typically uses ReLU activation
                 )
                 
                 # Train the model
@@ -584,29 +632,73 @@ class ModelTrainer:
                 # Save model
                 model.save(model_path)
                 logger.info(f"Simplified SAE model for layer {layer_idx} saved to {model_path}")
-            
+                
         elif model_type == 'st':
             if DECOMP_AVAILABLE:
                 logger.info(f"Creating ST model with dims: {hidden_dim} -> {feature_dim}, attention dim: {attention_dim}")
-                # Use the original implementation if available
-                model = SparseTransformer(
-                    X=activation_tensor,
-                    n=hidden_dim,
-                    m=feature_dim,
-                    a=attention_dim,
-                    lambda_l1=lambda_l1,
-                    device=self.device,
-                    st_model_path=model_path  # **CRITICAL FIX**: Pass model path to constructor
-                )
+                # Check if we need to decide between ST and ST_old
+                if use_old_st:
+                    try:
+                        # Import ST_old only if needed
+                        import ST_old
+                        logger.info("Using original ST implementation (ST_old)")
+                        
+                        # Create ST_old model
+                        model = ST_old.SparseTransformer(
+                            X=activation_tensor,
+                            n=hidden_dim,
+                            m=feature_dim,
+                            a=attention_dim,
+                            lambda_l1=lambda_l1,
+                            device=self.device,
+                            st_model_path=model_path,
+                            activation_threshold=activation_threshold,
+                            use_direct_kv=not use_memory_bank,
+                            attention_fn=attention_fn
+                        )
+                    except ImportError:
+                        logger.warning("ST_old not found, falling back to default ST")
+                        use_old_st = False
                 
-                # Train the model
-                model.train_and_validate(
-                    train_tensor,
-                    val_tensor,
-                    learning_rate=learning_rate,
-                    batch_size=batch_size,
-                    target_steps=target_steps
-                )
+                # If not using old ST or import failed, use the regular ST
+                if not use_old_st:
+                    # Use the original implementation
+                    logger.info("Using regular ST implementation")
+                    model = SparseTransformer(
+                        X=activation_tensor,
+                        n=hidden_dim,
+                        m=feature_dim,
+                        a=attention_dim,
+                        lambda_l1=lambda_l1,
+                        device=self.device,
+                        st_model_path=model_path,
+                        use_mixed_precision=use_mixed_precision,
+                        use_direct_kv=not use_memory_bank,
+                        attention_fn=attention_fn,
+                        activation_threshold=activation_threshold
+                    )
+                
+                # Train the model with appropriate parameters
+                if use_old_st:
+                    # Old ST has simpler interface
+                    model.train_and_validate(
+                        train_tensor,
+                        val_tensor,
+                        learning_rate=learning_rate,
+                        batch_size=batch_size,
+                        target_steps=target_steps
+                    )
+                else:
+                    # New ST has more parameters
+                    model.train_and_validate(
+                        train_tensor,
+                        val_tensor,
+                        learning_rate=learning_rate,
+                        batch_size=batch_size,
+                        target_steps=target_steps,
+                        grad_accum_steps=grad_accum_steps,
+                        eval_freq=eval_freq
+                    )
                 
                 # The model should be automatically saved by train_and_validate
                 logger.info(f"ST model for layer {layer_idx} saved to {model_path}")
@@ -686,6 +778,8 @@ def parse_args():
                       help='Feature dimension for decomposition (default: input_dim/4)')
     parser.add_argument('--attention_dim', type=int, default=None,
                       help='Attention dimension for ST models')
+    parser.add_argument('--auto_attention_dim', action='store_true',
+                      help='Automatically calculate attention dimension to match SAE parameter count')
     parser.add_argument('--l1_lambda', type=float, default=1.0,
                       help='L1 regularization strength')
     
@@ -698,6 +792,38 @@ def parse_args():
                       help='Target number of training steps')
     parser.add_argument('--force_retrain', action='store_true',
                       help='Force retraining even if models already exist')
+    
+    # NEW: ST-specific parameters
+    st_group = parser.add_argument_group('ST Model Configuration')
+    st_group.add_argument('--use_mixed_precision', action='store_true',
+                      help='Enable mixed precision training for ST model')
+    st_group.add_argument('--grad_accum_steps', type=int, default=1,
+                      help='Number of gradient accumulation steps for ST model')
+    st_group.add_argument('--eval_freq', type=int, default=None,
+                      help='Evaluation frequency during training (steps)')
+    st_group.add_argument('--attention_fn', type=str, default='softmax',
+                      choices=['softmax', 'sparsemax', 'normalized_activation', 'direct_activation', 
+                              'relu_softmax', 'softmax_hard', 'softmax_soft',
+                              'length_scaled_softmax', 'softmax_with_bias', 'polynomial_attention', 
+                              'adaptive_sparse', 'relu_attention', 'tanh_scale_shift'],
+                      help='Function to use for processing attention scores (ST models only)')
+    st_group.add_argument('--use_memory_bank', action='store_true',
+                      help='Use memory bank approach instead of direct K-V matrices')
+    st_group.add_argument('--use_old_st', action='store_true',
+                      help='Use the original ST implementation (ST_old.py) if available')
+    st_group.add_argument('--activation_threshold', type=float, default=1e-3,
+                      help='Activation threshold for ST feature tracking')
+    
+    # NEW: Auto-steps parameters
+    auto_steps_group = parser.add_argument_group('Auto Steps Configuration')
+    auto_steps_group.add_argument('--auto_steps', action='store_true',
+                             help='Automatically determine optimal number of training steps based on feature dimension')
+    auto_steps_group.add_argument('--auto_steps_base', type=int, default=200000,
+                             help='Base number of steps for auto-steps calculation (default: 200000)')
+    auto_steps_group.add_argument('--auto_steps_min', type=int, default=5000,
+                             help='Minimum number of steps for auto-steps calculation (default: 5000)')
+    auto_steps_group.add_argument('--auto_steps_max', type=int, default=1000000,
+                             help='Maximum number of steps for auto-steps calculation (default: 1000000)')
     
     # Input texts
     parser.add_argument('--text_file', type=str, default=None,
@@ -718,7 +844,6 @@ def parse_args():
     args = parser.parse_args()
     
     return args
-
 def generate_sample_texts(n=100):
     """Generate diverse sample texts for training"""
     # Different text types
@@ -848,6 +973,47 @@ def calculate_optimal_training_steps(
         optimal_steps = min(optimal_steps, max_steps)
     
     return optimal_steps
+def calculate_attention_dim_for_equal_params(n, m, use_direct_kv=False):
+    """
+    Calculate attention dimension 'a' that would make ST and SAE have equal parameters,
+    considering both memory bank and direct KV approaches.
+    
+    For equal parameters with direct KV approach:
+    SAE: (2*n*m + m + n)
+    ST direct KV: a*(n + 1 + m) + m*n
+    
+    For equal parameters with memory bank approach:
+    SAE: (2*n*m + m + n)
+    ST memory bank: a*(2*n + 2) + n*(n + 1)
+    
+    Args:
+        n: Input dimension
+        m: Feature dimension
+        use_direct_kv: Whether using direct KV or memory bank approach
+        
+    Returns:
+        a: Attention dimension that makes parameter counts approximately equal
+    """
+    # SAE parameter count: 2*m*n + m + n
+    sae_params = 2*m*n + m + n
+    
+    if use_direct_kv:
+        # Direct KV parameter count: a*(n + 1 + m) + m*n
+        # Solve for a:
+        # a*(n + 1 + m) = sae_params - m*n
+        # a = (sae_params - m*n) / (n + 1 + m)
+        a = (sae_params - m*n) / (n + 1 + m)
+    else:
+        # Memory bank parameter count: a*(2*n + 2) + n*(n + 1)
+        # Solve for a:
+        # a*(2*n + 2) = sae_params - n*(n + 1)
+        # a = (sae_params - n*(n + 1)) / (2*n + 2)
+        a = (sae_params - n*(n + 1)) / (2*n + 2)
+    
+    # Ensure a doesn't become too small or negative
+    a = max(1, int(a))
+    
+    return a
 def main():
     """Main function for model training"""
     args = parse_args()
@@ -918,7 +1084,12 @@ def main():
                     'batch_size': args.batch_size,
                     'learning_rate': args.learning_rate,
                     'target_steps': args.target_steps,
-                    'force_retrain': args.force_retrain
+                    'force_retrain': args.force_retrain,
+                    # Including new parameters for completeness
+                    'auto_steps': args.auto_steps,
+                    'auto_steps_base': args.auto_steps_base,
+                    'auto_steps_min': args.auto_steps_min,
+                    'auto_steps_max': args.auto_steps_max
                 })
             
             # Add ST task
@@ -934,15 +1105,55 @@ def main():
                     'batch_size': args.batch_size,
                     'learning_rate': args.learning_rate,
                     'target_steps': args.target_steps,
-                    'force_retrain': args.force_retrain
+                    'force_retrain': args.force_retrain,
+                    # New ST-specific parameters
+                    'use_mixed_precision': args.use_mixed_precision,
+                    'grad_accum_steps': args.grad_accum_steps,
+                    'eval_freq': args.eval_freq,
+                    'attention_fn': args.attention_fn,
+                    'use_memory_bank': args.use_memory_bank,
+                    'use_old_st': args.use_old_st,
+                    'activation_threshold': args.activation_threshold,
+                    'auto_steps': args.auto_steps,
+                    'auto_steps_base': args.auto_steps_base,
+                    'auto_steps_min': args.auto_steps_min,
+                    'auto_steps_max': args.auto_steps_max,
+                    'auto_attention_dim': args.auto_attention_dim
                 })
     
     logger.info(f"Prepared {len(tasks)} training tasks")
     
+    # Display training configuration summary
+    logger.info("\n" + "="*50)
+    logger.info("TRAINING CONFIGURATION")
+    logger.info("="*50)
+    logger.info(f"Model: {args.model}")
+    logger.info(f"Layers: {layer_indices}")
+    logger.info(f"Decomposition: {args.decomposition}")
+    logger.info(f"Feature dimension: {args.feature_dim}")
+    if args.decomposition in ['st', 'both']:
+        if args.auto_attention_dim:
+            logger.info(f"Attention dimension: Auto-calculated to match SAE params")
+        else:
+            logger.info(f"Attention dimension: {args.attention_dim}")
+        logger.info(f"Attention function: {args.attention_fn}")
+        logger.info(f"Use memory bank: {args.use_memory_bank}")
+        logger.info(f"Use old ST: {args.use_old_st}")
+        logger.info(f"Mixed precision: {args.use_mixed_precision}")
+        logger.info(f"Gradient accumulation steps: {args.grad_accum_steps}")
+    logger.info(f"L1 lambda: {args.l1_lambda}")
+    if args.auto_steps:
+        logger.info(f"Auto steps: Enabled (base: {args.auto_steps_base}, min: {args.auto_steps_min}, max: {args.auto_steps_max})")
+    else:
+        logger.info(f"Target steps: {args.target_steps}")
+    logger.info(f"Batch size: {args.batch_size}")
+    logger.info(f"Learning rate: {args.learning_rate}")
+    logger.info("="*50 + "\n")
+    
     # Train models
     results = []
     
-    # Sequential training (parallel is disabled for this fixed version to simplify debugging)
+    # Sequential training (parallel is disabled for this version to simplify debugging)
     logger.info("Training models sequentially")
     for task in tqdm(tasks, desc="Training models"):
         try:
@@ -988,13 +1199,26 @@ def main():
     
     # Print usage instructions for analyze_gptneo.py
     logger.info("\nTo use these models with analyze_gptneo.py, run:")
-    if args.decomposition == 'sae':
-        logger.info(f"python analyze_gptneo.py --model {args.model} --decomposition sae --sae_model_path {args.output_dir}/sae --visualize")
-    elif args.decomposition == 'st':
-        logger.info(f"python analyze_gptneo.py --model {args.model} --decomposition st --st_model_path {args.output_dir}/st --visualize")
-    else:
-        logger.info(f"python analyze_gptneo.py --model {args.model} --decomposition both --sae_model_path {args.output_dir}/sae --st_model_path {args.output_dir}/st --visualize")
     
+    # Build command with appropriate parameters
+    cmd = f"python analyze_gptneo.py --model {args.model}"
+    
+    # Add decomposition type
+    if args.decomposition == 'sae':
+        cmd += f" --decomposition sae --sae_model_path {args.output_dir}/sae"
+    elif args.decomposition == 'st':
+        cmd += f" --decomposition st --st_model_path {args.output_dir}/st"
+    else:
+        cmd += f" --decomposition both --sae_model_path {args.output_dir}/sae --st_model_path {args.output_dir}/st"
+    
+    # Add layers if specified
+    if layer_indices:
+        cmd += f" --layers {','.join(map(str, layer_indices))}"
+    
+    # Add visualization flag
+    cmd += " --visualize"
+    
+    logger.info(cmd)
     logger.info("="*50)
 
 if __name__ == "__main__":
