@@ -1,0 +1,202 @@
+2025-04-17 16:07:03,167 - __main__ - INFO - Training models for layers: [8, 9, 10, 11, 12, 13, 14, 15, 16]
+2025-04-17 16:07:03,167 - __main__ - INFO - Generated 100 sample texts
+2025-04-17 16:07:03,190 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:07:11,765 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:07:11,766 - __main__ - INFO - Extracting hidden states for 100 texts...
+2025-04-17 16:08:02,587 - __main__ - INFO - Training models for layers: [8, 9, 10, 11, 12, 13, 14, 15, 16]
+2025-04-17 16:08:02,587 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:08:02,589 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:08:02,608 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:08:07,428 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:08:07,428 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:08:09,656 - __main__ - INFO - Extracted hidden states from 9 layers
+2025-04-17 16:08:09,656 - __main__ - INFO -   layer_8: shape (1918, 2048)
+2025-04-17 16:08:09,656 - __main__ - INFO -   layer_9: shape (1918, 2048)
+2025-04-17 16:08:09,656 - __main__ - INFO -   layer_10: shape (1918, 2048)
+2025-04-17 16:08:09,657 - __main__ - INFO -   layer_11: shape (1918, 2048)
+2025-04-17 16:08:09,657 - __main__ - INFO -   layer_12: shape (1918, 2048)
+2025-04-17 16:08:09,657 - __main__ - INFO -   layer_13: shape (1918, 2048)
+2025-04-17 16:08:09,657 - __main__ - INFO -   layer_14: shape (1918, 2048)
+2025-04-17 16:08:09,657 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-17 16:08:09,657 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:08:09,658 - __main__ - INFO - Prepared 9 training tasks
+2025-04-17 16:08:09,658 - __main__ - INFO - Training models sequentially
+2025-04-17 16:08:09,661 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,661 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,727 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,727 - __main__ - ERROR - Error training st model for layer 8: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,727 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,727 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,799 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,800 - __main__ - ERROR - Error training st model for layer 9: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,800 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,801 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,833 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,834 - __main__ - ERROR - Error training st model for layer 10: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,834 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,834 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,838 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,839 - __main__ - ERROR - Error training st model for layer 11: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,839 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,839 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,844 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,844 - __main__ - ERROR - Error training st model for layer 12: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,844 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,845 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,850 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,850 - __main__ - ERROR - Error training st model for layer 13: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,851 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,851 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,856 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,856 - __main__ - ERROR - Error training st model for layer 14: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,856 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,856 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,861 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,861 - __main__ - ERROR - Error training st model for layer 15: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,862 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:08:09,862 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:08:09,867 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:08:09,867 - __main__ - ERROR - Error training st model for layer 16: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:08:09,867 - __main__ - INFO - 
+==================================================
+2025-04-17 16:08:09,868 - __main__ - INFO - TRAINING COMPLETE
+2025-04-17 16:08:09,868 - __main__ - INFO - ==================================================
+2025-04-17 16:08:09,868 - __main__ - INFO - Total time: 0:00:07
+2025-04-17 16:08:09,868 - __main__ - INFO - Successful models: 0/9
+2025-04-17 16:08:09,868 - __main__ - INFO - Failed models: 9/9
+2025-04-17 16:08:09,868 - __main__ - INFO - 
+Trained models:
+2025-04-17 16:08:09,868 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-17 16:08:09,868 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-1.3B --decomposition st --st_model_path models/st --visualize
+2025-04-17 16:08:09,869 - __main__ - INFO - ==================================================
+2025-04-17 16:09:39,967 - __main__ - INFO - Training models for layers: [8, 9, 10, 11, 12, 13, 14, 15, 16]
+2025-04-17 16:09:39,968 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:09:39,968 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:09:39,990 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:09:44,482 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:09:44,483 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:09:46,702 - __main__ - INFO - Extracted hidden states from 9 layers
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_8: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_9: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_10: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_11: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_12: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_13: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_14: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-17 16:09:46,702 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:09:46,704 - __main__ - INFO - Prepared 9 training tasks
+2025-04-17 16:09:46,704 - __main__ - INFO - Training models sequentially
+2025-04-17 16:09:46,706 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,706 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,767 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,767 - __main__ - ERROR - Error training st model for layer 8: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,767 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,768 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,828 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,828 - __main__ - ERROR - Error training st model for layer 9: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,829 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,829 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,864 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,865 - __main__ - ERROR - Error training st model for layer 10: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,865 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,865 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,871 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,871 - __main__ - ERROR - Error training st model for layer 11: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,871 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,871 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,877 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,877 - __main__ - ERROR - Error training st model for layer 12: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,877 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,877 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,882 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,882 - __main__ - ERROR - Error training st model for layer 13: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,883 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,883 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,888 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,889 - __main__ - ERROR - Error training st model for layer 14: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,889 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,889 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,894 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,894 - __main__ - ERROR - Error training st model for layer 15: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,895 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:09:46,895 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:09:46,900 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:09:46,900 - __main__ - ERROR - Error training st model for layer 16: SparseTransformer.__init__() missing 1 required positional argument: 'st_model_path'
+2025-04-17 16:09:46,901 - __main__ - INFO - 
+==================================================
+2025-04-17 16:09:46,901 - __main__ - INFO - TRAINING COMPLETE
+2025-04-17 16:09:46,901 - __main__ - INFO - ==================================================
+2025-04-17 16:09:46,901 - __main__ - INFO - Total time: 0:00:06
+2025-04-17 16:09:46,901 - __main__ - INFO - Successful models: 0/9
+2025-04-17 16:09:46,901 - __main__ - INFO - Failed models: 9/9
+2025-04-17 16:09:46,901 - __main__ - INFO - 
+Trained models:
+2025-04-17 16:09:46,902 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-17 16:09:46,902 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-1.3B --decomposition st --st_model_path models/st --visualize
+2025-04-17 16:09:46,902 - __main__ - INFO - ==================================================
+2025-04-17 16:13:47,478 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:13:47,481 - __main__ - INFO - Training models for layers: [8, 9, 10, 11, 12, 13, 14, 15, 16]
+2025-04-17 16:13:47,481 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:13:47,482 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:13:47,507 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:13:52,716 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:13:52,716 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:13:54,924 - __main__ - INFO - Extracted hidden states from 9 layers
+2025-04-17 16:13:54,924 - __main__ - INFO -   layer_8: shape (1918, 2048)
+2025-04-17 16:13:54,924 - __main__ - INFO -   layer_9: shape (1918, 2048)
+2025-04-17 16:13:54,924 - __main__ - INFO -   layer_10: shape (1918, 2048)
+2025-04-17 16:13:54,924 - __main__ - INFO -   layer_11: shape (1918, 2048)
+2025-04-17 16:13:54,924 - __main__ - INFO -   layer_12: shape (1918, 2048)
+2025-04-17 16:13:54,924 - __main__ - INFO -   layer_13: shape (1918, 2048)
+2025-04-17 16:13:54,925 - __main__ - INFO -   layer_14: shape (1918, 2048)
+2025-04-17 16:13:54,925 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-17 16:13:54,925 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:13:54,926 - __main__ - INFO - Prepared 9 training tasks
+2025-04-17 16:13:54,926 - __main__ - INFO - Training models sequentially
+2025-04-17 16:13:54,928 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:13:54,928 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:13:54,990 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:13:55,092 - SparseTransformer_2373775421280 - INFO - Using direct K-V matrices approach
+2025-04-17 16:13:55,093 - SparseTransformer_2373775421280 - INFO - Using activation function: none
+2025-04-17 16:13:55,093 - SparseTransformer_2373775421280 - INFO - Using attention function: softmax
+2025-04-17 16:15:46,421 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-17 16:15:46,422 - __main__ - INFO - Training models for layers: [16]
+2025-04-17 16:15:46,423 - __main__ - INFO - Loading texts from text.txt
+2025-04-17 16:15:46,423 - __main__ - INFO - Loaded 5 texts
+2025-04-17 16:15:46,444 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-1.3B' (type: gpt-neo) on cuda...
+2025-04-17 16:15:50,620 - __main__ - INFO - Model has 24 layers
+2025-04-17 16:15:50,621 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-17 16:15:52,598 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-17 16:15:52,598 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-17 16:15:52,599 - __main__ - INFO - Prepared 1 training tasks
+2025-04-17 16:15:52,599 - __main__ - INFO - Training models sequentially
+2025-04-17 16:15:52,600 - __main__ - INFO - Using default feature dimension: 512
+2025-04-17 16:15:52,600 - __main__ - INFO - Using default attention dimension: 256
+2025-04-17 16:15:52,666 - __main__ - INFO - Creating ST model with dims: 2048 -> 512, attention dim: 256
+2025-04-17 16:15:52,763 - SparseTransformer_2989535525776 - INFO - Using direct K-V matrices approach
+2025-04-17 16:15:52,763 - SparseTransformer_2989535525776 - INFO - Using activation function: none
+2025-04-17 16:15:52,763 - SparseTransformer_2989535525776 - INFO - Using attention function: softmax
+2025-04-17 16:30:48,973 - SparseTransformer_2989535525776 - INFO - Final model saved to models\st\layer_16_st.pt
+2025-04-17 16:30:50,752 - SparseTransformer_2989535525776 - INFO - Training history plot saved to models\st\layer_16_st_history.png
+2025-04-17 16:30:50,753 - SparseTransformer_2989535525776 - INFO - Training history plot saved to models\st\layer_16_st_history.png
+2025-04-17 16:30:50,753 - __main__ - INFO - ST model for layer 16 saved to models\st\layer_16_st.pt
+2025-04-17 16:30:50,754 - __main__ - INFO - 
+==================================================
+2025-04-17 16:30:50,755 - __main__ - INFO - TRAINING COMPLETE
+2025-04-17 16:30:50,755 - __main__ - INFO - ==================================================
+2025-04-17 16:30:50,755 - __main__ - INFO - Total time: 0:15:04
+2025-04-17 16:30:50,755 - __main__ - INFO - Successful models: 1/1
+2025-04-17 16:30:50,755 - __main__ - INFO - Failed models: 0/1
+2025-04-17 16:30:50,755 - __main__ - INFO - 
+Trained models:
+2025-04-17 16:30:50,756 - __main__ - INFO - 
+ST models:
+2025-04-17 16:30:50,756 - __main__ - INFO -   models\st\layer_16_st.pt
+2025-04-17 16:30:50,756 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-17 16:30:50,756 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-1.3B --decomposition st --st_model_path models/st --visualize
+2025-04-17 16:30:50,756 - __main__ - INFO - ==================================================
+2025-04-17 16:40:20,417 - __main__ - INFO - Using original SAE and ST implementations

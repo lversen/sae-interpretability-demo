@@ -31,6 +31,222 @@ DATASET_CONFIGS = {
         "feature_column": [str(i) for i in range(784)],
         "label_column": "label",
         "input_dimension": 784,
+    "gptneo_gpt_neo_1.3B_layer8": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer8_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer8_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    "gptneo_gpt_neo_1.3B_layer8": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer8_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer8_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    "gptneo_gpt_neo_1.3B_layer8": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer8_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer8_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer9": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer9_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer9_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer10": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer10_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer10_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer11": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer11_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer11_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer12": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer12_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer12_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer13": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer13_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer13_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer14": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer14_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer14_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer15": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer15_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer15_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer16": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer16_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer16_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    },
+    "gptneo_gpt_neo_1.3B_layer9": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer9_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer9_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer10": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer10_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer10_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer11": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer11_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer11_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer12": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer12_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer12_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer13": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer13_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer13_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer14": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer14_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer14_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer15": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer15_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer15_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer16": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer16_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer16_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    },
+    "gptneo_gpt_neo_1.3B_layer9": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer9_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer9_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer10": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer10_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer10_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer11": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer11_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer11_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer12": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer12_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer12_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer13": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer13_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer13_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer14": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer14_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer14_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer15": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer15_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer15_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
+    "gptneo_gpt_neo_1.3B_layer16": {
+        "train_dataset": "data\gptneo_gpt_neo_1.3B_layer16_train.csv",
+        "val_dataset": "data\gptneo_gpt_neo_1.3B_layer16_val.csv",
+        "data_type": "vector",
+        "feature_column": [str(i) for i in range(2048)],
+        "label_column": "label",
+        "input_dimension": 2048,
+    },
     },
     "fashion_mnist": {
         "train_dataset": "data/fashion_mnist_train.csv",
@@ -229,17 +445,6 @@ def parse_args():
                         help='Column containing labels (overrides dataset config)')
     dataset_group.add_argument('--input_dimension', type=int, default=None,
                         help='Input dimension (n) (overrides dataset config)')
-<<<<<<< HEAD
-    # Add argument for custom features file
-    dataset_group.add_argument('--custom_features_file', type=str, default=None,
-                        help='Path to pre-extracted features file (.npz or .pt) for custom dataset')
-    # Add arguments for split GPT Neo files
-    dataset_group.add_argument('--custom_train_file', type=str, default=None,
-                        help='Path to pre-extracted training features file (.npz or .pt) for custom dataset')
-    dataset_group.add_argument('--custom_val_file', type=str, default=None,
-                        help='Path to pre-extracted validation features file (.npz or .pt) for custom dataset')
-=======
->>>>>>> parent of 466e95f (checkpoint)
     
     # Embedding model selection for text data
     embedding_group = parser.add_argument_group('Embedding Model Configuration')
@@ -572,274 +777,6 @@ def direct_vector_feature_extraction(df: pd.DataFrame, full_df: pd.DataFrame = N
     feature_matrix = df[feature_columns].values if feature_columns else df[content_column].values
     return feature_matrix.astype(np.float32)
 
-<<<<<<< HEAD
-def custom_feature_extraction(df: pd.DataFrame, full_df: pd.DataFrame = None, 
-                            model: str = None, n: int = None,
-                            dataset_name: str = None, content_column: str = None,
-                            feature_columns: list = None, force_new_embeddings: bool = False,
-                            custom_features_file: str = None, custom_train_file: str = None, 
-                            custom_val_file: str = None, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Extract features from pre-extracted GPT Neo files with support for text-based train/val splits.
-    
-    Args:
-        df: DataFrame containing the data (not used for custom features)
-        full_df: Full DataFrame (not used for custom features)
-        model: Model name (not used for custom features)
-        n: Input dimension (not used for custom features)
-        dataset_name: Dataset name (not used for custom features)
-        content_column: Content column name (not used for custom features)
-        feature_columns: Feature column names (not used for custom features)
-        force_new_embeddings: Force recomputation of embeddings (not used for custom features)
-        custom_features_file: Path to pre-extracted features file (.npz or .pt)
-        custom_train_file: Path to training features from text-based split (optional)
-        custom_val_file: Path to validation features from text-based split (optional)
-        
-    Returns:
-        Tuple of (train_features, val_features) as numpy arrays
-    """
-    # Check if separate train/val files are provided
-    if custom_train_file and custom_val_file and os.path.exists(custom_train_file) and os.path.exists(custom_val_file):
-        print(f"Loading train features from: {custom_train_file}")
-        print(f"Loading validation features from: {custom_val_file}")
-        
-        # Load train features
-        try:
-            if custom_train_file.endswith('.npz'):
-                train_data = np.load(custom_train_file, allow_pickle=True)
-                train_features = train_data['features']
-            elif custom_train_file.endswith('.pt'):
-                train_data = torch.load(custom_train_file, map_location='cpu')
-                train_features = train_data['features']
-                if isinstance(train_features, torch.Tensor):
-                    train_features = train_features.cpu().numpy()
-            
-            # Load val features
-            if custom_val_file.endswith('.npz'):
-                val_data = np.load(custom_val_file, allow_pickle=True)
-                val_features = val_data['features']
-            elif custom_val_file.endswith('.pt'):
-                val_data = torch.load(custom_val_file, map_location='cpu')
-                val_features = val_data['features']
-                if isinstance(val_features, torch.Tensor):
-                    val_features = val_features.cpu().numpy()
-            
-            # Update df with token group information if available
-            if df is not None:
-                # Create train dataframe
-                train_df_size = train_features.shape[0]
-                df_train = pd.DataFrame({'dummy': range(train_df_size)})
-                
-                # Add token groups for train
-                if 'token_to_text_map' in train_data:
-                    if isinstance(train_data['token_to_text_map'], np.ndarray):
-                        df_train['token_group'] = train_data['token_to_text_map']
-                    elif isinstance(train_data, dict) and 'token_to_text_map' in train_data:
-                        token_map = train_data['token_to_text_map']
-                        if isinstance(token_map, torch.Tensor):
-                            token_map = token_map.cpu().numpy()
-                        df_train['token_group'] = token_map
-                
-                # Create val dataframe
-                val_df_size = val_features.shape[0]
-                df_val = pd.DataFrame({'dummy': range(val_df_size)})
-                
-                # Add token groups for val
-                if isinstance(val_data, dict) and 'token_to_text_map' in val_data:
-                    token_map = val_data['token_to_text_map']
-                    if isinstance(token_map, torch.Tensor):
-                        token_map = token_map.cpu().numpy()
-                    df_val['token_group'] = token_map
-                
-                # Combine them for the caller (assuming caller expects joint dataframe)
-                # But track the split point to separate them later
-                split_point = train_df_size
-                df_combined = pd.concat([df_train, df_val]).reset_index(drop=True)
-                
-                # Replace df with our combined dataframe
-                for col in df_combined.columns:
-                    if col not in df.columns:
-                        df[col] = None
-                    df[col] = df_combined[col]
-            
-            print(f"Successfully loaded split features - Train: {train_features.shape}, Val: {val_features.shape}")
-            
-            # Return both feature sets instead of just combined
-            return train_features, val_features
-        
-        except Exception as e:
-            print(f"Error loading split features: {e}")
-            print("Falling back to combined features file.")
-            # Fall through to combined file loading
-    
-    # For backward compatibility or if split files don't exist, use combined file
-    if custom_features_file is None:
-        raise ValueError("custom_features_file must be provided for custom data type")
-    
-    print(f"Loading combined features from: {custom_features_file}")
-    
-    # Check if features are preprocessed
-    is_prep, prep_method = is_preprocessed(custom_features_file)
-    if is_prep:
-        print(f"Detected preprocessed features with method: {prep_method}")
-    else:
-        print("Loading raw (unprocessed) features")
-    
-    # Load features from combined file
-    try:
-        if custom_features_file.endswith('.npz'):
-            # Load NPZ file
-            loaded_data = np.load(custom_features_file, allow_pickle=True)
-            if 'features' in loaded_data:
-                features = loaded_data['features']
-                # Check if we need to reshape
-                if len(features.shape) > 2:
-                    print(f"Reshaping features from {features.shape} to 2D")
-                    features = features.reshape(features.shape[0], -1)
-            else:
-                # Try to find the first array in the file
-                for key in loaded_data:
-                    if isinstance(loaded_data[key], np.ndarray) and len(loaded_data[key].shape) >= 2:
-                        features = loaded_data[key]
-                        # Reshape if needed
-                        if len(features.shape) > 2:
-                            features = features.reshape(features.shape[0], -1)
-                        print(f"Using array '{key}' as features from NPZ file")
-                        break
-                else:
-                    raise ValueError(f"Could not find features array in NPZ file: {custom_features_file}")
-        elif custom_features_file.endswith('.pt'):
-            # Load PyTorch file
-            loaded_data = torch.load(custom_features_file, map_location='cpu')
-            if isinstance(loaded_data, dict) and 'features' in loaded_data:
-                features = loaded_data['features']
-                # Convert to numpy if it's a tensor
-                if isinstance(features, torch.Tensor):
-                    features = features.cpu().numpy()
-                # Check if we need to reshape
-                if len(features.shape) > 2:
-                    print(f"Reshaping features from {features.shape} to 2D")
-                    features = features.reshape(features.shape[0], -1)
-            else:
-                raise ValueError(f"Could not find 'features' in PT file: {custom_features_file}")
-        else:
-            # Try to infer file type from content for files without proper extension
-            try:
-                # First try to load as NPZ
-                loaded_data = np.load(custom_features_file, allow_pickle=True)
-                print(f"Loaded file as NPZ despite extension: {custom_features_file}")
-                if 'features' in loaded_data:
-                    features = loaded_data['features']
-                else:
-                    # Look for arrays
-                    for key in loaded_data:
-                        if isinstance(loaded_data[key], np.ndarray) and len(loaded_data[key].shape) >= 2:
-                            features = loaded_data[key]
-                            print(f"Using array '{key}' as features")
-                            break
-                    else:
-                        raise ValueError(f"No suitable arrays found in file")
-            except:
-                # Try as PyTorch file
-                try:
-                    loaded_data = torch.load(custom_features_file, map_location='cpu')
-                    print(f"Loaded file as PT despite extension: {custom_features_file}")
-                    if isinstance(loaded_data, dict) and 'features' in loaded_data:
-                        features = loaded_data['features']
-                        if isinstance(features, torch.Tensor):
-                            features = features.cpu().numpy()
-                    else:
-                        raise ValueError(f"Could not find 'features' in file")
-                except:
-                    raise ValueError(f"Unknown file format for custom features file: {custom_features_file}")
-        
-        # Ensure features is a 2D array
-        if len(features.shape) > 2:
-            print(f"Reshaping features from {features.shape} to 2D")
-            features = features.reshape(features.shape[0], -1)
-        elif len(features.shape) < 2:
-            print(f"Features array has wrong dimensionality: {features.shape}")
-            raise ValueError(f"Features must be a 2D array, got shape {features.shape}")
-            
-        print(f"Loaded features with shape: {features.shape}")
-        
-        # Add token_to_text_map to dataframe if available
-        token_to_text_map = None
-        if custom_features_file.endswith('.npz') and 'token_to_text_map' in loaded_data:
-            token_to_text_map = loaded_data['token_to_text_map']
-            print(f"Found token_to_text_map with shape: {token_to_text_map.shape}")
-        elif custom_features_file.endswith('.pt') and isinstance(loaded_data, dict) and 'token_to_text_map' in loaded_data:
-            token_to_text_map = loaded_data['token_to_text_map']
-            if isinstance(token_to_text_map, torch.Tensor):
-                token_to_text_map = token_to_text_map.cpu().numpy()
-            print(f"Found token_to_text_map with shape: {token_to_text_map.shape}")
-        
-        if token_to_text_map is not None and df is not None:
-            # Adjust the dataframe size to match features if needed
-            if len(df) != features.shape[0]:
-                print(f"Adjusting dataframe size from {len(df)} to {features.shape[0]} to match features")
-                df = pd.DataFrame({'dummy': range(features.shape[0])})
-            
-            print("Adding token_to_text_map as a label column in dataframe")
-            df['token_group'] = token_to_text_map
-        
-        # Check if file contains train/val split indices
-        train_indices = None
-        val_indices = None
-        
-        if custom_features_file.endswith('.npz'):
-            if 'train_indices' in loaded_data:
-                train_indices = loaded_data['train_indices']
-                print(f"Found train indices with shape: {train_indices.shape}")
-            if 'val_indices' in loaded_data:
-                val_indices = loaded_data['val_indices']
-                print(f"Found validation indices with shape: {val_indices.shape}")
-        elif custom_features_file.endswith('.pt') and isinstance(loaded_data, dict):
-            if 'train_indices' in loaded_data:
-                train_indices = loaded_data['train_indices']
-                if isinstance(train_indices, torch.Tensor):
-                    train_indices = train_indices.cpu().numpy()
-                print(f"Found train indices with shape: {train_indices.shape}")
-            if 'val_indices' in loaded_data:
-                val_indices = loaded_data['val_indices']
-                if isinstance(val_indices, torch.Tensor):
-                    val_indices = val_indices.cpu().numpy()
-                print(f"Found validation indices with shape: {val_indices.shape}")
-        
-        # Split features if indices are available
-        if train_indices is not None and val_indices is not None:
-            train_features = features[train_indices]
-            val_features = features[val_indices]
-            print(f"Split features using provided indices - Train: {train_features.shape}, Val: {val_features.shape}")
-            return train_features, val_features
-        
-        # If no split information is available, do a simple 80/20 split
-        print("No pre-defined split found. Using default 80/20 train/val split")
-        train_size = int(0.8 * features.shape[0])
-        
-        train_features = features[:train_size]
-        val_features = features[train_size:]
-        
-        print(f"Default split - Train: {train_features.shape}, Val: {val_features.shape}")
-        return train_features, val_features
-        
-    except Exception as e:
-        print(f"Error loading features from {custom_features_file}: {e}")
-        print("Using a default random feature matrix")
-        # Return a dummy feature matrix (1000 samples, 1024 features)
-        import numpy as np
-        features = np.random.randn(1000, 1024).astype(np.float32)
-        print(f"Created dummy feature matrix with shape {features.shape}")
-        
-        # Split for train/val
-        train_size = int(0.8 * features.shape[0])
-        train_features = features[:train_size]
-        val_features = features[train_size:]
-        
-        return train_features, val_features
-
-=======
->>>>>>> parent of 466e95f (checkpoint)
 def train_and_evaluate_decision_tree(X, y, test_size=0.2, random_state=42):
     """Train and evaluate a decision tree classifier"""
     X_train, X_test, y_train, y_test = train_test_split(
@@ -934,38 +871,6 @@ def main():
     print("CONFIGURATION SUMMARY")
     print("="*50)
     print(f"Dataset: {args.dataset}")
-<<<<<<< HEAD
-    
-    # Handle special case for custom dataset (GPT Neo)
-    is_gptneo = (args.dataset == 'custom' and args.custom_features_file and 
-                'gptneo' in args.custom_features_file.lower())
-    
-    if is_gptneo:
-        print(f"GPT Neo features file: {args.custom_features_file}")
-        
-        # Check for split files
-        if args.custom_train_file and args.custom_val_file:
-            print(f"GPT Neo train file: {args.custom_train_file}")
-            print(f"GPT Neo val file: {args.custom_val_file}")
-            print("Using text-based train/val split")
-        
-        # Try to extract layer info
-        import re
-        layer_match = re.search(r'layer(\d+)_features', args.custom_features_file)
-        if layer_match:
-            print(f"GPT Neo layer: {layer_match.group(1)}")
-        print(f"  Data Type: {args.data_type}")
-    else:
-        print(f"  Train: {args.train_dataset} (n={args.n_train})")
-        print(f"  Val: {args.val_dataset} (n={args.n_val})")
-        print(f"  Data Type: {args.data_type}")
-        if args.data_type == 'text':
-            print(f"  Embedding Model: {args.embedding_model} ({args.embedding_model_path})")
-        if args.data_type == 'custom':
-            print(f"  Custom Features File: {args.custom_features_file}")
-        print(f"  Feature Column(s): {args.feature_column}")
-        print(f"  Label Column: {args.label_column}")
-=======
     print(f"  Train: {args.train_dataset} (n={args.n_train})")
     print(f"  Val: {args.val_dataset} (n={args.n_val})")
     print(f"  Data Type: {args.data_type}")
@@ -976,7 +881,6 @@ def main():
     print(f"Model: {args.model_type.upper()}")
     print(f"  Input Dimension (n): {args.input_dimension}")
     print(f"  Feature Dimension (m): {args.feature_dimension or 100}")
->>>>>>> parent of 466e95f (checkpoint)
     
     # Set device
     if args.device:
@@ -984,49 +888,6 @@ def main():
     else:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
-<<<<<<< HEAD
-    
-    # For custom datasets (like GPT Neo), we need to load features first to determine input dimension
-    if args.data_type == 'custom' and args.custom_features_file:
-        print(f"Loading custom features to determine dimensions...")
-        # Get feature extraction function for custom data
-        feature_extraction_fn = get_feature_extraction_fn(args.data_type)
-        
-        # Create a temporary dataframe for feature extraction
-        temp_df = pd.DataFrame({'dummy': range(100)})
-        
-        # Extract features to determine dimensions
-        try:
-            # Check if separate train/val files are available
-            if args.custom_train_file and args.custom_val_file and \
-               os.path.exists(args.custom_train_file) and os.path.exists(args.custom_val_file):
-                train_feature_extract, val_feature_extract = feature_extraction_fn(
-                    temp_df, 
-                    custom_features_file=args.custom_features_file,
-                    custom_train_file=args.custom_train_file,
-                    custom_val_file=args.custom_val_file
-                )
-            else:
-                train_feature_extract, val_feature_extract = feature_extraction_fn(
-                    temp_df, 
-                    custom_features_file=args.custom_features_file
-                )
-            
-            # Determine input dimension from features
-            n = train_feature_extract.shape[1]  # Set input dimension from features
-            print(f"Detected input dimension from features: n={n}")
-            args.input_dimension = n
-        except Exception as e:
-            print(f"Error loading custom features to determine dimensions: {e}")
-            print("Using default input dimension of 1024")
-            n = 1024
-            args.input_dimension = n
-    else:
-        # Use specified input dimension for standard datasets
-        n = args.input_dimension
-        
-=======
->>>>>>> parent of 466e95f (checkpoint)
     # Setup feature dimensions
     n = args.input_dimension
     m = args.feature_dimension if args.feature_dimension else 100
@@ -1122,181 +983,6 @@ def main():
         'force_retrain': args.force_retrain,
     }
     
-<<<<<<< HEAD
-    # Load datasets or custom features based on data type
-    # For custom datasets (like GPT Neo), we need to load features first to determine input dimension
-    if args.data_type == 'custom' and args.custom_features_file:
-        print(f"Loading custom features to determine dimensions...")
-        # Get feature extraction function for custom data
-        feature_extraction_fn = get_feature_extraction_fn(args.data_type)
-        
-        # Create a temporary dataframe for feature extraction
-        temp_df = pd.DataFrame({'dummy': range(100)})
-        
-        # Extract features to determine dimensions
-        try:
-            # Check if separate train/val files are available
-            if args.custom_train_file and args.custom_val_file and \
-               os.path.exists(args.custom_train_file) and os.path.exists(args.custom_val_file):
-                train_feature_extract, val_feature_extract = feature_extraction_fn(
-                    temp_df, 
-                    custom_features_file=args.custom_features_file,
-                    custom_train_file=args.custom_train_file,
-                    custom_val_file=args.custom_val_file
-                )
-            else:
-                train_feature_extract, val_feature_extract = feature_extraction_fn(
-                    temp_df, 
-                    custom_features_file=args.custom_features_file
-                )
-            
-            # Determine input dimension from features
-            n = train_feature_extract.shape[1]  # Set input dimension from features
-            print(f"Detected input dimension from features: n={n}")
-            args.input_dimension = n
-        except Exception as e:
-            print(f"Error loading custom features to determine dimensions: {e}")
-            print("Using default input dimension of 1024")
-            n = 1024
-            args.input_dimension = n
-    else:
-        # Use specified input dimension for standard datasets
-        n = args.input_dimension
-
-    # The rest of the main function...
-    
-    # Load datasets or custom features based on data type
-    if args.data_type == 'custom':
-        print(f"Using custom data type with features file: {args.custom_features_file}")
-        
-        # For custom data type, we'll create dummy dataframes and extract features directly from the file
-        train_df = pd.DataFrame({'dummy': range(100)})  # Will be populated later
-        val_df = pd.DataFrame({'dummy': range(20)})     # Will be populated later
-        
-        # Get feature extraction function for custom data
-        feature_extraction_fn = get_feature_extraction_fn(args.data_type)
-        
-        # Extract features from custom file
-        print(f"Extracting features from custom file...")
-        try:
-            # Check if separate train/val files are available
-            if args.custom_train_file and args.custom_val_file and \
-               os.path.exists(args.custom_train_file) and os.path.exists(args.custom_val_file):
-                train_feature_extract, val_feature_extract = feature_extraction_fn(
-                    train_df, 
-                    custom_features_file=args.custom_features_file,
-                    custom_train_file=args.custom_train_file,
-                    custom_val_file=args.custom_val_file
-                )
-            else:
-                train_feature_extract, val_feature_extract = feature_extraction_fn(
-                    train_df, 
-                    custom_features_file=args.custom_features_file
-                )
-            
-            # Determine input dimension from features
-            if n is None or n != train_feature_extract.shape[1]:
-                print(f"Setting input dimension to {train_feature_extract.shape[1]} based on loaded features")
-                n = train_feature_extract.shape[1]
-                args.input_dimension = n
-            
-            print(f"Feature matrix shapes - Train: {train_feature_extract.shape}, Val: {val_feature_extract.shape}")
-            
-            # Create proper train and val dataframes with the right number of rows
-            train_df = pd.DataFrame({'dummy': range(len(train_feature_extract))})
-            val_df = pd.DataFrame({'dummy': range(len(val_feature_extract))})
-            
-            # Handle token groups
-            if 'token_group' in train_df.columns:
-                print("Using token groups for model evaluation")
-                # Also transfer token groups to validation dataframe
-                if 'token_group' not in val_df.columns:
-                    try:
-                        val_df['token_group'] = train_df['token_group'].iloc[:len(val_df)]
-                    except:
-                        print("Could not transfer token groups to validation dataframe")
-                        
-        except Exception as e:
-            print(f"Error processing custom features: {e}")
-            print("Creating fallback feature matrices for training")
-            
-            # Create fallback feature matrices with correct dimensions
-            train_size = 800
-            val_size = 200
-            feature_dim = n if n is not None else 1024
-            
-            print(f"Using fallback dimensions - n={feature_dim}, train={train_size}, val={val_size}")
-            
-            train_feature_extract = np.random.randn(train_size, feature_dim).astype(np.float32)
-            val_feature_extract = np.random.randn(val_size, feature_dim).astype(np.float32)
-            
-            # Create dummy dataframes
-            train_df = pd.DataFrame({'dummy': range(train_size)})
-            val_df = pd.DataFrame({'dummy': range(val_size)})
-            
-            # Set input dimension if not already set
-            if n is None:
-                n = feature_dim
-                args.input_dimension = n
-            
-        # Set train and val sample dataframes (same as original for custom data)
-        train_sample_df = train_df
-        val_sample_df = val_df
-    else:
-        # Regular dataset loading for non-custom data types
-        try:
-            print(f"Loading datasets: {args.train_dataset}, {args.val_dataset}")
-            train_df = pd.read_csv(args.train_dataset)
-            val_df = pd.read_csv(args.val_dataset)
-            
-            print(f"Train dataset shape: {train_df.shape}")
-            print(f"Validation dataset shape: {val_df.shape}")
-        except Exception as e:
-            print(f"Error loading datasets: {e}")
-            print("Please check that the dataset files exist and are valid CSV files.")
-            return
-        
-        # Get feature extraction function
-        feature_extraction_fn = get_feature_extraction_fn(args.data_type)
-        
-        # Get consistent samples
-        print(f"Getting consistent samples for training and validation")
-        train_sample_df, train_indices = get_consistent_samples(
-            train_df, args.n_train, f"{os.path.basename(args.train_dataset)}_train", args.model_id)
-        val_sample_df, val_indices = get_consistent_samples(
-            val_df, args.n_val, f"{os.path.basename(args.val_dataset)}_val", args.model_id)
-        
-        # Extract features
-        print(f"Extracting features...")
-        if args.data_type == 'text':
-            print(f"Using embedding model: {args.embedding_model_path}")
-            train_feature_extract = feature_extraction_fn(
-                train_sample_df, train_df, args.embedding_model_path, len(train_sample_df),
-                f"{os.path.basename(args.train_dataset)}_train", args.feature_column[0] if isinstance(args.feature_column, list) else args.feature_column,
-                force_new_embeddings=args.force_reembedding
-            )
-            val_feature_extract = feature_extraction_fn(
-                val_sample_df, val_df, args.embedding_model_path, len(val_sample_df),
-                f"{os.path.basename(args.val_dataset)}_val", args.feature_column[0] if isinstance(args.feature_column, list) else args.feature_column,
-                force_new_embeddings=args.force_reembedding
-            )
-        else:
-            train_feature_extract = feature_extraction_fn(
-                train_sample_df, train_df, 
-                feature_columns=args.feature_column if isinstance(args.feature_column, list) else [args.feature_column]
-            )
-            val_feature_extract = feature_extraction_fn(
-                val_sample_df, val_df, 
-                feature_columns=args.feature_column if isinstance(args.feature_column, list) else [args.feature_column]
-            )
-        
-        print(f"Feature matrix shapes - Train: {train_feature_extract.shape}, Val: {val_feature_extract.shape}")
-        
-        # Update input dimension if needed based on actual feature dimensionality
-        if train_feature_extract.shape[1] != n:
-            print(f"Input dimension updated from {n} to {train_feature_extract.shape[1]} based on extracted features")
-            n = train_feature_extract.shape[1]
-=======
     # Load datasets
     try:
         print(f"Loading datasets: {args.train_dataset}, {args.val_dataset}")
@@ -1309,7 +995,6 @@ def main():
         print(f"Error loading datasets: {e}")
         print("Please check that the dataset files exist and are valid CSV files.")
         return
->>>>>>> parent of 466e95f (checkpoint)
     
     # Get feature extraction function
     feature_extraction_fn = get_feature_extraction_fn(args.data_type)

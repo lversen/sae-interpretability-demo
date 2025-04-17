@@ -91,43 +91,6 @@ def parse_args():
                       help='Number of parallel training jobs to run')
     return parser.parse_args()
 
-<<<<<<< HEAD
-def get_available_gptneo_layers(features_dir):
-    """Get all available GPT Neo layers from extracted features directory"""
-    if not os.path.exists(features_dir):
-        print(f"Warning: GPT Neo features directory {features_dir} not found")
-        return []
-        
-    # Look for both combined and split files
-    layer_patterns = [
-        os.path.join(features_dir, "layer*_features.np*"),  # Combined features
-        os.path.join(features_dir, "layer*_train_features.np*"),  # Train features
-        os.path.join(features_dir, "layer*_val_features.np*")  # Val features
-    ]
-    
-    all_layer_files = []
-    for pattern in layer_patterns:
-        all_layer_files.extend(glob.glob(pattern))
-    
-    if not all_layer_files:
-        print(f"Warning: No GPT Neo feature files found in {features_dir}")
-        return []
-    
-    # Extract layer numbers from filenames
-    # Formats: layer{NUMBER}_features.npz, layer{NUMBER}_train_features.npz, or layer{NUMBER}_val_features.npz
-    layer_nums = []
-    for file_path in all_layer_files:
-        file_name = os.path.basename(file_path)
-        match = re.match(r"layer(\d+)_(?:features|train_features|val_features)\.", file_name)
-        if match:
-            layer_nums.append(int(match.group(1)))
-    
-    # Sort and return unique layer numbers
-    return sorted(set(layer_nums))
-
-
-=======
->>>>>>> parent of 466e95f (checkpoint)
 def get_steps_version_of_path(path):
     """
     Check if a file exists with 'steps' instead of 'autosteps' in the path
@@ -719,60 +682,6 @@ def run_training(combination, args, idx, total, run_idx=0, base_run_index=0):
         "--model_id", model_id,
     ]
     
-<<<<<<< HEAD
-    # Handle dataset - special case for GPT Neo
-    if combination['dataset'] == 'gptneo':
-        cmd.extend(["--dataset", "custom"])  # Use custom dataset in main.py
-        
-        # Add path to GPT Neo features
-        layer_num = combination['gptneo_layer']
-        
-        # Find all available files for this layer
-        combined_file, train_file, val_file = find_layer_files(args.gptneo_features_dir, layer_num)
-        
-        # Check if split files exist
-        if train_file and val_file:
-            print(f"Using text-based split files for layer {layer_num}:")
-            print(f"  Train: {train_file}")
-            print(f"  Val: {val_file}")
-            
-            # Combined file is still needed for backward compatibility
-            if combined_file:
-                cmd.extend([
-                    "--custom_features_file", combined_file,
-                    "--custom_train_file", train_file,
-                    "--custom_val_file", val_file
-                ])
-            else:
-                # If no combined file, use train file as main file
-                cmd.extend([
-                    "--custom_features_file", train_file, 
-                    "--custom_train_file", train_file,
-                    "--custom_val_file", val_file
-                ])
-        elif combined_file:
-            # Fall back to combined file
-            cmd.extend(["--custom_features_file", combined_file])
-            print(f"Using combined features file: {combined_file}")
-        else:
-            # No files found
-            print(f"Error: No GPT Neo features found for layer {layer_num}")
-            return {
-                'model_id': model_id,
-                'returncode': 1,
-                'combination': combination,
-                'error': f"No features found for layer {layer_num}",
-                'skipped': False,
-                'sae_path': sae_path,
-                'st_path': st_path,
-                'run_index': actual_run_index
-            }
-    else:
-        # For regular datasets
-        cmd.extend(["--dataset", combination['dataset']])
-    
-=======
->>>>>>> parent of 466e95f (checkpoint)
     # Add model-specific parameters based on model type
     if combination['model_type'] in ['st', 'both']:
         # For ST models: add attention function and set activation to "none"
@@ -1028,57 +937,6 @@ def create_summary(results, args):
     
     print(f"\nSummary written to {summary_path}")
     return summary_path
-<<<<<<< HEAD
-
-def check_gptneo_features(args):
-    """Check if the required GPT Neo features are available"""
-    if 'gptneo' not in args.datasets:
-        return True  # Not using GPT Neo features, so no check needed
-    
-    if not args.gptneo_features_dir or not os.path.exists(args.gptneo_features_dir):
-        print(f"Error: GPT Neo features directory '{args.gptneo_features_dir}' not found")
-        print("Please extract features first using extract_gptneo_features.py")
-        return False
-    
-    # Get available layers
-    available_layers = get_available_gptneo_layers(args.gptneo_features_dir)
-    if not available_layers:
-        print(f"Error: No GPT Neo feature files found in {args.gptneo_features_dir}")
-        print("Please extract features first using extract_gptneo_features.py")
-        return False
-    
-    # Check if requested layers exist
-    if args.gptneo_layers:
-        for layer in args.gptneo_layers:
-            if layer not in available_layers:
-                print(f"Warning: Requested GPT Neo layer {layer} not found in {args.gptneo_features_dir}")
-                print(f"Available layers: {available_layers}")
-        
-        # Check if any requested layers are available
-        if not any(layer in available_layers for layer in args.gptneo_layers):
-            print(f"Error: None of the requested GPT Neo layers {args.gptneo_layers} are available")
-            print(f"Available layers: {available_layers}")
-            return False
-    
-    # Print details about available layers
-    print(f"Found GPT Neo features for layers: {available_layers}")
-    
-    # Check if we have text-based split files
-    split_layers = []
-    for layer in available_layers:
-        _, train_file, val_file = find_layer_files(args.gptneo_features_dir, layer)
-        if train_file and val_file:
-            split_layers.append(layer)
-    
-    if split_layers:
-        print(f"Found text-based train/val splits for layers: {split_layers}")
-    else:
-        print("No text-based train/val splits found. Using default 80/20 sequential split.")
-    
-    return True
-
-=======
->>>>>>> parent of 466e95f (checkpoint)
 def main():
     """Main function with parallelization"""
     args = parse_args()

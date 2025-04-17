@@ -773,66 +773,126 @@ class ModelAnalyzer:
         # Store layer graphs for latent analysis
         self.layer_graphs = {}
     
-    def process_texts(self, texts, layer_indices=None):
-        """
-        Process multiple texts and extract all hidden states.
-        Uses reason.ipynb approach: concatenate all texts with a space,
-        and use cumulative sums to track token positions.
-        
-        Args:
-            texts: List of texts to analyze
-            layer_indices: List of layer indices to extract (defaults to all layers)
-            
-        Returns:
-            Tuple of (hidden_states, token_to_text_map, input_texts_token_lengths, input_text)
-        """
-        # Concatenate all texts with a space, exactly like reason.ipynb
-        input_text = " ".join(texts)
-        
-        # Tokenize and get token lengths for each paragraph
-        input_texts_token_lengths = [
-            len(self.tokenizer.encode(paragraph))
-            for paragraph in texts
-        ]
-        print("Token lengths per paragraph:", input_texts_token_lengths)
-        
-        # Calculate cumulative sums for tracking token positions
-        cumulative_lengths = np.cumsum(input_texts_token_lengths)
-        print("Cumulative sums:", cumulative_lengths)
-        
-        # Encode the entire text at once
-        inputs = self.tokenizer(input_text, return_tensors="pt").to(self.device)
-        
-        # Run the model with output_hidden_states=True to get all layer states
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        
-        # Extract all hidden states
-        all_hidden_states = outputs.hidden_states
-        
-        # Get total sequence length
-        seq_len = all_hidden_states[0].size(1)
-        token_indices = np.arange(seq_len)
-        
-        # Assign text group IDs to tokens using searchsorted (exact match to reason.ipynb)
-        group_ids = np.searchsorted(cumulative_lengths, token_indices, side="right")
-        
-        # Filter hidden states if layer_indices is specified
-        if layer_indices is not None:
-            # Filter to only include requested layers
-            hidden_states = {
-                f"layer_{i}": all_hidden_states[i].cpu().squeeze().numpy()
-                for i in layer_indices if i < len(all_hidden_states)
-            }
-        else:
-            # Include all layers
-            hidden_states = {
-                f"layer_{i}": all_hidden_states[i].cpu().squeeze().numpy()
-                for i in range(len(all_hidden_states))
-            }
-        
-        return hidden_states, group_ids, input_texts_token_lengths, input_text
     
+    def visualize_activations(self, activations, title="", plot_type="umap", token_to_text_map=None, texts=None, output_path=None):
+        """
+        Visualize activations using UMAP
+        """
+        try:
+            import umap
+            import matplotlib.pyplot as plt
+            import os
+            
+            # Reduce dimensionality with UMAP
+            reducer = umap.UMAP(
+                n_neighbors=15,
+                min_dist=0.1,
+                n_components=2,
+                metric='euclidean',
+                random_state=42
+            )
+            
+            # Fit and transform
+            embedding = reducer.fit_transform(activations)
+            
+            # Create plot
+            plt.figure(figsize=(10, 8))
+            
+            # Color points by text group if available
+            if token_to_text_map is not None:
+                # Get unique groups
+                unique_groups = sorted(set(token_to_text_map))
+                colors = plt.cm.rainbow(np.linspace(0, 1, len(unique_groups)))
+                
+                # Plot each group with a different color
+                for i, group in enumerate(unique_groups):
+                    mask = token_to_text_map == group
+                    plt.scatter(
+                        embedding[mask, 0],
+                        embedding[mask, 1],
+                        c=[colors[i]],
+                        label=f"Text {group+1}" if texts else f"Group {group+1}",
+                        alpha=0.7
+                    )
+                plt.legend()
+            else:
+                # No groups, use single color
+                plt.scatter(embedding[:, 0], embedding[:, 1], alpha=0.7)
+            
+            plt.title(title)
+            plt.tight_layout()
+            
+            # Save if output path is provided
+            if output_path:
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                plt.savefig(output_path, dpi=150, bbox_inches='tight')
+                print(f"Visualization saved to {output_path}")
+            
+            # Display if requested
+            plt.close()
+            
+        except Exception as e:
+            print(f"Error during visualization: {e}")
+    def process_texts(self, texts, layer_indices=None):
+            """
+            Process multiple texts and extract all hidden states.
+            Uses reason.ipynb approach: concatenate all texts with a space,
+            and use cumulative sums to track token positions.
+            
+            Args:
+                texts: List of texts to analyze
+                layer_indices: List of layer indices to extract (defaults to all layers)
+                
+            Returns:
+                Tuple of (hidden_states, token_to_text_map, input_texts_token_lengths, input_text)
+            """
+            # Concatenate all texts with a space, exactly like reason.ipynb
+            input_text = " ".join(texts)
+            
+            # Tokenize and get token lengths for each paragraph
+            input_texts_token_lengths = [
+                len(self.tokenizer.encode(paragraph))
+                for paragraph in texts
+            ]
+            print("Token lengths per paragraph:", input_texts_token_lengths)
+            
+            # Calculate cumulative sums for tracking token positions
+            cumulative_lengths = np.cumsum(input_texts_token_lengths)
+            print("Cumulative sums:", cumulative_lengths)
+            
+            # Encode the entire text at once
+            inputs = self.tokenizer(input_text, return_tensors="pt").to(self.device)
+            
+            # Run the model with output_hidden_states=True to get all layer states
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+            
+            # Extract all hidden states
+            all_hidden_states = outputs.hidden_states
+            
+            # Get total sequence length
+            seq_len = all_hidden_states[0].size(1)
+            token_indices = np.arange(seq_len)
+            
+            # Assign text group IDs to tokens using searchsorted (exact match to reason.ipynb)
+            group_ids = np.searchsorted(cumulative_lengths, token_indices, side="right")
+            
+            # Filter hidden states if layer_indices is specified
+            if layer_indices is not None:
+                # Filter to only include requested layers
+                hidden_states = {
+                    f"layer_{i}": all_hidden_states[i].cpu().squeeze().numpy()
+                    for i in layer_indices if i < len(all_hidden_states)
+                }
+            else:
+                # Include all layers
+                hidden_states = {
+                    f"layer_{i}": all_hidden_states[i].cpu().squeeze().numpy()
+                    for i in range(len(all_hidden_states))
+                }
+            
+            return hidden_states, group_ids, input_texts_token_lengths, input_text
+        
     def get_model_path_for_layer(self, layer_name, decomp_type, model_base_path, model_pattern=None):
         """
         Get the appropriate model path for a given layer and decomposition type
