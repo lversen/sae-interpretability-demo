@@ -689,3 +689,1323 @@ TROUBLESHOOTING SUGGESTIONS:
 2025-04-22 12:42:34,390 - SparseTransformer_2549514787856 - INFO - Using direct K-V matrices approach
 2025-04-22 12:42:34,390 - SparseTransformer_2549514787856 - INFO - Using activation function: none
 2025-04-22 12:42:34,390 - SparseTransformer_2549514787856 - INFO - Using attention function: softmax
+2025-04-22 14:54:45,058 - SparseTransformer_2549514787856 - INFO - Checkpoint saved at step 50000
+2025-04-22 16:14:26,002 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-22 16:14:59,690 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-22 16:14:59,691 - __main__ - INFO - Training models for layers: [12, 13, 14, 15, 16]
+2025-04-22 16:14:59,691 - __main__ - INFO - Loading texts from text.txt
+2025-04-22 16:14:59,691 - __main__ - INFO - Loaded 5 texts
+2025-04-22 16:14:59,704 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-22 16:14:59,704 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-22 16:14:59,780 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-22 16:15:01,319 - __main__ - INFO - Model has 24 layers
+2025-04-22 16:15:01,319 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-22 16:15:01,955 - __main__ - INFO - Extracted hidden states from 5 layers
+2025-04-22 16:15:01,955 - __main__ - INFO -   layer_12: shape (1918, 2048)
+2025-04-22 16:15:01,956 - __main__ - INFO -   layer_13: shape (1918, 2048)
+2025-04-22 16:15:01,956 - __main__ - INFO -   layer_14: shape (1918, 2048)
+2025-04-22 16:15:01,956 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-22 16:15:01,956 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-22 16:15:01,956 - __main__ - INFO - Prepared 5 training tasks
+2025-04-22 16:15:01,956 - __main__ - INFO - 
+==================================================
+2025-04-22 16:15:01,956 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-22 16:15:01,956 - __main__ - INFO - ==================================================
+2025-04-22 16:15:01,956 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-22 16:15:01,956 - __main__ - INFO - Layers: [12, 13, 14, 15, 16]
+2025-04-22 16:15:01,956 - __main__ - INFO - Decomposition: st
+2025-04-22 16:15:01,957 - __main__ - INFO - Feature dimension: 8000
+2025-04-22 16:15:01,957 - __main__ - INFO - Attention dimension: Auto-calculated to match SAE params
+2025-04-22 16:15:01,957 - __main__ - INFO - Attention function: softmax
+2025-04-22 16:15:01,957 - __main__ - INFO - Use memory bank: False
+2025-04-22 16:15:01,957 - __main__ - INFO - Use old ST: False
+2025-04-22 16:15:01,957 - __main__ - INFO - Mixed precision: True
+2025-04-22 16:15:01,957 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-22 16:15:01,957 - __main__ - INFO - L1 lambda: 5.0
+2025-04-22 16:15:01,957 - __main__ - INFO - Target steps: 200000
+2025-04-22 16:15:01,957 - __main__ - INFO - Batch size: 128
+2025-04-22 16:15:01,957 - __main__ - INFO - Learning rate: 5e-05
+2025-04-22 16:15:01,957 - __main__ - INFO - ==================================================
+
+2025-04-22 16:15:01,957 - __main__ - INFO - Training models sequentially
+2025-04-22 16:15:01,958 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-22 16:15:01,996 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-22 16:15:01,996 - __main__ - INFO - Using regular ST implementation
+2025-04-22 16:15:02,158 - SparseTransformer_1499206725712 - INFO - Using direct K-V matrices approach
+2025-04-22 16:15:02,158 - SparseTransformer_1499206725712 - INFO - Using activation function: none
+2025-04-22 16:15:02,158 - SparseTransformer_1499206725712 - INFO - Using attention function: softmax
+2025-04-22 18:50:53,145 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-22 18:50:53,146 - __main__ - INFO - Training models for layers: [16]
+2025-04-22 18:50:53,146 - __main__ - INFO - Loading texts from text.txt
+2025-04-22 18:50:53,147 - __main__ - INFO - Loaded 5 texts
+2025-04-22 18:50:53,166 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-22 18:50:53,167 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-22 18:50:53,266 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-22 18:51:00,335 - __main__ - INFO - Model has 24 layers
+2025-04-22 18:51:00,335 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-22 18:51:01,377 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-22 18:51:01,377 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-22 18:51:01,377 - __main__ - INFO - Prepared 1 training tasks
+2025-04-22 18:51:01,377 - __main__ - INFO - 
+==================================================
+2025-04-22 18:51:01,377 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-22 18:51:01,377 - __main__ - INFO - ==================================================
+2025-04-22 18:51:01,377 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-22 18:51:01,378 - __main__ - INFO - Layers: [16]
+2025-04-22 18:51:01,378 - __main__ - INFO - Decomposition: st
+2025-04-22 18:51:01,378 - __main__ - INFO - Feature dimension: 8000
+2025-04-22 18:51:01,378 - __main__ - INFO - Attention dimension: Auto-calculated to match SAE params
+2025-04-22 18:51:01,378 - __main__ - INFO - Attention function: softmax
+2025-04-22 18:51:01,378 - __main__ - INFO - Use memory bank: False
+2025-04-22 18:51:01,378 - __main__ - INFO - Use old ST: False
+2025-04-22 18:51:01,378 - __main__ - INFO - Mixed precision: True
+2025-04-22 18:51:01,378 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-22 18:51:01,378 - __main__ - INFO - L1 lambda: 5.0
+2025-04-22 18:51:01,378 - __main__ - INFO - Target steps: 200000
+2025-04-22 18:51:01,378 - __main__ - INFO - Batch size: 128
+2025-04-22 18:51:01,379 - __main__ - INFO - Learning rate: 5e-05
+2025-04-22 18:51:01,379 - __main__ - INFO - ==================================================
+
+2025-04-22 18:51:01,379 - __main__ - INFO - Training models sequentially
+2025-04-22 18:51:01,379 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-22 18:51:01,416 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-22 18:51:01,416 - __main__ - INFO - Using regular ST implementation
+2025-04-22 18:51:01,639 - SparseTransformer_2804452025040 - INFO - Using direct K-V matrices approach
+2025-04-22 18:51:01,639 - SparseTransformer_2804452025040 - INFO - Using activation function: none
+2025-04-22 18:51:01,639 - SparseTransformer_2804452025040 - INFO - Using attention function: softmax
+2025-04-22 21:02:29,601 - SparseTransformer_2804452025040 - INFO - Checkpoint saved at step 50000
+2025-04-22 23:14:26,915 - SparseTransformer_2804452025040 - INFO - Checkpoint saved at step 100000
+2025-04-23 01:27:53,533 - SparseTransformer_2804452025040 - INFO - Checkpoint saved at step 150000
+2025-04-23 03:42:39,060 - SparseTransformer_2804452025040 - INFO - Final model saved to models\st\layer_16_st.pt
+2025-04-23 03:42:40,717 - SparseTransformer_2804452025040 - INFO - Training history plot saved to models\st\layer_16_st_history.png
+2025-04-23 03:42:40,717 - SparseTransformer_2804452025040 - INFO - Training history plot saved to models\st\layer_16_st_history.png
+2025-04-23 03:42:40,717 - __main__ - INFO - ST model for layer 16 saved to models\st\layer_16_st.pt
+2025-04-23 03:42:40,733 - __main__ - INFO - 
+==================================================
+2025-04-23 03:42:40,734 - __main__ - INFO - TRAINING COMPLETE
+2025-04-23 03:42:40,734 - __main__ - INFO - ==================================================
+2025-04-23 03:42:40,734 - __main__ - INFO - Total time: 8:51:47
+2025-04-23 03:42:40,734 - __main__ - INFO - Successful models: 1/1
+2025-04-23 03:42:40,734 - __main__ - INFO - Failed models: 0/1
+2025-04-23 03:42:40,734 - __main__ - INFO - 
+Trained models:
+2025-04-23 03:42:40,734 - __main__ - INFO - 
+ST models:
+2025-04-23 03:42:40,734 - __main__ - INFO -   models\st\layer_16_st.pt
+2025-04-23 03:42:40,734 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-23 03:42:40,734 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-125m --decomposition st --st_model_path models/st --layers 16 --visualize
+2025-04-23 03:42:40,734 - __main__ - INFO - ==================================================
+2025-04-23 10:25:08,663 - __main__ - WARNING - Original SAE or ST modules not found. Using simplified implementations.
+2025-04-23 10:25:08,666 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:25:08,666 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:25:08,666 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:25:08,683 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:25:08,683 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:25:08,818 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:25:10,591 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:25:10,591 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:25:11,265 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:25:11,266 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:25:11,266 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:25:11,266 - __main__ - INFO - 
+==================================================
+2025-04-23 10:25:11,266 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:25:11,266 - __main__ - INFO - ==================================================
+2025-04-23 10:25:11,266 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:25:11,266 - __main__ - INFO - Layers: [16]
+2025-04-23 10:25:11,266 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:25:11,267 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:25:11,267 - __main__ - INFO - L1 lambda: 5.0
+2025-04-23 10:25:11,267 - __main__ - INFO - Target steps: 200000
+2025-04-23 10:25:11,267 - __main__ - INFO - Batch size: 128
+2025-04-23 10:25:11,267 - __main__ - INFO - Learning rate: 5e-05
+2025-04-23 10:25:11,267 - __main__ - INFO - ==================================================
+
+2025-04-23 10:25:11,267 - __main__ - INFO - Training models sequentially
+2025-04-23 10:25:11,304 - __main__ - INFO - Creating simplified SAE model with dims: 2048 -> 8000
+2025-04-23 10:25:11,482 - __main__ - INFO - Training simplified SAE for 200000 steps...
+2025-04-23 10:29:06,731 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-23 10:29:06,732 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:29:06,732 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:29:06,732 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:29:06,745 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:29:06,746 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:29:06,826 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:29:08,608 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:29:08,608 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:29:09,246 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:29:09,246 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:29:09,246 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:29:09,246 - __main__ - INFO - 
+==================================================
+2025-04-23 10:29:09,246 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:29:09,247 - __main__ - INFO - ==================================================
+2025-04-23 10:29:09,247 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:29:09,247 - __main__ - INFO - Layers: [16]
+2025-04-23 10:29:09,247 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:29:09,247 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:29:09,247 - __main__ - INFO - L1 lambda: 5.0
+2025-04-23 10:29:09,247 - __main__ - INFO - Target steps: 200000
+2025-04-23 10:29:09,247 - __main__ - INFO - Batch size: 128
+2025-04-23 10:29:09,247 - __main__ - INFO - Learning rate: 5e-05
+2025-04-23 10:29:09,247 - __main__ - INFO - ==================================================
+
+2025-04-23 10:29:09,247 - __main__ - INFO - Training models sequentially
+2025-04-23 10:29:09,284 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:29:09,284 - EnhancedSAE_2656653163120 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:29:09,513 - EnhancedSAE_2656653163120 - INFO - Model weights initialized
+2025-04-23 10:29:09,523 - EnhancedSAE_2656653163120 - INFO - Model initialized on cuda
+2025-04-23 10:29:09,712 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 1043.7367)
+2025-04-23 10:29:10,595 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 792.1643)
+2025-04-23 10:29:11,073 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 612.7970)
+2025-04-23 10:29:11,599 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 502.2950)
+2025-04-23 10:29:12,092 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 437.1703)
+2025-04-23 10:29:12,592 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 399.3437)
+2025-04-23 10:29:13,087 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 370.9000)
+2025-04-23 10:29:13,581 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 348.2698)
+2025-04-23 10:29:14,085 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 324.6275)
+2025-04-23 10:29:14,579 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 300.7329)
+2025-04-23 10:29:15,084 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 279.8756)
+2025-04-23 10:29:15,604 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 259.7218)
+2025-04-23 10:29:16,129 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 238.6789)
+2025-04-23 10:29:16,656 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 219.9668)
+2025-04-23 10:29:17,180 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 204.1170)
+2025-04-23 10:29:17,731 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 190.4344)
+2025-04-23 10:29:18,259 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 178.3078)
+2025-04-23 10:29:18,796 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 167.1296)
+2025-04-23 10:29:19,319 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 156.8130)
+2025-04-23 10:29:19,853 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 146.5400)
+2025-04-23 10:29:20,381 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 136.6619)
+2025-04-23 10:29:20,933 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 127.4993)
+2025-04-23 10:29:21,465 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 120.6467)
+2025-04-23 10:29:21,990 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 117.5582)
+2025-04-23 10:29:22,518 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 116.1854)
+2025-04-23 10:29:23,056 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 115.6973)
+2025-04-23 10:29:23,585 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 114.2776)
+2025-04-23 10:29:24,671 - EnhancedSAE_2656653163120 - INFO - New best model saved (val_loss: 114.1685)
+2025-04-23 10:30:16,659 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-23 10:30:16,661 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:30:16,661 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:30:16,661 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:30:16,674 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:30:16,674 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:30:16,750 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:30:18,516 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:30:18,516 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:30:19,182 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:30:19,182 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:30:19,183 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:30:19,183 - __main__ - INFO - 
+==================================================
+2025-04-23 10:30:19,183 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:30:19,183 - __main__ - INFO - ==================================================
+2025-04-23 10:30:19,183 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:30:19,183 - __main__ - INFO - Layers: [16]
+2025-04-23 10:30:19,183 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:30:19,183 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:30:19,183 - __main__ - INFO - L1 lambda: 5.0
+2025-04-23 10:30:19,183 - __main__ - INFO - Target steps: 200000
+2025-04-23 10:30:19,184 - __main__ - INFO - Batch size: 128
+2025-04-23 10:30:19,184 - __main__ - INFO - Learning rate: 5e-05
+2025-04-23 10:30:19,184 - __main__ - INFO - ==================================================
+
+2025-04-23 10:30:19,184 - __main__ - INFO - Training models sequentially
+2025-04-23 10:30:19,218 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:30:19,218 - EnhancedSAE_1453389593824 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:30:19,417 - EnhancedSAE_1453389593824 - INFO - Model weights initialized
+2025-04-23 10:30:19,428 - EnhancedSAE_1453389593824 - INFO - Model initialized on cuda
+2025-04-23 10:30:19,658 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 1023.1097)
+2025-04-23 10:30:20,548 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 770.7204)
+2025-04-23 10:30:21,048 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 604.6952)
+2025-04-23 10:30:21,586 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 505.8596)
+2025-04-23 10:30:22,108 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 450.1761)
+2025-04-23 10:30:22,618 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 417.8067)
+2025-04-23 10:30:23,125 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 395.9494)
+2025-04-23 10:30:23,636 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 373.9042)
+2025-04-23 10:30:24,142 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 350.3647)
+2025-04-23 10:30:24,652 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 325.4473)
+2025-04-23 10:30:25,178 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 299.2341)
+2025-04-23 10:30:25,728 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 275.5556)
+2025-04-23 10:30:26,277 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 254.8988)
+2025-04-23 10:30:26,830 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 234.8356)
+2025-04-23 10:30:27,367 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 217.6141)
+2025-04-23 10:30:27,913 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 202.7761)
+2025-04-23 10:30:28,463 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 189.9373)
+2025-04-23 10:30:29,007 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 177.5171)
+2025-04-23 10:30:29,561 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 166.2083)
+2025-04-23 10:30:30,123 - EnhancedSAE_1453389593824 - INFO - New best model saved (val_loss: 155.7851)
+2025-04-23 10:30:56,951 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-23 10:30:56,952 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:30:56,952 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:30:56,952 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:30:56,964 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:30:56,964 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:30:57,043 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:30:58,720 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:30:58,720 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:30:59,382 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:30:59,383 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:30:59,383 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:30:59,383 - __main__ - INFO - 
+==================================================
+2025-04-23 10:30:59,383 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:30:59,383 - __main__ - INFO - ==================================================
+2025-04-23 10:30:59,383 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:30:59,383 - __main__ - INFO - Layers: [16]
+2025-04-23 10:30:59,383 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:30:59,384 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:30:59,384 - __main__ - INFO - L1 lambda: 5.0
+2025-04-23 10:30:59,384 - __main__ - INFO - Target steps: 200000
+2025-04-23 10:30:59,384 - __main__ - INFO - Batch size: 128
+2025-04-23 10:30:59,384 - __main__ - INFO - Learning rate: 5e-05
+2025-04-23 10:30:59,384 - __main__ - INFO - ==================================================
+
+2025-04-23 10:30:59,384 - __main__ - INFO - Training models sequentially
+2025-04-23 10:30:59,420 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:30:59,420 - EnhancedSAE_1570906700256 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:30:59,641 - EnhancedSAE_1570906700256 - INFO - Model weights initialized
+2025-04-23 10:30:59,652 - EnhancedSAE_1570906700256 - INFO - Model initialized on cuda
+2025-04-23 10:30:59,868 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 1106.2253)
+2025-04-23 10:31:00,768 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 827.3078)
+2025-04-23 10:31:01,286 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 636.3129)
+2025-04-23 10:31:01,831 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 511.2438)
+2025-04-23 10:31:02,350 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 439.9208)
+2025-04-23 10:31:02,871 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 394.9010)
+2025-04-23 10:31:03,401 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 365.6321)
+2025-04-23 10:31:03,945 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 342.6341)
+2025-04-23 10:31:04,465 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 317.5401)
+2025-04-23 10:31:04,996 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 291.9632)
+2025-04-23 10:31:05,557 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 267.6185)
+2025-04-23 10:31:06,120 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 244.9273)
+2025-04-23 10:31:06,684 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 224.8407)
+2025-04-23 10:31:07,237 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 206.5660)
+2025-04-23 10:31:07,791 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 189.8980)
+2025-04-23 10:31:08,344 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 175.8161)
+2025-04-23 10:31:08,897 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 162.4814)
+2025-04-23 10:31:09,455 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 152.0550)
+2025-04-23 10:31:10,007 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 144.3770)
+2025-04-23 10:31:10,574 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 137.9548)
+2025-04-23 10:31:11,142 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 129.9554)
+2025-04-23 10:31:11,698 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 123.9373)
+2025-04-23 10:31:12,253 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 119.8252)
+2025-04-23 10:31:12,817 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 115.1350)
+2025-04-23 10:31:13,383 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 113.7245)
+2025-04-23 10:31:13,956 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 113.7173)
+2025-04-23 10:31:14,538 - EnhancedSAE_1570906700256 - INFO - New best model saved (val_loss: 112.2987)
+2025-04-23 10:31:22,411 - __main__ - INFO - Using original SAE and ST implementations
+2025-04-23 10:31:22,412 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:31:22,412 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:31:22,412 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:31:22,423 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:31:22,423 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:31:22,501 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:31:24,198 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:31:24,198 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:31:24,861 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:31:24,861 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:31:24,861 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:31:24,861 - __main__ - INFO - 
+==================================================
+2025-04-23 10:31:24,861 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:31:24,861 - __main__ - INFO - ==================================================
+2025-04-23 10:31:24,861 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:31:24,862 - __main__ - INFO - Layers: [16]
+2025-04-23 10:31:24,862 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:31:24,862 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:31:24,862 - __main__ - INFO - L1 lambda: 5.0
+2025-04-23 10:31:24,862 - __main__ - INFO - Target steps: 200000
+2025-04-23 10:31:24,862 - __main__ - INFO - Batch size: 128
+2025-04-23 10:31:24,862 - __main__ - INFO - Learning rate: 5e-05
+2025-04-23 10:31:24,862 - __main__ - INFO - ==================================================
+
+2025-04-23 10:31:24,862 - __main__ - INFO - Training models sequentially
+2025-04-23 10:31:24,904 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:31:24,904 - EnhancedSAE_1319797063264 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:31:25,116 - EnhancedSAE_1319797063264 - INFO - Model weights initialized
+2025-04-23 10:31:25,126 - EnhancedSAE_1319797063264 - INFO - Model initialized on cuda
+2025-04-23 10:36:05,132 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:36:05,133 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:36:05,133 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:36:05,134 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:36:05,146 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:36:05,146 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:36:05,222 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:36:06,917 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:36:06,919 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:36:07,562 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:36:07,562 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:36:07,563 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:36:07,563 - __main__ - INFO - 
+==================================================
+2025-04-23 10:36:07,563 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:36:07,563 - __main__ - INFO - ==================================================
+2025-04-23 10:36:07,563 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:36:07,563 - __main__ - INFO - Layers: [16]
+2025-04-23 10:36:07,563 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:36:07,563 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:36:07,563 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:36:07,563 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:36:07,563 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 10:36:07,563 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 10:36:07,563 - __main__ - INFO -   Window size: 10000000
+2025-04-23 10:36:07,563 - __main__ - INFO -   Update interval: 10000
+2025-04-23 10:36:07,565 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 10:36:07,565 - __main__ - INFO -   Target steps: 200000
+2025-04-23 10:36:07,565 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 10:36:07,565 - __main__ - INFO -   Batch size: 128
+2025-04-23 10:36:07,565 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 10:36:07,565 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 10:36:07,565 - __main__ - INFO -   Early stopping: False
+2025-04-23 10:36:07,565 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 10:36:07,565 - __main__ - INFO -   Scheduler type: None
+2025-04-23 10:36:07,565 - __main__ - INFO - ==================================================
+
+2025-04-23 10:36:07,565 - __main__ - INFO - Training models sequentially
+2025-04-23 10:36:07,599 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:36:07,599 - EnhancedSAE_1607478911552 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:36:07,820 - EnhancedSAE_1607478911552 - INFO - Model weights initialized
+2025-04-23 10:36:07,831 - EnhancedSAE_1607478911552 - INFO - Model initialized on cuda
+2025-04-23 10:36:08,048 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 1064.2566)
+2025-04-23 10:36:10,677 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 938.8660)
+2025-04-23 10:36:11,779 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 824.0897)
+2025-04-23 10:36:12,886 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 730.9407)
+2025-04-23 10:36:13,385 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 649.8882)
+2025-04-23 10:36:14,477 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 591.2867)
+2025-04-23 10:36:15,682 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 547.8830)
+2025-04-23 10:36:16,782 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 514.9547)
+2025-04-23 10:36:18,163 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 493.5310)
+2025-04-23 10:36:19,424 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 478.0207)
+2025-04-23 10:36:20,259 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 464.3169)
+2025-04-23 10:36:21,082 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 453.3296)
+2025-04-23 10:36:22,438 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 447.6214)
+2025-04-23 10:36:23,807 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 442.6906)
+2025-04-23 10:36:24,352 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 431.8103)
+2025-04-23 10:36:25,469 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 425.5099)
+2025-04-23 10:36:26,783 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 420.0226)
+2025-04-23 10:36:27,915 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 413.0334)
+2025-04-23 10:36:29,402 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 408.1929)
+2025-04-23 10:36:30,693 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 402.1951)
+2025-04-23 10:36:31,533 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 392.7421)
+2025-04-23 10:36:32,369 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 384.0382)
+2025-04-23 10:36:33,719 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 379.4038)
+2025-04-23 10:36:35,067 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 375.4232)
+2025-04-23 10:36:35,601 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 366.5549)
+2025-04-23 10:36:36,734 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 363.1003)
+2025-04-23 10:36:38,042 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 361.6985)
+2025-04-23 10:36:39,186 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 359.9273)
+2025-04-23 10:36:41,892 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 359.6022)
+2025-04-23 10:36:42,662 - EnhancedSAE_1607478911552 - INFO - New best model saved (val_loss: 357.6569)
+2025-04-23 10:37:26,567 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:37:26,568 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:37:26,568 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:37:26,569 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:37:26,580 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:37:26,580 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:37:26,655 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:37:28,344 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:37:28,344 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:37:29,024 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:37:29,024 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:37:29,025 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:37:29,025 - __main__ - INFO - 
+==================================================
+2025-04-23 10:37:29,025 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:37:29,025 - __main__ - INFO - ==================================================
+2025-04-23 10:37:29,025 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:37:29,025 - __main__ - INFO - Layers: [16]
+2025-04-23 10:37:29,025 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:37:29,025 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:37:29,025 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:37:29,025 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:37:29,025 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 10:37:29,025 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 10:37:29,025 - __main__ - INFO -   Window size: 10000000
+2025-04-23 10:37:29,025 - __main__ - INFO -   Update interval: 10000
+2025-04-23 10:37:29,025 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 10:37:29,025 - __main__ - INFO -   Target steps: 200000
+2025-04-23 10:37:29,025 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 10:37:29,025 - __main__ - INFO -   Batch size: 128
+2025-04-23 10:37:29,025 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 10:37:29,025 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 10:37:29,027 - __main__ - INFO -   Early stopping: False
+2025-04-23 10:37:29,027 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 10:37:29,027 - __main__ - INFO -   Scheduler type: None
+2025-04-23 10:37:29,027 - __main__ - INFO - ==================================================
+
+2025-04-23 10:37:29,027 - __main__ - INFO - Training models sequentially
+2025-04-23 10:37:29,062 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:37:29,062 - EnhancedSAE_2759754864192 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:37:29,265 - EnhancedSAE_2759754864192 - INFO - Model weights initialized
+2025-04-23 10:37:29,275 - EnhancedSAE_2759754864192 - INFO - Model initialized on cuda
+2025-04-23 10:37:29,474 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 1049.8831)
+2025-04-23 10:37:32,099 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 919.2459)
+2025-04-23 10:37:33,200 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 802.3201)
+2025-04-23 10:37:34,315 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 709.7873)
+2025-04-23 10:37:34,831 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 632.4638)
+2025-04-23 10:37:35,956 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 577.0335)
+2025-04-23 10:37:37,181 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 536.7762)
+2025-04-23 10:37:38,237 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 506.3956)
+2025-04-23 10:37:39,590 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 486.8086)
+2025-04-23 10:37:40,863 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 472.3427)
+2025-04-23 10:37:41,684 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 458.9724)
+2025-04-23 10:37:42,518 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 447.9896)
+2025-04-23 10:37:43,857 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 442.2791)
+2025-04-23 10:37:45,138 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 437.4056)
+2025-04-23 10:37:45,653 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 426.8742)
+2025-04-23 10:37:46,697 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 420.8879)
+2025-04-23 10:37:47,880 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 415.7884)
+2025-04-23 10:37:48,966 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 409.2094)
+2025-04-23 10:37:50,465 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 404.8541)
+2025-04-23 10:37:51,673 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 399.2930)
+2025-04-23 10:37:52,525 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 390.2701)
+2025-04-23 10:37:53,338 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 381.7107)
+2025-04-23 10:37:54,702 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 377.2906)
+2025-04-23 10:37:56,025 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 373.4839)
+2025-04-23 10:37:56,569 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 364.2059)
+2025-04-23 10:37:57,745 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 360.6504)
+2025-04-23 10:37:59,026 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 359.1760)
+2025-04-23 10:38:00,146 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 357.3250)
+2025-04-23 10:38:02,847 - EnhancedSAE_2759754864192 - INFO - New best model saved (val_loss: 357.0714)
+2025-04-23 10:38:08,842 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:38:08,844 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:38:08,844 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:38:08,844 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:38:08,855 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:38:08,856 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:38:08,933 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:38:10,626 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:38:10,626 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:38:11,285 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:38:11,285 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:38:11,285 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:38:11,285 - __main__ - INFO - 
+==================================================
+2025-04-23 10:38:11,286 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:38:11,286 - __main__ - INFO - ==================================================
+2025-04-23 10:38:11,286 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:38:11,286 - __main__ - INFO - Layers: [16]
+2025-04-23 10:38:11,286 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:38:11,286 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:38:11,286 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:38:11,286 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:38:11,286 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 10:38:11,286 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 10:38:11,286 - __main__ - INFO -   Window size: 10000000
+2025-04-23 10:38:11,286 - __main__ - INFO -   Update interval: 10000
+2025-04-23 10:38:11,286 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 10:38:11,286 - __main__ - INFO -   Target steps: 200000
+2025-04-23 10:38:11,287 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 10:38:11,287 - __main__ - INFO -   Batch size: 128
+2025-04-23 10:38:11,287 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 10:38:11,287 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 10:38:11,287 - __main__ - INFO -   Early stopping: False
+2025-04-23 10:38:11,287 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 10:38:11,287 - __main__ - INFO -   Scheduler type: None
+2025-04-23 10:38:11,287 - __main__ - INFO - ==================================================
+
+2025-04-23 10:38:11,287 - __main__ - INFO - Training models sequentially
+2025-04-23 10:38:11,320 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:38:11,320 - EnhancedSAE_2217207377184 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:38:11,517 - EnhancedSAE_2217207377184 - INFO - Model weights initialized
+2025-04-23 10:38:11,528 - EnhancedSAE_2217207377184 - INFO - Model initialized on cuda
+2025-04-23 10:38:11,772 - EnhancedSAE_2217207377184 - INFO - New best model saved (val_loss: 1003.2407)
+2025-04-23 10:38:14,443 - EnhancedSAE_2217207377184 - INFO - New best model saved (val_loss: 889.0327)
+2025-04-23 10:38:15,636 - EnhancedSAE_2217207377184 - INFO - New best model saved (val_loss: 785.2437)
+2025-04-23 10:38:16,840 - EnhancedSAE_2217207377184 - INFO - New best model saved (val_loss: 703.0189)
+2025-04-23 10:38:17,439 - EnhancedSAE_2217207377184 - INFO - New best model saved (val_loss: 633.4176)
+2025-04-23 10:38:18,664 - EnhancedSAE_2217207377184 - INFO - New best model saved (val_loss: 584.5342)
+2025-04-23 10:38:24,460 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:38:24,462 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:38:24,462 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:38:24,462 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:38:24,473 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:38:24,473 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:38:24,548 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:38:26,234 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:38:26,234 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:38:26,887 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:38:26,887 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:38:26,887 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:38:26,888 - __main__ - INFO - 
+==================================================
+2025-04-23 10:38:26,888 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:38:26,888 - __main__ - INFO - ==================================================
+2025-04-23 10:38:26,888 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:38:26,888 - __main__ - INFO - Layers: [16]
+2025-04-23 10:38:26,888 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:38:26,888 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:38:26,888 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:38:26,888 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:38:26,888 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 10:38:26,888 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 10:38:26,888 - __main__ - INFO -   Window size: 10000000
+2025-04-23 10:38:26,888 - __main__ - INFO -   Update interval: 10000
+2025-04-23 10:38:26,888 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 10:38:26,889 - __main__ - INFO -   Target steps: 200000
+2025-04-23 10:38:26,889 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 10:38:26,889 - __main__ - INFO -   Batch size: 128
+2025-04-23 10:38:26,889 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 10:38:26,889 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 10:38:26,889 - __main__ - INFO -   Early stopping: False
+2025-04-23 10:38:26,889 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 10:38:26,889 - __main__ - INFO -   Scheduler type: None
+2025-04-23 10:38:26,889 - __main__ - INFO - ==================================================
+
+2025-04-23 10:38:26,889 - __main__ - INFO - Training models sequentially
+2025-04-23 10:38:26,921 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:38:26,922 - EnhancedSAE_2241917438768 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:38:27,129 - EnhancedSAE_2241917438768 - INFO - Model weights initialized
+2025-04-23 10:38:27,139 - EnhancedSAE_2241917438768 - INFO - Model initialized on cuda
+2025-04-23 10:40:18,818 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:40:18,819 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:40:18,819 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:40:18,820 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:40:18,830 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:40:18,830 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:40:18,907 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:40:20,749 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:40:20,749 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:40:21,432 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:40:21,432 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:40:21,433 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:40:21,433 - __main__ - INFO - 
+==================================================
+2025-04-23 10:40:21,433 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:40:21,433 - __main__ - INFO - ==================================================
+2025-04-23 10:40:21,433 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:40:21,433 - __main__ - INFO - Layers: [16]
+2025-04-23 10:40:21,433 - __main__ - INFO - Decomposition: st
+2025-04-23 10:40:21,433 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:40:21,433 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:40:21,433 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:40:21,435 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 10:40:21,435 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 10:40:21,435 - __main__ - INFO -   Attention function: softmax
+2025-04-23 10:40:21,435 - __main__ - INFO -   Use memory bank: False
+2025-04-23 10:40:21,435 - __main__ - INFO -   Use old ST: False
+2025-04-23 10:40:21,435 - __main__ - INFO - ==================================================
+
+2025-04-23 10:40:21,435 - __main__ - INFO - Training models sequentially
+2025-04-23 10:40:21,436 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 10:40:21,436 - __main__ - INFO - Model already exists at models\st\layer_16_st.pt. Skipping training.
+2025-04-23 10:40:21,437 - __main__ - INFO - 
+==================================================
+2025-04-23 10:40:21,437 - __main__ - INFO - TRAINING COMPLETE
+2025-04-23 10:40:21,437 - __main__ - INFO - ==================================================
+2025-04-23 10:40:21,437 - __main__ - INFO - Total time: 0:00:02
+2025-04-23 10:40:21,437 - __main__ - INFO - Successful models: 1/1
+2025-04-23 10:40:21,437 - __main__ - INFO - Failed models: 0/1
+2025-04-23 10:40:21,437 - __main__ - INFO - 
+Trained models:
+2025-04-23 10:40:21,437 - __main__ - INFO - 
+ST models:
+2025-04-23 10:40:21,437 - __main__ - INFO -   models\st\layer_16_st.pt
+2025-04-23 10:40:21,438 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-23 10:40:21,438 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-125m --decomposition st --st_model_path models/st --layers 16 --visualize
+2025-04-23 10:40:21,438 - __main__ - INFO - ==================================================
+2025-04-23 10:40:42,027 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:40:42,028 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 10:40:42,028 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:40:42,028 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:40:42,040 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:40:42,040 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:40:42,116 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:40:43,831 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:40:43,831 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:40:44,480 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:40:44,480 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 10:40:44,481 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:40:44,481 - __main__ - INFO - 
+==================================================
+2025-04-23 10:40:44,481 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:40:44,481 - __main__ - INFO - ==================================================
+2025-04-23 10:40:44,481 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:40:44,481 - __main__ - INFO - Layers: [15]
+2025-04-23 10:40:44,481 - __main__ - INFO - Decomposition: st
+2025-04-23 10:40:44,481 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:40:44,481 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:40:44,481 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:40:44,482 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 10:40:44,482 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 10:40:44,482 - __main__ - INFO -   Attention function: softmax
+2025-04-23 10:40:44,482 - __main__ - INFO -   Use memory bank: False
+2025-04-23 10:40:44,482 - __main__ - INFO -   Use old ST: False
+2025-04-23 10:40:44,482 - __main__ - INFO - ==================================================
+
+2025-04-23 10:40:44,482 - __main__ - INFO - Training models sequentially
+2025-04-23 10:40:44,483 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 10:40:44,511 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 10:40:44,512 - __main__ - INFO - Using regular ST implementation
+2025-04-23 10:40:44,667 - SparseTransformer_1925222497552 - INFO - Using direct K-V matrices approach
+2025-04-23 10:40:44,667 - SparseTransformer_1925222497552 - INFO - Using activation function: none
+2025-04-23 10:40:44,667 - SparseTransformer_1925222497552 - INFO - Using attention function: softmax
+2025-04-23 10:41:28,621 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:41:28,623 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:41:28,623 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:41:28,623 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:41:28,634 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:41:28,634 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:41:28,714 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:41:30,495 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:41:30,495 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:41:33,350 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:41:33,350 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:41:33,350 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:41:33,350 - __main__ - INFO - 
+==================================================
+2025-04-23 10:41:33,351 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:41:33,351 - __main__ - INFO - ==================================================
+2025-04-23 10:41:33,351 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:41:33,351 - __main__ - INFO - Layers: [16]
+2025-04-23 10:41:33,351 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:41:33,351 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:41:33,351 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:41:33,351 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:41:33,351 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 10:41:33,351 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 10:41:33,351 - __main__ - INFO -   Window size: 10000000
+2025-04-23 10:41:33,351 - __main__ - INFO -   Update interval: 10000
+2025-04-23 10:41:33,351 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 10:41:33,351 - __main__ - INFO -   Target steps: 200000
+2025-04-23 10:41:33,351 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 10:41:33,351 - __main__ - INFO -   Batch size: 128
+2025-04-23 10:41:33,351 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 10:41:33,351 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 10:41:33,351 - __main__ - INFO -   Early stopping: False
+2025-04-23 10:41:33,352 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 10:41:33,352 - __main__ - INFO -   Scheduler type: None
+2025-04-23 10:41:33,352 - __main__ - INFO - ==================================================
+
+2025-04-23 10:41:33,352 - __main__ - INFO - Training models sequentially
+2025-04-23 10:41:33,386 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:41:33,386 - EnhancedSAE_2260167001104 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:41:33,657 - EnhancedSAE_2260167001104 - INFO - Model weights initialized
+2025-04-23 10:41:33,667 - EnhancedSAE_2260167001104 - INFO - Model initialized on cuda
+2025-04-23 10:47:24,596 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:47:24,598 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:47:24,598 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:47:24,598 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:47:24,610 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:47:24,610 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:47:24,692 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:47:26,455 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:47:26,456 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:47:27,155 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:47:27,155 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:47:27,156 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:47:27,156 - __main__ - INFO - 
+==================================================
+2025-04-23 10:47:27,156 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:47:27,156 - __main__ - INFO - ==================================================
+2025-04-23 10:47:27,156 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:47:27,156 - __main__ - INFO - Layers: [16]
+2025-04-23 10:47:27,156 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:47:27,156 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:47:27,156 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:47:27,156 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:47:27,156 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 10:47:27,156 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 10:47:27,156 - __main__ - INFO -   Window size: 10000000
+2025-04-23 10:47:27,156 - __main__ - INFO -   Update interval: 10000
+2025-04-23 10:47:27,157 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 10:47:27,157 - __main__ - INFO -   Target steps: 200000
+2025-04-23 10:47:27,157 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 10:47:27,157 - __main__ - INFO -   Batch size: 128
+2025-04-23 10:47:27,157 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 10:47:27,157 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 10:47:27,157 - __main__ - INFO -   Early stopping: False
+2025-04-23 10:47:27,157 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 10:47:27,157 - __main__ - INFO -   Scheduler type: None
+2025-04-23 10:47:27,157 - __main__ - INFO - ==================================================
+
+2025-04-23 10:47:27,157 - __main__ - INFO - Training models sequentially
+2025-04-23 10:47:27,195 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:47:27,196 - EnhancedSAE_2776670508896 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:47:27,427 - EnhancedSAE_2776670508896 - INFO - Model weights initialized
+2025-04-23 10:47:27,438 - EnhancedSAE_2776670508896 - INFO - Using torch.compile to optimize model execution
+2025-04-23 10:47:28,031 - EnhancedSAE_2776670508896 - INFO - Model initialized on cuda
+2025-04-23 10:48:07,424 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:48:07,425 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 10:48:07,426 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:48:07,426 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:48:07,436 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:48:07,436 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:48:07,516 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:48:09,235 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:48:09,235 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:48:09,916 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:48:09,918 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 10:48:09,918 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:48:09,918 - __main__ - INFO - 
+==================================================
+2025-04-23 10:48:09,919 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:48:09,919 - __main__ - INFO - ==================================================
+2025-04-23 10:48:09,919 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:48:09,919 - __main__ - INFO - Layers: [16]
+2025-04-23 10:48:09,919 - __main__ - INFO - Decomposition: sae
+2025-04-23 10:48:09,919 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:48:09,919 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:48:09,919 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:48:09,919 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 10:48:09,919 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 10:48:09,919 - __main__ - INFO -   Window size: 10000000
+2025-04-23 10:48:09,920 - __main__ - INFO -   Update interval: 10000
+2025-04-23 10:48:09,920 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 10:48:09,920 - __main__ - INFO -   Target steps: 200000
+2025-04-23 10:48:09,920 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 10:48:09,920 - __main__ - INFO -   Batch size: 128
+2025-04-23 10:48:09,920 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 10:48:09,920 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 10:48:09,920 - __main__ - INFO -   Early stopping: False
+2025-04-23 10:48:09,920 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 10:48:09,920 - __main__ - INFO -   Scheduler type: None
+2025-04-23 10:48:09,920 - __main__ - INFO - ==================================================
+
+2025-04-23 10:48:09,920 - __main__ - INFO - Training models sequentially
+2025-04-23 10:48:09,954 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 10:48:09,954 - EnhancedSAE_2467469272480 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 10:48:10,184 - EnhancedSAE_2467469272480 - INFO - Model weights initialized
+2025-04-23 10:48:10,195 - EnhancedSAE_2467469272480 - INFO - Model initialized on cuda
+2025-04-23 10:56:57,156 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:56:57,157 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 10:56:57,157 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:56:57,158 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:56:57,169 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:56:57,169 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:56:57,244 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:56:58,845 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:56:58,845 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:56:59,501 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:56:59,501 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 10:56:59,502 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:56:59,502 - __main__ - INFO - 
+==================================================
+2025-04-23 10:56:59,502 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:56:59,502 - __main__ - INFO - ==================================================
+2025-04-23 10:56:59,502 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:56:59,502 - __main__ - INFO - Layers: [15]
+2025-04-23 10:56:59,502 - __main__ - INFO - Decomposition: st
+2025-04-23 10:56:59,502 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:56:59,502 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:56:59,502 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:56:59,502 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 10:56:59,502 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 10:56:59,503 - __main__ - INFO -   Attention function: softmax
+2025-04-23 10:56:59,503 - __main__ - INFO -   Use memory bank: False
+2025-04-23 10:56:59,503 - __main__ - INFO -   Use old ST: False
+2025-04-23 10:56:59,503 - __main__ - INFO - ==================================================
+
+2025-04-23 10:56:59,503 - __main__ - INFO - Training models sequentially
+2025-04-23 10:56:59,503 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 10:56:59,538 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 10:56:59,538 - __main__ - INFO - Using regular ST implementation
+2025-04-23 10:56:59,725 - OptimizedST_2352768536016 - INFO - Using torch.compile for model optimization
+2025-04-23 10:57:00,180 - OptimizedST_2352768536016 - INFO - Using direct K-V matrices approach
+2025-04-23 10:57:00,180 - OptimizedST_2352768536016 - INFO - Activation: relu, Attention: softmax
+2025-04-23 10:57:00,184 - __main__ - ERROR - Error training st model for layer 15: autocast.__init__() missing 1 required positional argument: 'device_type'
+2025-04-23 10:57:00,185 - __main__ - INFO - 
+==================================================
+2025-04-23 10:57:00,185 - __main__ - INFO - TRAINING COMPLETE
+2025-04-23 10:57:00,185 - __main__ - INFO - ==================================================
+2025-04-23 10:57:00,185 - __main__ - INFO - Total time: 0:00:03
+2025-04-23 10:57:00,185 - __main__ - INFO - Successful models: 0/1
+2025-04-23 10:57:00,185 - __main__ - INFO - Failed models: 1/1
+2025-04-23 10:57:00,185 - __main__ - INFO - 
+Trained models:
+2025-04-23 10:57:00,186 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-23 10:57:00,186 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-125m --decomposition st --st_model_path models/st --layers 15 --visualize
+2025-04-23 10:57:00,186 - __main__ - INFO - ==================================================
+2025-04-23 10:59:14,805 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 10:59:14,806 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 10:59:14,806 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 10:59:14,806 - __main__ - INFO - Loaded 5 texts
+2025-04-23 10:59:14,819 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 10:59:14,819 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 10:59:14,892 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 10:59:16,459 - __main__ - INFO - Model has 24 layers
+2025-04-23 10:59:16,459 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 10:59:17,107 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 10:59:17,107 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 10:59:17,108 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 10:59:17,108 - __main__ - INFO - 
+==================================================
+2025-04-23 10:59:17,108 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 10:59:17,108 - __main__ - INFO - ==================================================
+2025-04-23 10:59:17,108 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 10:59:17,108 - __main__ - INFO - Layers: [15]
+2025-04-23 10:59:17,108 - __main__ - INFO - Decomposition: st
+2025-04-23 10:59:17,108 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 10:59:17,108 - __main__ - INFO - Mixed precision: True
+2025-04-23 10:59:17,109 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 10:59:17,109 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 10:59:17,109 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 10:59:17,109 - __main__ - INFO -   Attention function: softmax
+2025-04-23 10:59:17,109 - __main__ - INFO -   Use memory bank: False
+2025-04-23 10:59:17,109 - __main__ - INFO -   Use old ST: False
+2025-04-23 10:59:17,109 - __main__ - INFO - ==================================================
+
+2025-04-23 10:59:17,109 - __main__ - INFO - Training models sequentially
+2025-04-23 10:59:17,110 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 10:59:17,143 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 10:59:17,144 - __main__ - INFO - Using regular ST implementation
+2025-04-23 10:59:17,312 - OptimizedST_1848344688736 - INFO - Using torch.compile for model optimization
+2025-04-23 10:59:17,724 - OptimizedST_1848344688736 - INFO - Using direct K-V matrices approach
+2025-04-23 10:59:17,724 - OptimizedST_1848344688736 - INFO - Activation: relu, Attention: softmax
+2025-04-23 10:59:17,759 - __main__ - ERROR - Error training st model for layer 15: 'DeadFeatureTracker' object has no attribute 'get_dead_ratio'
+2025-04-23 10:59:17,760 - __main__ - INFO - 
+==================================================
+2025-04-23 10:59:17,760 - __main__ - INFO - TRAINING COMPLETE
+2025-04-23 10:59:17,760 - __main__ - INFO - ==================================================
+2025-04-23 10:59:17,760 - __main__ - INFO - Total time: 0:00:02
+2025-04-23 10:59:17,760 - __main__ - INFO - Successful models: 0/1
+2025-04-23 10:59:17,760 - __main__ - INFO - Failed models: 1/1
+2025-04-23 10:59:17,760 - __main__ - INFO - 
+Trained models:
+2025-04-23 10:59:17,760 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-23 10:59:17,760 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-125m --decomposition st --st_model_path models/st --layers 15 --visualize
+2025-04-23 10:59:17,760 - __main__ - INFO - ==================================================
+2025-04-23 11:00:03,318 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:00:03,320 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 11:00:03,320 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:00:03,320 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:00:03,332 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:00:03,332 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:00:03,412 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:00:04,985 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:00:04,985 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:00:05,643 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:00:05,643 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 11:00:05,643 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:00:05,644 - __main__ - INFO - 
+==================================================
+2025-04-23 11:00:05,644 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:00:05,644 - __main__ - INFO - ==================================================
+2025-04-23 11:00:05,644 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:00:05,644 - __main__ - INFO - Layers: [15]
+2025-04-23 11:00:05,644 - __main__ - INFO - Decomposition: st
+2025-04-23 11:00:05,644 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:00:05,644 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:00:05,644 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:00:05,644 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 11:00:05,644 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 11:00:05,644 - __main__ - INFO -   Attention function: softmax
+2025-04-23 11:00:05,645 - __main__ - INFO -   Use memory bank: False
+2025-04-23 11:00:05,645 - __main__ - INFO -   Use old ST: False
+2025-04-23 11:00:05,645 - __main__ - INFO - ==================================================
+
+2025-04-23 11:00:05,645 - __main__ - INFO - Training models sequentially
+2025-04-23 11:00:05,645 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 11:00:05,680 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 11:00:05,680 - __main__ - INFO - Using regular ST implementation
+2025-04-23 11:00:05,703 - __main__ - ERROR - Error training st model for layer 15: name 'DeadFeatureTracker' is not defined
+2025-04-23 11:00:05,747 - __main__ - INFO - 
+==================================================
+2025-04-23 11:00:05,747 - __main__ - INFO - TRAINING COMPLETE
+2025-04-23 11:00:05,747 - __main__ - INFO - ==================================================
+2025-04-23 11:00:05,747 - __main__ - INFO - Total time: 0:00:02
+2025-04-23 11:00:05,747 - __main__ - INFO - Successful models: 0/1
+2025-04-23 11:00:05,747 - __main__ - INFO - Failed models: 1/1
+2025-04-23 11:00:05,748 - __main__ - INFO - 
+Trained models:
+2025-04-23 11:00:05,748 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-23 11:00:05,748 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-125m --decomposition st --st_model_path models/st --layers 15 --visualize
+2025-04-23 11:00:05,748 - __main__ - INFO - ==================================================
+2025-04-23 11:00:22,256 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:00:22,257 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 11:00:22,257 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:00:22,257 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:00:22,269 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:00:22,270 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:00:22,348 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:00:23,958 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:00:23,959 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:00:24,610 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:00:24,610 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 11:00:24,611 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:00:24,611 - __main__ - INFO - 
+==================================================
+2025-04-23 11:00:24,611 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:00:24,611 - __main__ - INFO - ==================================================
+2025-04-23 11:00:24,611 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:00:24,611 - __main__ - INFO - Layers: [15]
+2025-04-23 11:00:24,611 - __main__ - INFO - Decomposition: st
+2025-04-23 11:00:24,611 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:00:24,611 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:00:24,611 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:00:24,611 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 11:00:24,611 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 11:00:24,611 - __main__ - INFO -   Attention function: softmax
+2025-04-23 11:00:24,612 - __main__ - INFO -   Use memory bank: False
+2025-04-23 11:00:24,612 - __main__ - INFO -   Use old ST: False
+2025-04-23 11:00:24,612 - __main__ - INFO - ==================================================
+
+2025-04-23 11:00:24,612 - __main__ - INFO - Training models sequentially
+2025-04-23 11:00:24,612 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 11:00:24,648 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 11:00:24,648 - __main__ - INFO - Using regular ST implementation
+2025-04-23 11:00:24,816 - OptimizedST_1851053069264 - INFO - Using torch.compile for model optimization
+2025-04-23 11:00:25,232 - OptimizedST_1851053069264 - INFO - Using direct K-V matrices approach
+2025-04-23 11:00:25,232 - OptimizedST_1851053069264 - INFO - Activation: relu, Attention: softmax
+2025-04-23 11:00:25,272 - __main__ - ERROR - Error training st model for layer 15: 'DeadFeatureTracker' object has no attribute 'get_dead_ratio'
+2025-04-23 11:00:25,273 - __main__ - INFO - 
+==================================================
+2025-04-23 11:00:25,273 - __main__ - INFO - TRAINING COMPLETE
+2025-04-23 11:00:25,273 - __main__ - INFO - ==================================================
+2025-04-23 11:00:25,273 - __main__ - INFO - Total time: 0:00:03
+2025-04-23 11:00:25,273 - __main__ - INFO - Successful models: 0/1
+2025-04-23 11:00:25,273 - __main__ - INFO - Failed models: 1/1
+2025-04-23 11:00:25,273 - __main__ - INFO - 
+Trained models:
+2025-04-23 11:00:25,273 - __main__ - INFO - 
+To use these models with analyze_gptneo.py, run:
+2025-04-23 11:00:25,273 - __main__ - INFO - python analyze_gptneo.py --model EleutherAI/gpt-neo-125m --decomposition st --st_model_path models/st --layers 15 --visualize
+2025-04-23 11:00:25,273 - __main__ - INFO - ==================================================
+2025-04-23 11:02:06,957 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:02:06,959 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 11:02:06,960 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:02:06,960 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:02:06,972 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:02:06,972 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:02:07,055 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:02:08,699 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:02:08,699 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:02:09,356 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:02:09,357 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 11:02:09,357 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:02:09,357 - __main__ - INFO - 
+==================================================
+2025-04-23 11:02:09,357 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:02:09,357 - __main__ - INFO - ==================================================
+2025-04-23 11:02:09,357 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:02:09,357 - __main__ - INFO - Layers: [15]
+2025-04-23 11:02:09,357 - __main__ - INFO - Decomposition: st
+2025-04-23 11:02:09,357 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:02:09,359 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:02:09,359 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:02:09,359 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 11:02:09,359 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 11:02:09,359 - __main__ - INFO -   Attention function: softmax
+2025-04-23 11:02:09,359 - __main__ - INFO -   Use memory bank: False
+2025-04-23 11:02:09,359 - __main__ - INFO -   Use old ST: False
+2025-04-23 11:02:09,359 - __main__ - INFO - ==================================================
+
+2025-04-23 11:02:09,359 - __main__ - INFO - Training models sequentially
+2025-04-23 11:02:09,360 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 11:02:09,390 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 11:02:09,390 - __main__ - INFO - Using regular ST implementation
+2025-04-23 11:02:09,569 - OptimizedST_2151167345872 - INFO - Using torch.compile for model optimization
+2025-04-23 11:02:09,987 - OptimizedST_2151167345872 - INFO - Using direct K-V matrices approach
+2025-04-23 11:02:09,987 - OptimizedST_2151167345872 - INFO - Activation: relu, Attention: softmax
+2025-04-23 11:04:05,495 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:04:05,496 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 11:04:05,496 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:04:05,496 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:04:05,509 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:04:05,509 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:04:05,585 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:04:07,176 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:04:07,176 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:04:07,814 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:04:07,814 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 11:04:07,816 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:04:07,816 - __main__ - INFO - 
+==================================================
+2025-04-23 11:04:07,816 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:04:07,816 - __main__ - INFO - ==================================================
+2025-04-23 11:04:07,816 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:04:07,816 - __main__ - INFO - Layers: [15]
+2025-04-23 11:04:07,816 - __main__ - INFO - Decomposition: st
+2025-04-23 11:04:07,816 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:04:07,816 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:04:07,816 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:04:07,816 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 11:04:07,816 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 11:04:07,816 - __main__ - INFO -   Attention function: softmax
+2025-04-23 11:04:07,816 - __main__ - INFO -   Use memory bank: False
+2025-04-23 11:04:07,816 - __main__ - INFO -   Use old ST: False
+2025-04-23 11:04:07,816 - __main__ - INFO - ==================================================
+
+2025-04-23 11:04:07,816 - __main__ - INFO - Training models sequentially
+2025-04-23 11:04:07,817 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 11:04:07,849 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 11:04:07,849 - __main__ - INFO - Using regular ST implementation
+2025-04-23 11:04:08,019 - ST_2849493150000 - INFO - Using direct K-V matrices approach
+2025-04-23 11:04:08,019 - ST_2849493150000 - INFO - Activation: relu, Attention: softmax
+2025-04-23 11:06:20,027 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:06:20,028 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 11:06:20,028 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:06:20,029 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:06:20,041 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:06:20,041 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:06:20,118 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:06:21,699 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:06:21,699 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:06:22,346 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:06:22,346 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 11:06:22,347 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:06:22,347 - __main__ - INFO - 
+==================================================
+2025-04-23 11:06:22,347 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:06:22,347 - __main__ - INFO - ==================================================
+2025-04-23 11:06:22,347 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:06:22,347 - __main__ - INFO - Layers: [15]
+2025-04-23 11:06:22,347 - __main__ - INFO - Decomposition: st
+2025-04-23 11:06:22,347 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:06:22,347 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:06:22,347 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:06:22,347 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 11:06:22,347 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 11:06:22,347 - __main__ - INFO -   Attention function: softmax
+2025-04-23 11:06:22,347 - __main__ - INFO -   Use memory bank: False
+2025-04-23 11:06:22,347 - __main__ - INFO -   Use old ST: False
+2025-04-23 11:06:22,347 - __main__ - INFO - ==================================================
+
+2025-04-23 11:06:22,347 - __main__ - INFO - Training models sequentially
+2025-04-23 11:06:22,348 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 11:06:22,385 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 11:06:22,385 - __main__ - INFO - Using regular ST implementation
+2025-04-23 11:06:22,559 - ST_2276667612272 - INFO - Using torch.compile for model optimization
+2025-04-23 11:06:22,970 - ST_2276667612272 - INFO - Using direct K-V matrices approach
+2025-04-23 11:06:22,970 - ST_2276667612272 - INFO - Activation: relu, Attention: softmax
+2025-04-23 11:08:32,197 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:08:32,199 - __main__ - INFO - Training models for layers: [15]
+2025-04-23 11:08:32,199 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:08:32,199 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:08:32,209 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:08:32,210 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:08:32,288 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:08:33,970 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:08:33,970 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:08:34,641 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:08:34,641 - __main__ - INFO -   layer_15: shape (1918, 2048)
+2025-04-23 11:08:34,643 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:08:34,643 - __main__ - INFO - 
+==================================================
+2025-04-23 11:08:34,643 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:08:34,643 - __main__ - INFO - ==================================================
+2025-04-23 11:08:34,643 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:08:34,643 - __main__ - INFO - Layers: [15]
+2025-04-23 11:08:34,643 - __main__ - INFO - Decomposition: st
+2025-04-23 11:08:34,643 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:08:34,644 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:08:34,644 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:08:34,644 - __main__ - INFO - 
+ST Configuration:
+2025-04-23 11:08:34,644 - __main__ - INFO -   Attention dimension: Auto-calculated to match SAE params
+2025-04-23 11:08:34,644 - __main__ - INFO -   Attention function: softmax
+2025-04-23 11:08:34,644 - __main__ - INFO -   Use memory bank: False
+2025-04-23 11:08:34,644 - __main__ - INFO -   Use old ST: False
+2025-04-23 11:08:34,644 - __main__ - INFO - ==================================================
+
+2025-04-23 11:08:34,644 - __main__ - INFO - Training models sequentially
+2025-04-23 11:08:34,645 - __main__ - INFO - Auto-calculated attention dimension to match SAE params: 1631
+2025-04-23 11:08:34,682 - __main__ - INFO - Creating ST model with dims: 2048 -> 8000, attention dim: 1631
+2025-04-23 11:08:34,683 - __main__ - INFO - Using regular ST implementation
+2025-04-23 11:08:34,859 - SparseTransformer_1642797854176 - INFO - Using direct K-V matrices approach
+2025-04-23 11:08:34,859 - SparseTransformer_1642797854176 - INFO - Using activation function: none
+2025-04-23 11:08:34,861 - SparseTransformer_1642797854176 - INFO - Using attention function: softmax
+2025-04-23 11:09:55,879 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:09:55,881 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 11:09:55,881 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:09:55,881 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:09:55,893 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:09:55,893 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:09:55,969 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:09:57,533 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:09:57,533 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:09:58,171 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:09:58,172 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 11:09:58,172 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:09:58,172 - __main__ - INFO - 
+==================================================
+2025-04-23 11:09:58,172 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:09:58,172 - __main__ - INFO - ==================================================
+2025-04-23 11:09:58,172 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:09:58,173 - __main__ - INFO - Layers: [16]
+2025-04-23 11:09:58,173 - __main__ - INFO - Decomposition: sae
+2025-04-23 11:09:58,173 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:09:58,173 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:09:58,173 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:09:58,173 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 11:09:58,173 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 11:09:58,173 - __main__ - INFO -   Window size: 10000000
+2025-04-23 11:09:58,173 - __main__ - INFO -   Update interval: 10000
+2025-04-23 11:09:58,173 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 11:09:58,173 - __main__ - INFO -   Target steps: 200000
+2025-04-23 11:09:58,173 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 11:09:58,173 - __main__ - INFO -   Batch size: 128
+2025-04-23 11:09:58,173 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 11:09:58,173 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 11:09:58,174 - __main__ - INFO -   Early stopping: False
+2025-04-23 11:09:58,174 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 11:09:58,174 - __main__ - INFO -   Scheduler type: None
+2025-04-23 11:09:58,174 - __main__ - INFO - ==================================================
+
+2025-04-23 11:09:58,174 - __main__ - INFO - Training models sequentially
+2025-04-23 11:09:58,209 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 11:09:58,209 - EnhancedSAE_2304655194112 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 11:09:58,430 - EnhancedSAE_2304655194112 - INFO - Model weights initialized
+2025-04-23 11:09:58,441 - EnhancedSAE_2304655194112 - INFO - Model initialized on cuda
+2025-04-23 11:51:13,510 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:51:13,511 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 11:51:13,512 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:51:13,512 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:51:13,531 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:51:13,531 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:51:13,637 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:51:15,423 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:51:15,423 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:51:16,100 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:51:16,100 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 11:51:16,100 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:51:16,100 - __main__ - INFO - 
+==================================================
+2025-04-23 11:51:16,100 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:51:16,100 - __main__ - INFO - ==================================================
+2025-04-23 11:51:16,101 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:51:16,101 - __main__ - INFO - Layers: [16]
+2025-04-23 11:51:16,101 - __main__ - INFO - Decomposition: sae
+2025-04-23 11:51:16,101 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:51:16,101 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:51:16,101 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:51:16,101 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 11:51:16,101 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 11:51:16,101 - __main__ - INFO -   Window size: 10000000
+2025-04-23 11:51:16,101 - __main__ - INFO -   Update interval: 10000
+2025-04-23 11:51:16,102 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 11:51:16,102 - __main__ - INFO -   Target steps: 200000
+2025-04-23 11:51:16,102 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 11:51:16,102 - __main__ - INFO -   Batch size: 128
+2025-04-23 11:51:16,102 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 11:51:16,102 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 11:51:16,102 - __main__ - INFO -   Early stopping: False
+2025-04-23 11:51:16,102 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 11:51:16,102 - __main__ - INFO -   Scheduler type: None
+2025-04-23 11:51:16,102 - __main__ - INFO - ==================================================
+
+2025-04-23 11:51:16,102 - __main__ - INFO - Training models sequentially
+2025-04-23 11:51:16,141 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 11:51:16,142 - EnhancedSAE_1873909398128 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 11:51:16,376 - EnhancedSAE_1873909398128 - INFO - Model weights initialized
+2025-04-23 11:51:16,386 - EnhancedSAE_1873909398128 - INFO - Model initialized on cuda
+2025-04-23 11:51:16,613 - EnhancedSAE_1873909398128 - INFO - New best model saved (val_loss: 1043.5432)
+2025-04-23 11:51:47,625 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:51:47,627 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 11:51:47,627 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:51:47,627 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:51:47,638 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:51:47,638 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:51:47,714 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:51:49,450 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:51:49,451 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:51:50,125 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:51:50,125 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 11:51:50,125 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:51:50,126 - __main__ - INFO - 
+==================================================
+2025-04-23 11:51:50,126 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:51:50,126 - __main__ - INFO - ==================================================
+2025-04-23 11:51:50,126 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:51:50,126 - __main__ - INFO - Layers: [16]
+2025-04-23 11:51:50,126 - __main__ - INFO - Decomposition: sae
+2025-04-23 11:51:50,126 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:51:50,126 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:51:50,126 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:51:50,126 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 11:51:50,126 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 11:51:50,126 - __main__ - INFO -   Window size: 10000000
+2025-04-23 11:51:50,126 - __main__ - INFO -   Update interval: 10000
+2025-04-23 11:51:50,127 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 11:51:50,127 - __main__ - INFO -   Target steps: 200000
+2025-04-23 11:51:50,127 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 11:51:50,127 - __main__ - INFO -   Batch size: 128
+2025-04-23 11:51:50,127 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 11:51:50,127 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 11:51:50,127 - __main__ - INFO -   Early stopping: False
+2025-04-23 11:51:50,127 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 11:51:50,127 - __main__ - INFO -   Scheduler type: None
+2025-04-23 11:51:50,127 - __main__ - INFO - ==================================================
+
+2025-04-23 11:51:50,127 - __main__ - INFO - Training models sequentially
+2025-04-23 11:51:50,164 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 11:51:50,164 - EnhancedSAE_2516643592816 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 11:51:50,389 - EnhancedSAE_2516643592816 - INFO - Model weights initialized
+2025-04-23 11:51:50,400 - EnhancedSAE_2516643592816 - INFO - Model initialized on cuda
+2025-04-23 11:51:50,723 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 1024.5084)
+2025-04-23 11:51:53,400 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 887.5272)
+2025-04-23 11:51:54,521 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 761.8834)
+2025-04-23 11:51:55,039 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 654.4430)
+2025-04-23 11:51:56,104 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 573.5455)
+2025-04-23 11:51:57,537 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 512.8122)
+2025-04-23 11:51:58,137 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 461.0857)
+2025-04-23 11:51:59,328 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 426.9801)
+2025-04-23 11:52:00,762 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 404.4865)
+2025-04-23 11:52:01,546 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 384.4026)
+2025-04-23 11:52:02,564 - EnhancedSAE_2516643592816 - INFO - New best model saved (val_loss: 371.3897)
+2025-04-23 11:52:34,081 - __main__ - INFO - Using enhanced SAE and ST implementations
+2025-04-23 11:52:34,082 - __main__ - INFO - Training models for layers: [16]
+2025-04-23 11:52:34,082 - __main__ - INFO - Loading texts from text.txt
+2025-04-23 11:52:34,083 - __main__ - INFO - Loaded 5 texts
+2025-04-23 11:52:34,095 - __main__ - INFO - Loading model 'EleutherAI/gpt-neo-125m' (type: gpt-neo) on cuda...
+2025-04-23 11:52:34,095 - __main__ - INFO - Loading tokenizer from models\gpt-neo-1.3B
+2025-04-23 11:52:34,169 - __main__ - INFO - Loading model from models\gpt-neo-1.3B\model
+2025-04-23 11:52:35,796 - __main__ - INFO - Model has 24 layers
+2025-04-23 11:52:35,797 - __main__ - INFO - Extracting hidden states for 5 texts...
+2025-04-23 11:52:36,510 - __main__ - INFO - Extracted hidden states from 1 layers
+2025-04-23 11:52:36,510 - __main__ - INFO -   layer_16: shape (1918, 2048)
+2025-04-23 11:52:36,511 - __main__ - INFO - Prepared 1 training tasks
+2025-04-23 11:52:36,511 - __main__ - INFO - 
+==================================================
+2025-04-23 11:52:36,511 - __main__ - INFO - TRAINING CONFIGURATION
+2025-04-23 11:52:36,511 - __main__ - INFO - ==================================================
+2025-04-23 11:52:36,511 - __main__ - INFO - Model: EleutherAI/gpt-neo-125m
+2025-04-23 11:52:36,511 - __main__ - INFO - Layers: [16]
+2025-04-23 11:52:36,511 - __main__ - INFO - Decomposition: sae
+2025-04-23 11:52:36,511 - __main__ - INFO - Feature dimension: 8000
+2025-04-23 11:52:36,511 - __main__ - INFO - Mixed precision: True
+2025-04-23 11:52:36,511 - __main__ - INFO - Gradient accumulation steps: 32
+2025-04-23 11:52:36,511 - __main__ - INFO - 
+SAE Configuration:
+2025-04-23 11:52:36,512 - __main__ - INFO -   Lambda L1: 5.0
+2025-04-23 11:52:36,512 - __main__ - INFO -   Window size: 10000000
+2025-04-23 11:52:36,512 - __main__ - INFO -   Update interval: 10000
+2025-04-23 11:52:36,512 - __main__ - INFO -   Activation threshold: 0.001
+2025-04-23 11:52:36,512 - __main__ - INFO -   Target steps: 200000
+2025-04-23 11:52:36,512 - __main__ - INFO -   Learning rate: 5e-05
+2025-04-23 11:52:36,512 - __main__ - INFO -   Batch size: 128
+2025-04-23 11:52:36,512 - __main__ - INFO -   Warmup steps %: 0.05
+2025-04-23 11:52:36,512 - __main__ - INFO -   Final decay %: 0.2
+2025-04-23 11:52:36,512 - __main__ - INFO -   Early stopping: False
+2025-04-23 11:52:36,512 - __main__ - INFO -   Plot weights frequency: 0
+2025-04-23 11:52:36,512 - __main__ - INFO -   Scheduler type: None
+2025-04-23 11:52:36,512 - __main__ - INFO - ==================================================
+
+2025-04-23 11:52:36,513 - __main__ - INFO - Training models sequentially
+2025-04-23 11:52:36,555 - __main__ - INFO - Creating SAE model with dims: 2048 -> 8000
+2025-04-23 11:52:36,555 - EnhancedSAE_2226049998272 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-23 11:52:36,787 - EnhancedSAE_2226049998272 - INFO - Model weights initialized
+2025-04-23 11:52:36,798 - EnhancedSAE_2226049998272 - INFO - Model initialized on cuda

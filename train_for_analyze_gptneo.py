@@ -43,250 +43,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Try to import SAE and ST modules
-try:
-    # If available in your environment
-    from SAE import SparseAutoencoder
-    from ST import SparseTransformer
-    DECOMP_AVAILABLE = True
-    logger.info("Using original SAE and ST implementations")
-except ImportError:
-    logger.warning("Original SAE or ST modules not found. Using simplified implementations.")
-    DECOMP_AVAILABLE = False
-
-# Define simplified versions if originals are not available
-class SimplifiedSAE:
-    """Simplified SAE implementation when the original is not available"""
-    
-    def __init__(self, n, m, device='cuda', lambda_l1=1.0, sae_model_path=None):
-        self.n = n  # Input dimension
-        self.m = m  # Feature dimension
-        self.device = device
-        self.lambda_l1 = lambda_l1
-        self.sae_model_path = sae_model_path
-        
-        # Initialize weights
-        self.encoder = torch.nn.Linear(n, m, bias=True).to(device)
-        self.decoder = torch.nn.Linear(m, n, bias=True).to(device)
-        
-        # Initialize with sensible values
-        torch.nn.init.xavier_uniform_(self.encoder.weight)
-        torch.nn.init.xavier_uniform_(self.decoder.weight)
-        
-    def forward(self, x):
-        # Encoder - ReLU activation
-        h = torch.relu(self.encoder(x))
-        # Decoder
-        x_hat = self.decoder(h)
-        return x_hat, h
-    
-    def train_and_validate(self, train_tensor, val_tensor, learning_rate=1e-3, 
-                          batch_size=64, target_steps=5000):
-        """Simple training loop"""
-        optimizer = torch.optim.Adam(
-            list(self.encoder.parameters()) + list(self.decoder.parameters()),
-            lr=learning_rate
-        )
-        
-        # Create simple dataloader
-        train_dataset = torch.utils.data.TensorDataset(train_tensor)
-        train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=batch_size, shuffle=True
-        )
-        
-        logger.info(f"Training simplified SAE for {target_steps} steps...")
-        step = 0
-        total_loss = 0
-        
-        # Progress bar for training
-        progress_bar = tqdm(total=target_steps, desc="Training SAE")
-        
-        while step < target_steps:
-            for batch in train_loader:
-                x = batch[0]
-                
-                # Forward pass
-                x_hat, h = self.forward(x)
-                
-                # Compute loss
-                recon_loss = torch.mean((x_hat - x) ** 2)
-                l1_loss = self.lambda_l1 * torch.mean(torch.abs(h))
-                loss = recon_loss + l1_loss
-                
-                # Backward pass
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                
-                # Log progress
-                step += 1
-                total_loss += loss.item()
-                
-                if step % 100 == 0:
-                    avg_loss = total_loss / 100
-                    progress_bar.set_postfix(loss=f"{avg_loss:.6f}")
-                    total_loss = 0
-                
-                progress_bar.update(1)
-                
-                if step >= target_steps:
-                    break
-        
-        progress_bar.close()
-        logger.info("SAE training completed!")
-        return self
-    
-    def feature_activations(self, x):
-        """Get feature activations for input x"""
-        with torch.no_grad():
-            h = torch.relu(self.encoder(x))
-        return h
-        
-    def save(self, model_path):
-        """Save model to path"""
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        
-        # Create state dict
-        state_dict = {
-            'model_state_dict': {
-                'encoder.weight': self.encoder.weight,
-                'encoder.bias': self.encoder.bias,
-                'decoder.weight': self.decoder.weight,
-                'decoder.bias': self.decoder.bias
-            },
-            'lambda_l1': self.lambda_l1
-        }
-        
-        torch.save(state_dict, model_path)
-        logger.info(f"Model saved to {model_path}")
-
-class SimplifiedST:
-    """Simplified ST implementation when the original is not available"""
-    
-    def __init__(self, X, n, m, a, device='cuda', lambda_l1=1.0, st_model_path=None):
-        self.n = n  # Input dimension
-        self.m = m  # Feature dimension
-        self.a = a  # Attention dimension
-        self.device = device
-        self.lambda_l1 = lambda_l1
-        self.st_model_path = st_model_path
-        
-        # Initialize weights
-        self.W_q = torch.nn.Linear(n, a, bias=True).to(device)
-        self.W_k = torch.nn.Linear(n, a, bias=True).to(device)
-        self.W_v = torch.nn.Linear(n, n, bias=True).to(device)
-        
-        # Initialize memory
-        self.memory_values = torch.nn.Parameter(torch.randn(m, n).to(device))
-        self.memory_keys = torch.nn.Parameter(torch.randn(m, a).to(device))
-        
-        # Initialize with sensible values
-        torch.nn.init.xavier_uniform_(self.W_q.weight)
-        torch.nn.init.xavier_uniform_(self.W_k.weight)
-        torch.nn.init.xavier_uniform_(self.W_v.weight)
-        torch.nn.init.xavier_uniform_(self.memory_values)
-        torch.nn.init.xavier_uniform_(self.memory_keys)
-    
-    def forward(self, x):
-        # Calculate queries
-        queries = self.W_q(x)
-        
-        # Calculate attention scores
-        attention_scores = torch.matmul(queries, self.memory_keys.t())
-        
-        # Apply softmax
-        attention_weights = torch.softmax(attention_scores, dim=1)
-        
-        # Get output
-        output = torch.matmul(attention_weights, self.memory_values)
-        return output, attention_weights
-    
-    def train_and_validate(self, train_tensor, val_tensor, learning_rate=1e-3, 
-                          batch_size=64, target_steps=5000):
-        """Simple training loop"""
-        optimizer = torch.optim.Adam([
-            {'params': self.W_q.parameters()},
-            {'params': self.W_k.parameters()},
-            {'params': self.W_v.parameters()},
-            {'params': self.memory_values},
-            {'params': self.memory_keys}
-        ], lr=learning_rate)
-        
-        # Create simple dataloader
-        train_dataset = torch.utils.data.TensorDataset(train_tensor)
-        train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=batch_size, shuffle=True
-        )
-        
-        logger.info(f"Training simplified ST for {target_steps} steps...")
-        step = 0
-        total_loss = 0
-        
-        # Progress bar for training
-        progress_bar = tqdm(total=target_steps, desc="Training ST")
-        
-        while step < target_steps:
-            for batch in train_loader:
-                x = batch[0]
-                
-                # Forward pass
-                output, attention_weights = self.forward(x)
-                
-                # Compute loss
-                recon_loss = torch.mean((output - x) ** 2)
-                l1_loss = self.lambda_l1 * torch.mean(torch.abs(attention_weights))
-                loss = recon_loss + l1_loss
-                
-                # Backward pass
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                
-                # Log progress
-                step += 1
-                total_loss += loss.item()
-                
-                if step % 100 == 0:
-                    avg_loss = total_loss / 100
-                    progress_bar.set_postfix(loss=f"{avg_loss:.6f}")
-                    total_loss = 0
-                
-                progress_bar.update(1)
-                
-                if step >= target_steps:
-                    break
-        
-        progress_bar.close()
-        logger.info("ST training completed!")
-        return self
-    
-    def feature_activations(self, x):
-        """Get feature activations for input x"""
-        with torch.no_grad():
-            _, attention_weights = self.forward(x)
-        return attention_weights
-    
-    def save(self, model_path):
-        """Save model to path"""
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        
-        # Create state dict
-        state_dict = {
-            'model_state_dict': {
-                'W_q.weight': self.W_q.weight,
-                'W_q.bias': self.W_q.bias,
-                'W_k.weight': self.W_k.weight,
-                'W_k.bias': self.W_k.bias,
-                'W_v.weight': self.W_v.weight,
-                'W_v.bias': self.W_v.bias,
-                'memory_values': self.memory_values,
-                'memory_keys': self.memory_keys
-            },
-            'lambda_l1': self.lambda_l1
-        }
-        
-        torch.save(state_dict, model_path)
-        logger.info(f"Model saved to {model_path}")
+# Import SAE and ST modules
+from SAE import SparseAutoencoder
+from ST import SparseTransformer
+from deadfeatures import DeadFeatureTracker
+logger.info("Using enhanced SAE and ST implementations")
 
 class ModelTrainer:
     """Class to handle loading a model and training SAE/ST models on its activations"""
@@ -475,7 +236,7 @@ class ModelTrainer:
             }
         
         return hidden_states, group_ids, input_texts_token_lengths, input_text
-    #
+    
     def train_model_for_layer(self, layer_idx: int, activations: np.ndarray, 
                             model_type: str = 'sae', output_dir: str = 'models', 
                             feature_dim: int = None, attention_dim: int = None,
@@ -494,7 +255,20 @@ class ModelTrainer:
                             auto_steps_base: int = 200000,
                             auto_steps_min: int = 5000,
                             auto_steps_max: int = 1000000,
-                            auto_attention_dim: bool = False):
+                            auto_attention_dim: bool = True,
+                            # Additional SAE parameters
+                            save_best: bool = False,
+                            enable_checkpoints: bool = False,
+                            checkpoint_freq: int = 50000,
+                            early_stopping: bool = False,
+                            early_stopping_patience: int = 5,
+                            warmup_steps_pct: float = 0.05,
+                            final_decay_pct: float = 0.2,
+                            plot_weights_freq: int = 0,
+                            scheduler_type: str = None,
+                            window_size: int = 10_000_000,
+                            update_interval: int = 10_000,
+                            log_level: str = 'INFO'):
         """
         Train a decomposition model (SAE or ST) for a specific layer's activations.
         
@@ -510,17 +284,30 @@ class ModelTrainer:
             learning_rate: Learning rate
             target_steps: Number of training steps
             force_retrain: Whether to retrain existing models
-            use_mixed_precision: Enable mixed precision training for ST model
+            use_mixed_precision: Enable mixed precision training
             grad_accum_steps: Number of gradient accumulation steps
             eval_freq: Evaluation frequency during training
-            attention_fn: Function to use for attention score processing
-            use_memory_bank: Use memory bank approach instead of direct K-V matrices
-            use_old_st: Use the original ST implementation
+            attention_fn: Function to use for attention score processing (ST only)
+            use_memory_bank: Use memory bank approach instead of direct K-V matrices (ST only)
+            use_old_st: Use the original ST implementation (ST only)
             activation_threshold: Threshold for feature activation
             auto_steps: Automatically calculate optimal training steps
             auto_steps_base: Base steps for auto calculation
             auto_steps_min: Minimum steps for auto calculation
             auto_steps_max: Maximum steps for auto calculation
+            auto_attention_dim: Auto-calculate attention dimension (ST only)
+            save_best: Whether to save the best model based on validation loss
+            enable_checkpoints: Whether to save periodic checkpoints
+            checkpoint_freq: How often to save checkpoints (steps)
+            early_stopping: Whether to enable early stopping
+            early_stopping_patience: Patience for early stopping
+            warmup_steps_pct: Percentage of steps for lambda and LR warmup
+            final_decay_pct: Percentage of steps for final decay phase
+            plot_weights_freq: How often to plot decoder weights (0 to disable)
+            scheduler_type: Type of learning rate scheduler ('cosine', 'linear', 'constant')
+            window_size: Window size for feature tracking
+            update_interval: Update interval for feature tracking
+            log_level: Logging level
             
         Returns:
             Path to the saved model
@@ -536,7 +323,7 @@ class ModelTrainer:
         # For ST models, calculate attention dimension if not specified
         if model_type == 'st' and attention_dim is None:
             # Check if we should auto-calculate the attention dimension
-            if 'auto_attention_dim' in locals() and auto_attention_dim:
+            if auto_attention_dim:
                 # Calculate attention dimension to match SAE parameter count
                 attention_dim = calculate_attention_dim_for_equal_params(
                     n=hidden_dim, 
@@ -579,92 +366,63 @@ class ModelTrainer:
         # Convert to PyTorch tensor
         activation_tensor = torch.from_numpy(activations).float().to(self.device)
         
-        # Split data for training and validation
-        split_idx = int(n_samples * 0.8)
-        train_tensor = activation_tensor[:split_idx]
-        val_tensor = activation_tensor[split_idx:]
+        # Use the entire dataset for both training and validation to maximize data usage
+        train_tensor = activation_tensor
+        val_tensor = activation_tensor  # Same as training set
         
         # Create and train the model
         if model_type == 'sae':
-            if DECOMP_AVAILABLE:
-                logger.info(f"Creating SAE model with dims: {hidden_dim} -> {feature_dim}")
-                # Use the original implementation if available
-                model = SparseAutoencoder(
-                    n=hidden_dim,
-                    m=feature_dim,
-                    lambda_l1=lambda_l1,
-                    device=self.device,
-                    sae_model_path=model_path,  # Pass model path to constructor
-                    activation='relu'  # SAE typically uses ReLU activation
-                )
-                
-                # Train the model
-                model.train_and_validate(
-                    train_tensor,
-                    val_tensor,
-                    learning_rate=learning_rate,
-                    batch_size=batch_size,
-                    target_steps=target_steps
-                )
-                
-                # The model should be automatically saved by train_and_validate
-                logger.info(f"SAE model for layer {layer_idx} saved to {model_path}")
-            else:
-                # Use simplified implementation
-                logger.info(f"Creating simplified SAE model with dims: {hidden_dim} -> {feature_dim}")
-                model = SimplifiedSAE(
-                    n=hidden_dim,
-                    m=feature_dim,
-                    device=self.device,
-                    lambda_l1=lambda_l1,
-                    sae_model_path=model_path  # Pass model path to constructor
-                )
-                
-                # Train the model
-                model.train_and_validate(
-                    train_tensor,
-                    val_tensor,
-                    learning_rate=learning_rate,
-                    batch_size=batch_size,
-                    target_steps=target_steps
-                )
-                
-                # Save model
-                model.save(model_path)
-                logger.info(f"Simplified SAE model for layer {layer_idx} saved to {model_path}")
+            logger.info(f"Creating SAE model with dims: {hidden_dim} -> {feature_dim}")
+            # Use the enhanced SAE implementation
+            model = SparseAutoencoder(
+                n=hidden_dim,
+                m=feature_dim,
+                sae_model_path=model_path,  # Pass model path to constructor
+                lambda_l1=lambda_l1,
+                device=self.device,
+                activation='relu',  # SAE typically uses ReLU activation
+                window_size=window_size,
+                update_interval=update_interval,
+                activation_threshold=activation_threshold,
+                use_mixed_precision=use_mixed_precision,
+                log_level=log_level
+            )
+            
+            # Train the model with enhanced parameters
+            model.train_and_validate(
+                train_tensor,
+                val_tensor,
+                learning_rate=learning_rate,
+                batch_size=batch_size,
+                target_steps=target_steps,
+                checkpoint_freq=checkpoint_freq,
+                save_best=save_best,
+                enable_checkpoints=enable_checkpoints,
+                grad_accum_steps=grad_accum_steps,
+                eval_freq=eval_freq,
+                scheduler_type=scheduler_type,
+                early_stopping=early_stopping,
+                early_stopping_patience=early_stopping_patience,
+                warmup_steps_pct=warmup_steps_pct,
+                final_decay_pct=final_decay_pct,
+                plot_weights_freq=plot_weights_freq,
+                plot_save_dir=os.path.join(output_dir, 'sae_plots') if plot_weights_freq > 0 else None
+            )
+            
+            # The model should be automatically saved by train_and_validate
+            logger.info(f"Enhanced SAE model for layer {layer_idx} saved to {model_path}")
                 
         elif model_type == 'st':
-            if DECOMP_AVAILABLE:
-                logger.info(f"Creating ST model with dims: {hidden_dim} -> {feature_dim}, attention dim: {attention_dim}")
-                # Check if we need to decide between ST and ST_old
-                if use_old_st:
-                    try:
-                        # Import ST_old only if needed
-                        import ST_old
-                        logger.info("Using original ST implementation (ST_old)")
-                        
-                        # Create ST_old model
-                        model = ST_old.SparseTransformer(
-                            X=activation_tensor,
-                            n=hidden_dim,
-                            m=feature_dim,
-                            a=attention_dim,
-                            lambda_l1=lambda_l1,
-                            device=self.device,
-                            st_model_path=model_path,
-                            activation_threshold=activation_threshold,
-                            use_direct_kv=not use_memory_bank,
-                            attention_fn=attention_fn
-                        )
-                    except ImportError:
-                        logger.warning("ST_old not found, falling back to default ST")
-                        use_old_st = False
-                
-                # If not using old ST or import failed, use the regular ST
-                if not use_old_st:
-                    # Use the original implementation
-                    logger.info("Using regular ST implementation")
-                    model = SparseTransformer(
+            logger.info(f"Creating ST model with dims: {hidden_dim} -> {feature_dim}, attention dim: {attention_dim}")
+            # Check if we need to decide between ST and ST_old
+            if use_old_st:
+                try:
+                    # Import ST_old only if needed
+                    import ST_old
+                    logger.info("Using original ST implementation (ST_old)")
+                    
+                    # Create ST_old model
+                    model = ST_old.SparseTransformer(
                         X=activation_tensor,
                         n=hidden_dim,
                         m=feature_dim,
@@ -672,50 +430,35 @@ class ModelTrainer:
                         lambda_l1=lambda_l1,
                         device=self.device,
                         st_model_path=model_path,
-                        use_mixed_precision=use_mixed_precision,
+                        activation_threshold=activation_threshold,
                         use_direct_kv=not use_memory_bank,
-                        attention_fn=attention_fn,
-                        activation_threshold=activation_threshold
+                        attention_fn=attention_fn
                     )
-                
-                # Train the model with appropriate parameters
-                if use_old_st:
-                    # Old ST has simpler interface
-                    model.train_and_validate(
-                        train_tensor,
-                        val_tensor,
-                        learning_rate=learning_rate,
-                        batch_size=batch_size,
-                        target_steps=target_steps
-                    )
-                else:
-                    # New ST has more parameters
-                    model.train_and_validate(
-                        train_tensor,
-                        val_tensor,
-                        learning_rate=learning_rate,
-                        batch_size=batch_size,
-                        target_steps=target_steps,
-                        grad_accum_steps=grad_accum_steps,
-                        eval_freq=eval_freq
-                    )
-                
-                # The model should be automatically saved by train_and_validate
-                logger.info(f"ST model for layer {layer_idx} saved to {model_path}")
-            else:
-                # Use simplified implementation
-                logger.info(f"Creating simplified ST model with dims: {hidden_dim} -> {feature_dim}, attention dim: {attention_dim}")
-                model = SimplifiedST(
+                except ImportError:
+                    logger.warning("ST_old not found, falling back to default ST")
+                    use_old_st = False
+            
+            # If not using old ST or import failed, use the regular ST
+            if not use_old_st:
+                # Use the standard implementation
+                logger.info("Using regular ST implementation")
+                model = SparseTransformer(
                     X=activation_tensor,
                     n=hidden_dim,
                     m=feature_dim,
                     a=attention_dim,
-                    device=self.device,
                     lambda_l1=lambda_l1,
-                    st_model_path=model_path  # Pass model path to constructor 
+                    device=self.device,
+                    st_model_path=model_path,
+                    use_mixed_precision=use_mixed_precision,
+                    use_direct_kv=not use_memory_bank,
+                    attention_fn=attention_fn,
+                    activation_threshold=activation_threshold
                 )
-                
-                # Train the model
+            
+            # Train the model with appropriate parameters
+            if use_old_st:
+                # Old ST has simpler interface
                 model.train_and_validate(
                     train_tensor,
                     val_tensor,
@@ -723,10 +466,20 @@ class ModelTrainer:
                     batch_size=batch_size,
                     target_steps=target_steps
                 )
-                
-                # Save model
-                model.save(model_path)
-                logger.info(f"Simplified ST model for layer {layer_idx} saved to {model_path}")
+            else:
+                # Standard ST has more parameters
+                model.train_and_validate(
+                    train_tensor,
+                    val_tensor,
+                    learning_rate=learning_rate,
+                    batch_size=batch_size,
+                    target_steps=target_steps,
+                    grad_accum_steps=grad_accum_steps,
+                    eval_freq=eval_freq
+                )
+            
+            # The model should be automatically saved by train_and_validate
+            logger.info(f"ST model for layer {layer_idx} saved to {model_path}")
         
         return model_path
 
@@ -793,7 +546,7 @@ def parse_args():
     parser.add_argument('--force_retrain', action='store_true',
                       help='Force retraining even if models already exist')
     
-    # NEW: ST-specific parameters
+    # ST-specific parameters
     st_group = parser.add_argument_group('ST Model Configuration')
     st_group.add_argument('--use_mixed_precision', action='store_true',
                       help='Enable mixed precision training for ST model')
@@ -814,7 +567,7 @@ def parse_args():
     st_group.add_argument('--activation_threshold', type=float, default=1e-3,
                       help='Activation threshold for ST feature tracking')
     
-    # NEW: Auto-steps parameters
+    # Auto-steps parameters
     auto_steps_group = parser.add_argument_group('Auto Steps Configuration')
     auto_steps_group.add_argument('--auto_steps', action='store_true',
                              help='Automatically determine optimal number of training steps based on feature dimension')
@@ -824,6 +577,35 @@ def parse_args():
                              help='Minimum number of steps for auto-steps calculation (default: 5000)')
     auto_steps_group.add_argument('--auto_steps_max', type=int, default=1000000,
                              help='Maximum number of steps for auto-steps calculation (default: 1000000)')
+    
+    # NEW: Enhanced SAE parameters
+    sae_group = parser.add_argument_group('Enhanced SAE Configuration')
+    sae_group.add_argument('--checkpoint_freq', type=int, default=50000,
+                      help='How often to save checkpoints (steps)')
+    sae_group.add_argument('--save_best', action='store_true', default=False,
+                      help='Save the best model based on validation loss')
+    sae_group.add_argument('--enable_checkpoints', action='store_true', default=False,
+                      help='Enable periodic checkpoints during training')
+    sae_group.add_argument('--early_stopping', action='store_true',
+                      help='Enable early stopping during training')
+    sae_group.add_argument('--early_stopping_patience', type=int, default=5,
+                      help='Number of evaluations without improvement before stopping')
+    sae_group.add_argument('--warmup_steps_pct', type=float, default=0.05,
+                      help='Percentage of steps for lambda warmup')
+    sae_group.add_argument('--final_decay_pct', type=float, default=0.2,
+                      help='Percentage of steps for final LR decay')
+    sae_group.add_argument('--plot_weights_freq', type=int, default=0,
+                      help='How often to plot decoder weights (0 to disable)')
+    sae_group.add_argument('--scheduler_type', type=str, default=None,
+                      choices=[None, 'cosine', 'linear', 'constant'],
+                      help='Type of learning rate scheduler')
+    sae_group.add_argument('--window_size', type=int, default=10_000_000,
+                      help='Window size for feature tracking')
+    sae_group.add_argument('--update_interval', type=int, default=10_000,
+                      help='Update interval for feature tracking')
+    sae_group.add_argument('--log_level', type=str, default='INFO',
+                      choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                      help='Logging level for SAE training')
     
     # Input texts
     parser.add_argument('--text_file', type=str, default=None,
@@ -844,6 +626,7 @@ def parse_args():
     args = parser.parse_args()
     
     return args
+
 def generate_sample_texts(n=100):
     """Generate diverse sample texts for training"""
     # Different text types
@@ -922,6 +705,7 @@ def generate_sample_texts(n=100):
                 break
     
     return samples[:n]  # Ensure we return exactly n samples
+
 def calculate_optimal_training_steps(
     feature_dimension: int, 
     input_dimension: int, 
@@ -973,6 +757,7 @@ def calculate_optimal_training_steps(
         optimal_steps = min(optimal_steps, max_steps)
     
     return optimal_steps
+
 def calculate_attention_dim_for_equal_params(n, m, use_direct_kv=False):
     """
     Calculate attention dimension 'a' that would make ST and SAE have equal parameters,
@@ -1014,6 +799,7 @@ def calculate_attention_dim_for_equal_params(n, m, use_direct_kv=False):
     a = max(1, int(a))
     
     return a
+
 def main():
     """Main function for model training"""
     args = parse_args()
@@ -1085,11 +871,29 @@ def main():
                     'learning_rate': args.learning_rate,
                     'target_steps': args.target_steps,
                     'force_retrain': args.force_retrain,
-                    # Including new parameters for completeness
+                    # Mixed precision parameters
+                    'use_mixed_precision': args.use_mixed_precision,
+                    # Auto-steps parameters
                     'auto_steps': args.auto_steps,
                     'auto_steps_base': args.auto_steps_base,
                     'auto_steps_min': args.auto_steps_min,
-                    'auto_steps_max': args.auto_steps_max
+                    'auto_steps_max': args.auto_steps_max,
+                    # Enhanced SAE parameters
+                    'grad_accum_steps': args.grad_accum_steps,
+                    'eval_freq': args.eval_freq,
+                    'save_best': args.save_best,
+                    'enable_checkpoints': args.enable_checkpoints,
+                    'checkpoint_freq': args.checkpoint_freq,
+                    'early_stopping': args.early_stopping,
+                    'early_stopping_patience': args.early_stopping_patience,
+                    'warmup_steps_pct': args.warmup_steps_pct,
+                    'final_decay_pct': args.final_decay_pct,
+                    'plot_weights_freq': args.plot_weights_freq,
+                    'scheduler_type': args.scheduler_type,
+                    'window_size': args.window_size,
+                    'update_interval': args.update_interval,
+                    'activation_threshold': args.activation_threshold,
+                    'log_level': args.log_level
                 })
             
             # Add ST task
@@ -1106,7 +910,7 @@ def main():
                     'learning_rate': args.learning_rate,
                     'target_steps': args.target_steps,
                     'force_retrain': args.force_retrain,
-                    # New ST-specific parameters
+                    # ST-specific parameters
                     'use_mixed_precision': args.use_mixed_precision,
                     'grad_accum_steps': args.grad_accum_steps,
                     'eval_freq': args.eval_freq,
@@ -1131,23 +935,39 @@ def main():
     logger.info(f"Layers: {layer_indices}")
     logger.info(f"Decomposition: {args.decomposition}")
     logger.info(f"Feature dimension: {args.feature_dim}")
-    if args.decomposition in ['st', 'both']:
-        if args.auto_attention_dim:
-            logger.info(f"Attention dimension: Auto-calculated to match SAE params")
+    logger.info(f"Mixed precision: {args.use_mixed_precision}")
+    logger.info(f"Gradient accumulation steps: {args.grad_accum_steps}")
+    
+    if args.decomposition in ['sae', 'both']:
+        logger.info("\nSAE Configuration:")
+        logger.info(f"  Lambda L1: {args.l1_lambda}")
+        logger.info(f"  Window size: {args.window_size}")
+        logger.info(f"  Update interval: {args.update_interval}")
+        logger.info(f"  Activation threshold: {args.activation_threshold}")
+        if args.auto_steps:
+            logger.info(f"  Auto steps: Enabled (base: {args.auto_steps_base}, min: {args.auto_steps_min}, max: {args.auto_steps_max})")
         else:
-            logger.info(f"Attention dimension: {args.attention_dim}")
-        logger.info(f"Attention function: {args.attention_fn}")
-        logger.info(f"Use memory bank: {args.use_memory_bank}")
-        logger.info(f"Use old ST: {args.use_old_st}")
-        logger.info(f"Mixed precision: {args.use_mixed_precision}")
-        logger.info(f"Gradient accumulation steps: {args.grad_accum_steps}")
-    logger.info(f"L1 lambda: {args.l1_lambda}")
-    if args.auto_steps:
-        logger.info(f"Auto steps: Enabled (base: {args.auto_steps_base}, min: {args.auto_steps_min}, max: {args.auto_steps_max})")
-    else:
-        logger.info(f"Target steps: {args.target_steps}")
-    logger.info(f"Batch size: {args.batch_size}")
-    logger.info(f"Learning rate: {args.learning_rate}")
+            logger.info(f"  Target steps: {args.target_steps}")
+        logger.info(f"  Learning rate: {args.learning_rate}")
+        logger.info(f"  Batch size: {args.batch_size}")
+        logger.info(f"  Warmup steps %: {args.warmup_steps_pct}")
+        logger.info(f"  Final decay %: {args.final_decay_pct}")
+        logger.info(f"  Early stopping: {args.early_stopping}")
+        if args.early_stopping:
+            logger.info(f"  Early stopping patience: {args.early_stopping_patience}")
+        logger.info(f"  Plot weights frequency: {args.plot_weights_freq}")
+        logger.info(f"  Scheduler type: {args.scheduler_type}")
+        
+    if args.decomposition in ['st', 'both']:
+        logger.info("\nST Configuration:")
+        if args.auto_attention_dim:
+            logger.info(f"  Attention dimension: Auto-calculated to match SAE params")
+        else:
+            logger.info(f"  Attention dimension: {args.attention_dim}")
+        logger.info(f"  Attention function: {args.attention_fn}")
+        logger.info(f"  Use memory bank: {args.use_memory_bank}")
+        logger.info(f"  Use old ST: {args.use_old_st}")
+    
     logger.info("="*50 + "\n")
     
     # Train models
