@@ -249,7 +249,7 @@ class ModelTrainer:
                             eval_freq: int = None,
                             attention_fn: str = 'softmax',
                             use_memory_bank: bool = False,
-                            use_old_st: bool = False,
+                            use_old_st: bool = True,
                             activation_threshold: float = 1e-3,
                             auto_steps: bool = False,
                             auto_steps_base: int = 200000,

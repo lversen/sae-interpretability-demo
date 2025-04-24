@@ -4,13 +4,20 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from typing import Tuple, Optional, Callable
+from typing import Tuple, Optional, Callable, Dict, Any, List
 from deadfeatures import DeadFeatureTracker
 import time
 import math
+import logging
 from datetime import timedelta
-from torch.cuda.amp import GradScaler, autocast
+from torch.cuda.amp import GradScaler
+# Import autocast in a way that works with different PyTorch versions
+try:
+    from torch.amp import autocast
+except ImportError:
+    from torch.cuda.amp import autocast
 import torch.nn.functional as F
+from tqdm.auto import tqdm
 
 
 class SparseTransformer(nn.Module):
@@ -18,7 +25,8 @@ class SparseTransformer(nn.Module):
                  lambda_l1: float = 5.0, num_heads: int = 1, device: str = 'cuda',
                  window_size: int = 10_000_000, update_interval: int = 1_000,
                  activation_threshold: float = 1e-3, use_direct_kv: bool = False,
-                 activation: str = 'relu', attention_fn: str = 'softmax'):
+                 activation: str = 'relu', attention_fn: str = 'softmax',
+                 use_mixed_precision: bool = False, log_level: str = 'INFO'):
         super().__init__()
         
         # Model parameters
@@ -32,6 +40,10 @@ class SparseTransformer(nn.Module):
         self.steps = 0
         self.total_steps = 0
         self.use_direct_kv = use_direct_kv
+        self.use_mixed_precision = use_mixed_precision
+        
+        # Set up logging
+        self.logger = self._setup_logger(log_level)
         
         # Set activation function
         self.activation_name = activation
@@ -41,8 +53,21 @@ class SparseTransformer(nn.Module):
         self.attention_fn_name = attention_fn
         self.attention_fn = self._get_attention_function(attention_fn)
         
-        print(f"Using activation function: {self.activation_name}")
-        print(f"Using attention function: {self.attention_fn_name}")
+        self.logger.info(f"Using activation function: {self.activation_name}")
+        self.logger.info(f"Using attention function: {self.attention_fn_name}")
+        
+        # Training history tracking
+        self.training_history = {
+            "steps": [], 
+            "train_loss": [], 
+            "val_loss": [], 
+            "l1_loss": [], 
+            "l2_loss": [], 
+            "lambda": [], 
+            "dead_ratio": [], 
+            "sparsity": [], 
+            "avg_feature_norm": []
+        }
         
         # Projections - query projection always needed
         self.W_q = nn.Linear(n, a)
@@ -83,6 +108,23 @@ class SparseTransformer(nn.Module):
         
         self.to(device)
     
+    def _setup_logger(self, log_level: str) -> logging.Logger:
+        """Setup logger for the model"""
+        logger = logging.getLogger(f"SparseTransformer_Old_{id(self)}")
+        
+        # Set level based on parameter
+        level = getattr(logging, log_level.upper(), logging.INFO)
+        logger.setLevel(level)
+        
+        # Create handler if not already set up
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+            
+        return logger
+    
     def _get_activation_function(self, activation_name: str) -> Callable:
         """
         Returns the activation function based on the name.
@@ -100,7 +142,7 @@ class SparseTransformer(nn.Module):
         }
         
         if activation_name.lower() not in activation_functions:
-            print(f"Warning: Activation function '{activation_name}' not supported. "
+            self.logger.warning(f"Activation function '{activation_name}' not supported. "
                   f"Falling back to 'relu'. Supported activations: {list(activation_functions.keys())}")
             return activation_functions['relu']
         
@@ -159,7 +201,7 @@ class SparseTransformer(nn.Module):
         }
         
         if attention_name.lower() not in attention_functions:
-            print(f"Warning: Attention function '{attention_name}' not supported. "
+            self.logger.warning(f"Attention function '{attention_name}' not supported. "
                   f"Falling back to 'softmax'. Supported functions: {list(attention_functions.keys())}")
             return attention_functions['softmax']
         
@@ -217,7 +259,7 @@ class SparseTransformer(nn.Module):
             with torch.no_grad():
                 self.memory_indices = torch.randint(0, self.X.shape[0], 
                                                    (self.m,), device=self.device)
-                print("X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED | X_CROSS UPDATED")
+                self.logger.info("Memory indices updated for memory bank approach")
         self.steps += 1
         
         # Type conversion for input x
@@ -303,9 +345,19 @@ class SparseTransformer(nn.Module):
         idx = torch.arange(1, n+1, device=tensor.device)
         return (torch.sum(sorted_vals * idx) / (n * torch.sum(sorted_vals)) - (n + 1) / (2 * n)).item()
 
-    def train_and_validate(self, X_train, X_val, learning_rate=5e-5, batch_size=4096, target_steps=200_000):
+    def _cleanup_memory(self):
+        """Release memory when possible"""
+        if torch.cuda.is_available():
+            # Force garbage collection
+            import gc
+            gc.collect()
+            torch.cuda.empty_cache()
+
+    def train_and_validate(self, X_train, X_val, learning_rate=5e-5, batch_size=4096, 
+                          target_steps=200_000, grad_accum_steps=1, 
+                          eval_freq=None, use_mixed_precision=None):
         """
-        Train the Sparse Autoencoder targeting a specific number of steps while tracking dead features.
+        Train the Sparse Transformer targeting a specific number of steps using tqdm for progress tracking.
 
         Args:
             X_train: Training data
@@ -313,15 +365,28 @@ class SparseTransformer(nn.Module):
             learning_rate: Initial learning rate
             batch_size: Batch size for training
             target_steps: Target number of training steps (default 200k as per paper)
+            grad_accum_steps: Number of gradient accumulation steps (default: 1)
+            eval_freq: Evaluation frequency in steps (default: 5 evaluations per epoch)
+            use_mixed_precision: Whether to use mixed precision training (overrides instance setting)
         """
+        # Setup optimizer
         optimizer = optim.Adam(
             self.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=0)
 
+        # Track training start time
+        start_time = time.time()
+        
+        # Set mixed precision if overridden in function call
+        if use_mixed_precision is not None:
+            self.use_mixed_precision = use_mixed_precision
+            
+        # Initialize mixed precision scaler if requested
+        scaler = GradScaler() if self.use_mixed_precision else None
 
-
+        # Preprocess data - scale so E_x[||x||₂] = √n
         C = self.preprocess(X_train)
-        X_train /= C
-        X_val /= C
+        X_train = X_train.clone() / C
+        X_val = X_val.clone() / C
 
         # Setup data loaders
         train_dataset = TensorDataset(X_train)
@@ -336,41 +401,56 @@ class SparseTransformer(nn.Module):
         num_epochs = max(1, target_steps // steps_per_epoch)
         actual_total_steps = num_epochs * steps_per_epoch
         self.total_steps = actual_total_steps
-        self.memory_update_freq = int(self.total_steps/100)
+        self.memory_update_freq = max(1, int(self.total_steps/100))
+        
+        # Set evaluation frequency if not specified
+        if eval_freq is None:
+            eval_freq = max(1, steps_per_epoch // 5)  # 5 evaluations per epoch
+        
         # Initialize training parameters
         warmup_steps = actual_total_steps // 20  # First 5% for lambda warmup
-        # Start decay at 80% of training
-        decay_start_step = int(actual_total_steps * 0.8)
+        decay_start_step = int(actual_total_steps * 0.8)  # Start decay at 80% of training
         step = 0
         best_val_loss = float('inf')
         final_lambda = self.lambda_l1
+        val_loss_value = 0.0  # Initialize for progress bar
 
-        # Initialize feature tracker if not already done
-        if not hasattr(self, 'feature_tracker'):
-            self.feature_tracker = DeadFeatureTracker(
-                num_features=self.m,
-                window_size=10_000_000,  # As specified in paper
-                update_interval=10_000
-            )
+        # Print training configuration
+        self.logger.info("\nTraining Configuration:")
+        self.logger.info(f"Total Steps: {actual_total_steps}")
+        self.logger.info(f"Epochs: {num_epochs}")
+        self.logger.info(f"Steps per Epoch: {steps_per_epoch}")
+        self.logger.info(f"Batch Size: {batch_size}")
+        self.logger.info(f"Gradient Accumulation Steps: {grad_accum_steps}")
+        self.logger.info(f"Effective Batch Size: {batch_size * grad_accum_steps}")
+        self.logger.info(f"Warmup Steps: {warmup_steps}")
+        self.logger.info(f"Learning Rate Decay Start: {decay_start_step}")
+        self.logger.info(f"Evaluation Frequency: {eval_freq} steps")
+        self.logger.info(f"Mixed Precision: {self.use_mixed_precision}")
+        self.logger.info(f"Using {'direct K-V matrices' if self.use_direct_kv else 'memory bank approach'}")
 
-        print("\nTraining Configuration:")
-        print(f"Total Steps: {actual_total_steps}")
-        print(f"Epochs: {num_epochs}")
-        print(f"Steps per Epoch: {steps_per_epoch}")
-        print(f"Batch Size: {batch_size}")
-        print(f"Warmup Steps: {warmup_steps}")
-        print(f"Learning Rate Decay Start: {decay_start_step}")
-        print(f"Using {'direct K-V matrices' if self.use_direct_kv else 'memory bank approach'}")
+        # Set up progress tracking with tqdm - matching ST style
+        progress_bar = tqdm(
+            total=actual_total_steps,
+            desc="Training",
+            dynamic_ncols=True,
+            miniters=20,
+            bar_format='{l_bar}{bar:15}{r_bar}'
+        )
+        
+        # Reserve space with initial postfix
+        progress_bar.set_postfix({
+            'd%': f"{0:.0f}",
+            'L': f"{self.lambda_l1:.1f}",
+            'lr': f"{learning_rate:.1e}",
+            'loss': f"{0.000:.3f}",
+            'val': f"{0.000:.3f}"
+        })
 
-        print("\nMetrics:")
-        print("  Loss    - Training loss for current batch")
-        print("  ValLoss - Average validation loss")
-        print("  λ       - Current L1 regularization strength")
-        print("  Dead%   - Percentage of features with no activation in 10M samples")
-        print("  Sparse% - Percentage of non-zero activations")
-        print("  Track%  - Percentage of 10M sample tracking window completed")
-        print(f"\n{'Step':>8} {'Epoch':>5} {'Loss':>8} {'ValLoss':>8} {
-              'λ':>5} {'Dead%':>6} {'Sparse%':>7} {'Track%':>7}")
+        # Reset gradients at the beginning of training
+        optimizer.zero_grad()
+        accum_batch = 0
+        running_loss = 0.0
 
         for epoch in range(num_epochs):
             self.train()
@@ -378,80 +458,200 @@ class SparseTransformer(nn.Module):
             num_batches = 0
 
             for batch_idx, batch in enumerate(train_loader):
-                optimizer.zero_grad()
+                # Get input data
                 x = batch[0]
-
-                # Forward pass
-                x, x_hat, f_x, v = self.forward(x)
-
-                # Update feature tracking
-                dead_ratio, stats = self.feature_tracker.update(f_x)
-
-                # Lambda warmup
+                
+                # Apply lambda warmup during initial phase of training
                 if step < warmup_steps:
                     self.lambda_l1 = (step / warmup_steps) * final_lambda
                 else:
                     self.lambda_l1 = final_lambda
-
-                # Learning rate decay in last 20%
+                
+                # Apply learning rate decay in last 20%
                 if step >= decay_start_step:
-                    progress = (step - decay_start_step) / \
-                        (actual_total_steps - decay_start_step)
+                    progress = (step - decay_start_step) / (actual_total_steps - decay_start_step)
                     # Linear decay to zero
                     new_lr = learning_rate * (1 - progress)
                     for param_group in optimizer.param_groups:
                         param_group['lr'] = new_lr
 
-                # Compute loss and update
-                total_loss, L2_loss, L1_loss = self.compute_loss(x, x_hat, f_x, v)
-                total_loss.backward()
-
-                # Gradient clipping as per paper
-                torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
-                optimizer.step()
-
+                # Forward pass with optional mixed precision
+                # Handle different PyTorch versions gracefully
+                try:
+                    # Newer PyTorch version (2.0+)
+                    with autocast(self.device if self.device == 'cuda' else 'cpu', 
+                                enabled=self.use_mixed_precision):
+                        x, x_hat, f_x, v = self.forward(x)
+                        total_loss, L2_loss, L1_loss = self.compute_loss(x, x_hat, f_x, v)
+                        # Scale loss by the number of accumulation steps for proper scaling
+                        scaled_loss = total_loss / grad_accum_steps
+                except TypeError:
+                    # Older PyTorch version
+                    if self.device == 'cuda' and self.use_mixed_precision:
+                        with autocast(enabled=self.use_mixed_precision):
+                            x, x_hat, f_x, v = self.forward(x)
+                            total_loss, L2_loss, L1_loss = self.compute_loss(x, x_hat, f_x, v)
+                            # Scale loss by the number of accumulation steps for proper scaling
+                            scaled_loss = total_loss / grad_accum_steps
+                    else:
+                        # CPU or mixed precision disabled
+                        x, x_hat, f_x, v = self.forward(x)
+                        total_loss, L2_loss, L1_loss = self.compute_loss(x, x_hat, f_x, v)
+                        # Scale loss by the number of accumulation steps for proper scaling
+                        scaled_loss = total_loss / grad_accum_steps
+                
+                # Backward pass with appropriate handling for mixed precision
+                if self.use_mixed_precision:
+                    scaler.scale(scaled_loss).backward()
+                    running_loss += scaled_loss.item() * grad_accum_steps  # Track the actual loss
+                else:
+                    scaled_loss.backward()
+                    running_loss += scaled_loss.item() * grad_accum_steps  # Track the actual loss
+                
+                # Accumulate batches
+                accum_batch += 1
+                
+                # Update weights if we've accumulated enough gradients
+                if accum_batch >= grad_accum_steps:
+                    if self.use_mixed_precision:
+                        scaler.unscale_(optimizer)
+                        torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
+                        scaler.step(optimizer)
+                        scaler.update()
+                    else:
+                        torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
+                        optimizer.step()
+                    
+                    optimizer.zero_grad()
+                    accum_batch = 0
+                
+                # Update feature tracking
+                dead_ratio, stats = self.feature_tracker.update(f_x)
+                
+                # Update training metrics
                 epoch_train_loss += total_loss.item()
                 num_batches += 1
                 step += 1
+                
+                # Update progress bar
+                progress_bar.set_postfix({
+                    'd%': f"{dead_ratio*100:.0f}",
+                    'λ': f"{self.lambda_l1:.1f}",
+                    'lr': f"{optimizer.param_groups[0]['lr']:.1e}",
+                    'loss': f"{total_loss.item():.3f}",
+                    'val': f"{val_loss_value:.3f}",
+                })
+                progress_bar.update(1)
 
-                # Periodic validation and logging
-                if num_batches % (len(train_loader) // 1) == 0:
+                # Periodic validation
+                if step % eval_freq == 0:
                     self.eval()
                     val_loss = 0.0
+                    l1_val_loss = 0.0
+                    l2_val_loss = 0.0
                     val_batches = 0
 
                     with torch.no_grad():
                         for val_batch in val_loader:
                             x_val = val_batch[0]
                             x_val, x_hat_val, f_x_val, v_val = self.forward(x_val)
-                            val_total_loss, _, _ = self.compute_loss(
+                            val_total_loss, l2_val, l1_val = self.compute_loss(
                                 x_val, x_hat_val, f_x_val, v_val)
                             val_loss += val_total_loss.item()
+                            l1_val_loss += l1_val.item()
+                            l2_val_loss += l2_val.item()
                             val_batches += 1
 
                     avg_val_loss = val_loss / val_batches
+                    avg_l1_val_loss = l1_val_loss / val_batches
+                    avg_l2_val_loss = l2_val_loss / val_batches
+                    val_loss_value = avg_val_loss  # Store for progress bar
 
-                    # Calculate sparsity and tracking progress
-                    sparsity = (
-                        f_x.abs() >= self.feature_tracker.activation_threshold).float().mean().item()
-                    tracking_progress = min(
-                        self.feature_tracker.samples_seen / self.feature_tracker.window_size, 1.0)
-
-                    print(f"Step: {step:6d}/{actual_total_steps} ({step/actual_total_steps:3.1%}) | "
-                          f"Epoch: {epoch:3d} | LR: {
-                              optimizer.param_groups[0]['lr']:.2e} | "
-                          f"Train: {total_loss.item():8.4f} | Val: {
-                        val_loss:8.4f} | "
-                        f"L1_loss: {L1_loss:4.2f} | L2_loss: {
-                              L2_loss:4.2f} | "
-                        f"L1 λ: {self.lambda_l1:4.2f} | Sparse: {sparsity:5.1%} | ")
-
-
+                    # Calculate sparsity
+                    sparsity = (f_x.abs() >= self.feature_tracker.activation_threshold).float().mean().item()
+                    
+                    # Calculate feature norms
+                    v_norms = torch.norm(v, p=2, dim=1)
+                    avg_feature_norm = v_norms.mean().item()
+                    
+                    # Calculate elapsed time and estimated time remaining
+                    elapsed_time = time.time() - start_time
+                    time_per_step = elapsed_time / step
+                    remaining_steps = actual_total_steps - step
+                    estimated_remaining = remaining_steps * time_per_step
+                    
+                    # Update training history
+                    self.training_history["steps"].append(step)
+                    self.training_history["train_loss"].append(total_loss.item())
+                    self.training_history["val_loss"].append(avg_val_loss)
+                    self.training_history["l1_loss"].append(L1_loss.item())
+                    self.training_history["l2_loss"].append(L2_loss.item())
+                    self.training_history["lambda"].append(self.lambda_l1)
+                    self.training_history["dead_ratio"].append(dead_ratio)
+                    self.training_history["sparsity"].append(sparsity)
+                    self.training_history["avg_feature_norm"].append(avg_feature_norm)
+                    
+                    # Log detailed metrics to the progress bar - matching ST style
+                    progress_bar.set_postfix({
+                        'd%': f"{dead_ratio*100:.0f}",
+                        'L': f"{self.lambda_l1:.1f}",
+                        'lr': f"{optimizer.param_groups[0]['lr']:.1e}",
+                        'loss': f"{total_loss.item():.3f}",
+                        'val': f"{avg_val_loss:.3f}"
+                    })
+                    
+                    # Update training history (but don't log it)
+                    self.training_history["steps"].append(step)
+                    self.training_history["train_loss"].append(total_loss.item())
+                    self.training_history["val_loss"].append(avg_val_loss)
+                    self.training_history["l1_loss"].append(L1_loss.item())
+                    self.training_history["l2_loss"].append(L2_loss.item())
+                    self.training_history["lambda"].append(self.lambda_l1)
+                    self.training_history["dead_ratio"].append(dead_ratio)
+                    self.training_history["sparsity"].append(sparsity)
+                    self.training_history["avg_feature_norm"].append(avg_feature_norm)
+                    
+                    # Periodically clear memory
+                    self._cleanup_memory()
+                    
+                    # Return to training mode
                     self.train()
 
-        print(f"\nTraining completed:")
-        print(f"Best validation loss: {best_val_loss:.4f}")
-        print(f"Final dead feature ratio: {dead_ratio:.1%}")
-        print(f"Steps completed: {step}/{actual_total_steps}")
-        print(f"Final λ: {self.lambda_l1:.2f}")
+            # Make sure to update with any remaining accumulated gradients at the end of the epoch
+            if accum_batch > 0:
+                if self.use_mixed_precision:
+                    scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
+                if self.use_mixed_precision:
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    optimizer.step()
+                optimizer.zero_grad()
+                accum_batch = 0
+
+        # Close progress bar
+        progress_bar.close()
+
+        # Final evaluation
+        self.eval()
+        with torch.no_grad():
+            val_loss = 0.0
+            val_batches = 0
+            for val_batch in val_loader:
+                x_val = val_batch[0]
+                x_val, x_hat_val, f_x_val, v_val = self.forward(x_val)
+                val_total_loss, _, _ = self.compute_loss(x_val, x_hat_val, f_x_val, v_val)
+                val_loss += val_total_loss.item()
+                val_batches += 1
+            final_val_loss = val_loss / val_batches
+        
+        # Training summary - keep simple with minimal logging
+        total_time = time.time() - start_time
+        self.logger.info(f"Training completed in {timedelta(seconds=int(total_time))}")
+        
+        # Final model save - simple version with just the state dict
         torch.save(self.state_dict(), self.st_model_path)
+        self.logger.info(f"Model saved to {self.st_model_path}")
+        
+        return self
