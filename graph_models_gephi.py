@@ -84,6 +84,8 @@ def parse_args():
     # Graph parameters
     parser.add_argument('--n_neighbors', type=int, default=4,
                       help='Number of neighbors for k-nearest neighbors graph')
+    parser.add_argument('--distance_mode', type=str, default='l1',
+                      help='Distance metric for k-nearest neighbors (options: l1, l2, euclidean, manhattan, cosine, etc.)')
     parser.add_argument('--force_cpu', action='store_true',
                       help='Force using CPU even if CUDA is available')
     parser.add_argument('--try_old_st', action='store_true',
@@ -735,15 +737,16 @@ def main():
             model_name = sanitize_name(f"{os.path.basename(args.base_model)}_layer{layer_num}_{model_type}")
             
             # Create Gephi graph
-            output_path = os.path.join(args.output_dir, f"layer_{layer_num}_{model_type}.gexf")
+            output_path = os.path.join(args.output_dir, f"layer_{layer_num}_{model_type}_{args.distance_mode}.gexf")
             create_gephi_graph(
                 feature_extract=feature_activations,
                 df=df,
-                title_column='token',  # Use token as the title
+                title_column='token',
                 model_name=model_name,
                 file_path=output_path,
-                category_column=category_column,  # Use selected grouping for coloring
-                n_neighbors=args.n_neighbors
+                category_column=category_column,
+                n_neighbors=args.n_neighbors,
+                distance_mode=args.distance_mode  # Pass the distance mode
             )
             
             print(f"Created Gephi graph: {output_path}")
@@ -800,7 +803,7 @@ def main():
                 category_column = 'paragraph'
             
             # Create Gephi graph for raw activations
-            output_path = os.path.join(args.output_dir, f"layer_{layer_num}_raw.gexf")
+            output_path = os.path.join(args.output_dir, f"layer_{layer_num}_{args.distance_mode}_raw.gexf")
             create_gephi_graph(
                 feature_extract=hidden_states,
                 df=df,
@@ -808,9 +811,9 @@ def main():
                 model_name=model_name,
                 file_path=output_path,
                 category_column=category_column,
-                n_neighbors=args.n_neighbors
+                n_neighbors=args.n_neighbors,
+                distance_mode=args.distance_mode  # Pass the distance mode
             )
-            
             print(f"Created raw activation graph: {output_path}")
             
     # Print summary and instructions

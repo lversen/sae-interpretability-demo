@@ -126,7 +126,8 @@ def create_gephi_graph(feature_extract: np.ndarray,
                       selected_labels: Optional[List[str]] = None,
                       category_column: Optional[str] = None,
                       n_neighbors: int = 4,
-                      min_edge_weight: float = 1e-10):  # Add minimum edge weight threshold
+                      min_edge_weight: float = 1e-10,
+                      distance_mode: str = "l1"):  # Add minimum edge weight threshold
     """
     Create and export Gephi graph using pre-selected labels.
     
@@ -143,7 +144,7 @@ def create_gephi_graph(feature_extract: np.ndarray,
     )
     
     # Create the k-nearest neighbors graph
-    nn = kneighbors_graph(filtered_feature_extract, n_neighbors=n_neighbors, mode="distance", metric="l1")
+    nn = kneighbors_graph(filtered_feature_extract, n_neighbors=n_neighbors, mode="distance", metric=distance_mode, include_self="auto", n_jobs=-1)
     
     # Convert distances to weights
     nn.data = np.exp(-nn.data**2 / np.mean(nn.data)**2)
