@@ -294,6 +294,42 @@ class TokenClusteringUtils:
     Utility class with clustering and visualization methods from reason.ipynb
     """
     @staticmethod
+    def visualize_distance_matrix(groups, dist_matrix, avg_distance, output_path, layer_nr):
+        """
+        Visualize the distance matrix between cluster centroids as a heatmap
+        
+        Args:
+            groups: List of group IDs
+            dist_matrix: Pairwise distance matrix
+            avg_distance: Average distance value
+            output_path: Directory to save the image
+            layer_nr: Layer number (for filename)
+        """
+        plt.figure(figsize=(10, 8))
+        
+        # Create heatmap
+        sns.heatmap(
+            dist_matrix,
+            annot=True,
+            fmt=".2f",
+            cmap="viridis_r",  # reversed viridis (darker = closer)
+            xticklabels=[f"G{g}" for g in groups],
+            yticklabels=[f"G{g}" for g in groups]
+        )
+        
+        plt.title(f"Cluster Distance Matrix - Layer {layer_nr}\nAvg Distance: {avg_distance:.4f}")
+        plt.xlabel("Group ID")
+        plt.ylabel("Group ID")
+        plt.tight_layout()
+        
+        # Save the figure
+        save_path = f"{output_path}/distance_matrix_layer{layer_nr}.png"
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        print(f"Distance matrix visualization saved to {save_path}")
+    @staticmethod
     def get_group_fractions(group_ids):
         """
         Calculates fractional positions within each group (for gradient coloring)
@@ -551,7 +587,7 @@ class TokenClusteringUtils:
         plt.close()
     
     @staticmethod
-    def create_gif_from_images(image_folder, output_path, duration=1000):
+    def create_gif_from_images(image_folder, output_path, duration=1000, pattern="*_umap.png"):
         """
         Create an animated GIF from a series of images
         
@@ -559,9 +595,21 @@ class TokenClusteringUtils:
             image_folder: Folder containing images
             output_path: Path to save the resulting GIF
             duration: Frame duration in milliseconds
+            pattern: File pattern to match (default: "*_umap.png")
         """
-        png_files = glob.glob(os.path.join(image_folder, "layer*.png"))
-        png_files = sorted(png_files, key=lambda x: int(os.path.splitext(os.path.basename(x))[0].replace("layer", "")))
+        png_files = glob.glob(os.path.join(image_folder, pattern))
+        
+        # Extract layer numbers for sorting
+        def get_layer_num(filename):
+            basename = os.path.basename(filename)
+            # Look for "layer_X" pattern and extract X
+            import re
+            match = re.search(r'layer_(\d+)', basename)
+            if match:
+                return int(match.group(1))
+            return 0
+        
+        png_files = sorted(png_files, key=get_layer_num)
         
         frames = []
         for file in png_files:
@@ -579,7 +627,7 @@ class TokenClusteringUtils:
             )
             print(f"GIF successfully saved to {output_path}")
         else:
-            print("No images found in the folder!")
+            print(f"No images found in {image_folder} matching pattern {pattern}!")
 
 
 class ModelAnalyzer:
@@ -1506,7 +1554,37 @@ def main():
                             texts=texts,
                             output_path=output_path
                         )
-                        
+                # Analyze cluster distances if requested
+                if args.analyze_clusters and args.visualize:
+                    print("\nAnalyzing cluster distances between token groups...")
+                    cluster_dir = os.path.join(args.output_dir, "clusters")
+                    os.makedirs(cluster_dir, exist_ok=True)
+                    
+                    # Process each layer
+                    for layer_name, activations in hidden_states.items():
+                        try:
+                            # Extract layer number for output filename
+                            layer_nr = int(layer_name.split('_')[1])
+                            
+                            print(f"  Computing cluster centroids for {layer_name}...")
+                            # Compute centroids for each group in the raw activations
+                            centroids = TokenClusteringUtils.compute_cluster_centroids(
+                                activations, token_to_text_map)
+                            
+                            # Compute distance matrix between centroids
+                            groups, dist_matrix, avg_distance = TokenClusteringUtils.compute_distance_matrix(
+                                centroids)
+                            
+                            print(f"    Found {len(groups)} clusters with avg distance: {avg_distance:.4f}")
+                            
+                            # Visualize the distance matrix
+                            TokenClusteringUtils.visualize_distance_matrix(
+                                groups, dist_matrix, avg_distance, cluster_dir, layer_nr)
+                            
+                        except Exception as e:
+                            print(f"Error during cluster analysis of {layer_name}: {e}")
+                            print("  Skipping this layer and continuing with others...")
+                            continue
             except Exception as e:
                 print(f"Error during decomposition of {layer_name}: {e}")
                 print("  Skipping this layer and continuing with others...")
@@ -1518,7 +1596,30 @@ def main():
     print(f"Processed {len(texts)} texts through {len(hidden_states)} layers")
     if args.decomposition != 'none':
         print(f"Applied {args.decomposition} decomposition to all layers")
-    
+    # Create GIFs if requested
+    if args.create_gif and args.visualize:
+        print("\nCreating GIFs from visualizations...")
+        
+        # Create GIF for raw activations
+        viz_dir = os.path.join(args.output_dir, "visualizations")
+        if os.path.exists(viz_dir):
+            gif_path = os.path.join(args.output_dir, "layers_raw_progression.gif")
+            print(f"Creating GIF of raw activation layers: {gif_path}")
+            TokenClusteringUtils.create_gif_from_images(viz_dir, gif_path, pattern="layer*_umap.png")
+        
+        # Create GIF for decompositions
+        if args.decomposition != 'none':
+            decomp_dir = os.path.join(args.output_dir, "decomposition")
+            if os.path.exists(decomp_dir):
+                if args.decomposition in ['sae', 'both']:
+                    gif_path = os.path.join(args.output_dir, "layers_sae_progression.gif")
+                    print(f"Creating GIF of SAE feature layers: {gif_path}")
+                    TokenClusteringUtils.create_gif_from_images(decomp_dir, gif_path, pattern="layer*_sae_umap.png")
+                
+                if args.decomposition in ['st', 'both']:
+                    gif_path = os.path.join(args.output_dir, "layers_st_progression.gif")
+                    print(f"Creating GIF of ST feature layers: {gif_path}")
+                    TokenClusteringUtils.create_gif_from_images(decomp_dir, gif_path, pattern="layer*_st_umap.png")
     print("\nResults saved to:")
     print(f"  - {args.output_dir}/")
     
