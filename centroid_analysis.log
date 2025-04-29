@@ -1,0 +1,208 @@
+2025-04-24 23:27:04,070 - INFO - Loading labeled data from your_labeled_data.csv...
+2025-04-24 23:27:04,073 - ERROR - Error loading labeled data: [Errno 2] No such file or directory: 'your_labeled_data.csv'
+2025-04-24 23:27:04,073 - ERROR - Failed to load labeled data. Exiting.
+2025-04-24 23:33:05,321 - INFO - Loading labeled data from paragraph_features.csv...
+2025-04-24 23:33:05,670 - INFO - Evaluation dataset: 1919 samples with 2048 feature columns
+2025-04-24 23:33:05,670 - INFO - Number of unique classes/labels: 5
+2025-04-24 23:33:05,671 - INFO - Searching for models in models...
+2025-04-24 23:33:05,671 - INFO - Detected GPT-Neo style directory structure in models
+2025-04-24 23:33:05,959 - INFO - Found 2 SAE model files
+2025-04-24 23:33:06,005 - INFO - Found 2 ST model files
+2025-04-24 23:33:06,005 - INFO - Found a total of 4 model files.
+2025-04-24 23:33:06,005 - INFO - Analyzing models using metrics: ['cosine', 'euclidean'] on device: cpu
+2025-04-24 23:33:06,005 - INFO - Using dimension normalization: True
+2025-04-24 23:33:06,006 - INFO - Loading SAE model from models\sae\layer_12_sae.pt
+2025-04-24 23:33:06,100 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:33:06,114 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-24 23:33:06,300 - INFO - Model weights initialized
+2025-04-24 23:33:06,300 - INFO - Model initialized on cpu
+2025-04-24 23:33:06,306 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-24 23:33:06,565 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-24 23:33:06,715 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:33:08,092 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:33:09,752 - INFO - Loading SAE model from models\sae\layer_16_sae.pt
+2025-04-24 23:33:09,895 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:33:09,895 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-24 23:33:10,075 - INFO - Model weights initialized
+2025-04-24 23:33:10,076 - INFO - Model initialized on cpu
+2025-04-24 23:33:10,081 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-24 23:33:10,353 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-24 23:33:10,477 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:33:11,653 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:33:13,234 - INFO - Loading ST model from models\st\layer_12_st.pt
+2025-04-24 23:33:13,260 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-24 23:33:13,261 - INFO - Using ST_old implementation for ST model
+2025-04-24 23:33:13,261 - INFO - Using activation function: relu
+2025-04-24 23:33:13,261 - INFO - Using attention function: softmax
+2025-04-24 23:33:13,301 - ERROR - Error creating ST model: Error(s) in loading state_dict for SparseTransformer:
+	Missing key(s) in state_dict: "W_k.weight", "W_k.bias", "W_v.weight", "W_v.bias". 
+	Unexpected key(s) in state_dict: "W_k_direct", "W_v_direct". 
+2025-04-24 23:33:13,302 - WARNING - No ST model provided. Using approximation method.
+2025-04-24 23:33:13,302 - INFO - Attempting approximate feature computation for models\st\layer_12_st.pt
+2025-04-24 23:33:13,378 - ERROR - Error processing model: shapes (1919,2048) and (1631,8000) not aligned: 2048 (dim 1) != 1631 (dim 0)
+2025-04-24 23:33:13,380 - INFO - Loading ST model from models\st\layer_15_st.pt
+2025-04-24 23:33:13,401 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-24 23:33:13,402 - INFO - Using ST_old implementation for ST model
+2025-04-24 23:33:13,402 - INFO - Using activation function: relu
+2025-04-24 23:33:13,402 - INFO - Using attention function: softmax
+2025-04-24 23:33:13,435 - ERROR - Error creating ST model: Error(s) in loading state_dict for SparseTransformer:
+	Missing key(s) in state_dict: "W_k.weight", "W_k.bias", "W_v.weight", "W_v.bias". 
+	Unexpected key(s) in state_dict: "W_k_direct", "W_v_direct". 
+2025-04-24 23:33:13,436 - WARNING - No ST model provided. Using approximation method.
+2025-04-24 23:33:13,436 - INFO - Attempting approximate feature computation for models\st\layer_15_st.pt
+2025-04-24 23:33:13,505 - ERROR - Error processing model: shapes (1919,2048) and (1631,8000) not aligned: 2048 (dim 1) != 1631 (dim 0)
+2025-04-24 23:33:13,509 - WARNING - Skipped 2 models due to errors
+2025-04-24 23:33:13,510 - INFO - Creating comparison visualizations in model_comparison...
+2025-04-24 23:33:14,673 - INFO - Creating visualizations for dataset: gpt_neo
+2025-04-24 23:33:18,172 - INFO - Dataset-specific results saved to: model_comparison\dataset_gpt_neo_results.csv
+2025-04-24 23:33:18,177 - INFO - Analysis complete. Generated 21 visualizations and reports.
+2025-04-24 23:33:18,177 - INFO - Results saved to: model_comparison
+2025-04-24 23:47:32,857 - INFO - Loading labeled data from paragraph_features.csv...
+2025-04-24 23:47:33,171 - INFO - Evaluation dataset: 1919 samples with 2048 feature columns
+2025-04-24 23:47:33,171 - INFO - Number of unique classes/labels: 5
+2025-04-24 23:47:33,173 - INFO - Searching for models in models...
+2025-04-24 23:47:33,173 - INFO - Detected GPT-Neo style directory structure in models
+2025-04-24 23:47:33,393 - INFO - Found 2 SAE model files
+2025-04-24 23:47:33,430 - INFO - Found 2 ST model files
+2025-04-24 23:47:33,430 - INFO - Found a total of 4 model files.
+2025-04-24 23:47:33,430 - INFO - Analyzing models using metrics: ['cosine', 'euclidean'] on device: cpu
+2025-04-24 23:47:33,430 - INFO - Using dimension normalization: True
+2025-04-24 23:47:33,431 - INFO - Loading SAE model from models\sae\layer_12_sae.pt
+2025-04-24 23:47:33,524 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:47:33,542 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-24 23:47:33,704 - INFO - Model weights initialized
+2025-04-24 23:47:33,704 - INFO - Model initialized on cpu
+2025-04-24 23:47:33,710 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-24 23:47:33,933 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-24 23:47:34,064 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:47:35,242 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:47:36,805 - INFO - Loading SAE model from models\sae\layer_16_sae.pt
+2025-04-24 23:47:36,924 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:47:36,925 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-24 23:47:37,093 - INFO - Model weights initialized
+2025-04-24 23:47:37,094 - INFO - Model initialized on cpu
+2025-04-24 23:47:37,100 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-24 23:47:37,338 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-24 23:47:37,461 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:47:38,599 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-24 23:47:40,118 - INFO - Loading ST model from models\st\layer_12_st.pt
+2025-04-24 23:47:40,141 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-24 23:47:40,141 - INFO - Using direct KV approach: True
+2025-04-24 23:47:40,142 - INFO - Using ST_old implementation for ST model
+2025-04-24 23:47:40,143 - INFO - Using activation function: relu
+2025-04-24 23:47:40,143 - INFO - Using attention function: softmax
+2025-04-24 23:47:40,257 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-04-24 23:47:40,492 - INFO - Computed ST feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-24 23:47:43,118 - INFO - Loading ST model from models\st\layer_15_st.pt
+2025-04-24 23:47:43,145 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-24 23:47:43,145 - INFO - Using direct KV approach: True
+2025-04-24 23:47:43,145 - INFO - Using ST_old implementation for ST model
+2025-04-24 23:47:43,145 - INFO - Using activation function: relu
+2025-04-24 23:47:43,146 - INFO - Using attention function: softmax
+2025-04-24 23:47:43,256 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-04-24 23:47:43,498 - INFO - Computed ST feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-24 23:47:46,051 - INFO - Creating comparison visualizations in model_comparison...
+2025-04-24 23:47:47,131 - INFO - Creating visualizations for dataset: gpt_neo
+2025-04-24 23:47:50,414 - INFO - Dataset-specific results saved to: model_comparison\dataset_gpt_neo_results.csv
+2025-04-24 23:47:50,417 - INFO - Analysis complete. Generated 21 visualizations and reports.
+2025-04-24 23:47:50,417 - INFO - Results saved to: model_comparison
+2025-04-26 10:19:51,043 - INFO - Loading labeled data from paragraph_features.csv...
+2025-04-26 10:19:51,433 - INFO - Evaluation dataset: 1919 samples with 2048 feature columns
+2025-04-26 10:19:51,434 - INFO - Number of unique classes/labels: 5
+2025-04-26 10:19:51,435 - INFO - Searching for models in models...
+2025-04-26 10:19:51,435 - INFO - Detected GPT-Neo style directory structure in models
+2025-04-26 10:19:52,641 - INFO - Found 5 SAE model files
+2025-04-26 10:19:53,082 - INFO - Found 5 ST model files
+2025-04-26 10:19:53,082 - INFO - Found a total of 10 model files.
+2025-04-26 10:19:53,082 - INFO - Analyzing models using metrics: ['cosine', 'euclidean'] on device: cpu
+2025-04-26 10:19:53,082 - INFO - Using dimension normalization: True
+2025-04-26 10:19:53,084 - INFO - Loading SAE model from models\sae\layer_12_sae.pt
+2025-04-26 10:19:53,184 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:19:53,206 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-26 10:19:53,399 - INFO - Model weights initialized
+2025-04-26 10:19:53,401 - INFO - Model initialized on cpu
+2025-04-26 10:19:53,409 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-26 10:19:53,648 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:19:53,757 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:19:54,960 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:19:56,558 - INFO - Loading SAE model from models\sae\layer_13_sae.pt
+2025-04-26 10:19:56,664 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:19:56,664 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-26 10:19:56,843 - INFO - Model weights initialized
+2025-04-26 10:19:56,843 - INFO - Model initialized on cpu
+2025-04-26 10:19:56,849 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-26 10:19:57,100 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:19:57,222 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:19:58,331 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:19:59,902 - INFO - Loading SAE model from models\sae\layer_14_sae.pt
+2025-04-26 10:20:00,017 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:00,018 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-26 10:20:00,202 - INFO - Model weights initialized
+2025-04-26 10:20:00,202 - INFO - Model initialized on cpu
+2025-04-26 10:20:00,208 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-26 10:20:00,443 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:00,563 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:01,691 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:03,305 - INFO - Loading SAE model from models\sae\layer_15_sae.pt
+2025-04-26 10:20:03,407 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:03,407 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-26 10:20:03,582 - INFO - Model weights initialized
+2025-04-26 10:20:03,583 - INFO - Model initialized on cpu
+2025-04-26 10:20:03,589 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-26 10:20:03,833 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:03,945 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:05,090 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:06,657 - INFO - Loading SAE model from models\sae\layer_16_sae.pt
+2025-04-26 10:20:06,771 - INFO - SAE model architecture: 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:06,771 - INFO - Initializing EnhancedSparseAutoencoder with n=2048, m=8000
+2025-04-26 10:20:06,945 - INFO - Model weights initialized
+2025-04-26 10:20:06,945 - INFO - Model initialized on cpu
+2025-04-26 10:20:06,951 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-04-26 10:20:07,190 - INFO - Computed SAE feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:07,295 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:08,435 - INFO - Model has 8000 features (m) with input dimension 2048 (n)
+2025-04-26 10:20:09,996 - INFO - Loading ST model from models\st\layer_12_st.pt
+2025-04-26 10:20:10,015 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-26 10:20:10,015 - INFO - Using direct KV approach: True
+2025-04-26 10:20:10,016 - INFO - Using ST_old implementation for ST model
+2025-04-26 10:20:10,017 - INFO - Using activation function: relu
+2025-04-26 10:20:10,017 - INFO - Using attention function: softmax
+2025-04-26 10:20:10,141 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-04-26 10:20:10,401 - INFO - Computed ST feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:13,027 - INFO - Loading ST model from models\st\layer_13_st.pt
+2025-04-26 10:20:13,051 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-26 10:20:13,051 - INFO - Using direct KV approach: True
+2025-04-26 10:20:13,051 - INFO - Using ST_old implementation for ST model
+2025-04-26 10:20:13,051 - INFO - Using activation function: relu
+2025-04-26 10:20:13,051 - INFO - Using attention function: softmax
+2025-04-26 10:20:13,162 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-04-26 10:20:13,408 - INFO - Computed ST feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:15,953 - INFO - Loading ST model from models\st\layer_14_st.pt
+2025-04-26 10:20:16,017 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-26 10:20:16,017 - INFO - Using direct KV approach: True
+2025-04-26 10:20:16,017 - INFO - Using ST_old implementation for ST model
+2025-04-26 10:20:16,018 - INFO - Using activation function: relu
+2025-04-26 10:20:16,018 - INFO - Using attention function: softmax
+2025-04-26 10:20:16,129 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-04-26 10:20:16,386 - INFO - Computed ST feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:19,015 - INFO - Loading ST model from models\st\layer_15_st.pt
+2025-04-26 10:20:19,037 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-26 10:20:19,037 - INFO - Using direct KV approach: True
+2025-04-26 10:20:19,037 - INFO - Using ST_old implementation for ST model
+2025-04-26 10:20:19,038 - INFO - Using activation function: relu
+2025-04-26 10:20:19,038 - INFO - Using attention function: softmax
+2025-04-26 10:20:19,148 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-04-26 10:20:19,387 - INFO - Computed ST feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:22,013 - INFO - Loading ST model from models\st\layer_16_st.pt
+2025-04-26 10:20:22,085 - INFO - ST model architecture: 8000 features (m) with input dimension 2048 (n) and attention dimension 1631 (a)
+2025-04-26 10:20:22,087 - INFO - Using direct KV approach: True
+2025-04-26 10:20:22,087 - INFO - Using ST_old implementation for ST model
+2025-04-26 10:20:22,088 - INFO - Using activation function: relu
+2025-04-26 10:20:22,088 - INFO - Using attention function: softmax
+2025-04-26 10:20:22,205 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-04-26 10:20:22,458 - INFO - Computed ST feature activations with shape (1919, 8000) for 1919 input samples
+2025-04-26 10:20:25,239 - INFO - Creating comparison visualizations in model_comparison...
+2025-04-26 10:20:26,650 - INFO - Creating visualizations for dataset: gpt_neo
+2025-04-26 10:20:30,415 - INFO - Dataset-specific results saved to: model_comparison\dataset_gpt_neo_results.csv
+2025-04-26 10:20:30,418 - INFO - Analysis complete. Generated 21 visualizations and reports.
+2025-04-26 10:20:30,418 - INFO - Results saved to: model_comparison

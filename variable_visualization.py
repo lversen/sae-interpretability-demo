@@ -4,71 +4,296 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import argparse
-from typing import List, Optional, Dict
+import glob
+import re
+import torch
+from typing import List, Optional, Dict, Union, Tuple
 import warnings
-def load_and_combine_results(results_csv: str) -> pd.DataFrame:
+
+def extract_model_info_from_files(model_dir: str, variable: str) -> pd.DataFrame:
+    """
+    Extract model information from trained model files and create a results dataframe.
+    
+    Args:
+        model_dir: Base directory containing model files (models/sae, models/st)
+        variable: Variable to extract (e.g., 'lambda_l1', 'feature_dim')
+        
+    Returns:
+        DataFrame with model info and extracted variables
+    """
+    print(f"Extracting model information from directory: {model_dir}")
+    
+    results = []
+    sae_dir = os.path.join(model_dir, 'sae')
+    st_dir = os.path.join(model_dir, 'st')
+    
+    # First check if these directories exist
+    dirs_to_check = []
+    if os.path.exists(sae_dir):
+        dirs_to_check.append(('sae', sae_dir))
+    if os.path.exists(st_dir):
+        dirs_to_check.append(('st', st_dir))
+    
+    if not dirs_to_check:
+        print(f"No model directories found in {model_dir}. Please check the path.")
+        # Try to find any model files in the directory itself
+        model_files = glob.glob(os.path.join(model_dir, "layer_*_*.pt"))
+        if model_files:
+            print(f"Found {len(model_files)} model files directly in {model_dir}")
+            dirs_to_check = [('unknown', model_dir)]
+        else:
+            print("No model files found.")
+            return pd.DataFrame()
+    
+    # Process each directory (sae and st)
+    for model_type, dir_path in dirs_to_check:
+        model_files = glob.glob(os.path.join(dir_path, "layer_*_*.pt"))
+        if not model_files:
+            print(f"No model files found in {dir_path}")
+            continue
+        
+        print(f"Found {len(model_files)} {model_type} model files")
+        
+        for model_file in model_files:
+            try:
+                # Extract layer number and model subtype from filename
+                filename = os.path.basename(model_file)
+                layer_match = re.search(r'layer_(\d+)_([a-z]+)\.pt', filename)
+                
+                if layer_match:
+                    layer_idx = int(layer_match.group(1))
+                    model_subtype = layer_match.group(2)
+                else:
+                    layer_idx = -1
+                    model_subtype = "unknown"
+                
+                # Extract variable value from model checkpoint
+                checkpoint = torch.load(model_file, map_location='cpu')
+                
+                # Different structures for different model types
+                if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+                    # Enhanced format with full checkpoint info
+                    value = None
+                    
+                    # Try to extract the variable from top-level keys
+                    if variable in checkpoint:
+                        value = checkpoint[variable]
+                    # Try to extract from training_history if available
+                    elif 'training_history' in checkpoint and variable in checkpoint['training_history']:
+                        # Get the last value in the history
+                        history = checkpoint['training_history'][variable]
+                        if history and len(history) > 0:
+                            value = history[-1]
+                    
+                    # Calculate or extract metrics
+                    if value is not None:
+                        # Get validation loss if available
+                        val_loss = checkpoint.get('val_loss', 0)
+                        dead_ratio = checkpoint.get('dead_ratio', 0)
+                        
+                        results.append({
+                            'model_type': model_type,
+                            'layer_idx': layer_idx,
+                            'function_type': model_subtype,
+                            variable: value,
+                            'avg_centroid_distance': val_loss,  # Using val_loss as a proxy metric
+                            'dead_ratio': dead_ratio,
+                            'model_file': model_file,
+                            'metric': 'val_loss'  # Setting metric to val_loss
+                        })
+                        
+                elif isinstance(checkpoint, dict) and 'lambda_l1' in checkpoint:
+                    # Simple format with direct parameter access
+                    value = None
+                    if variable == 'lambda_l1':
+                        value = checkpoint['lambda_l1']
+                    
+                    # Try to extract common parameters from state dict
+                    if value is None:
+                        # For dimension parameters, try to infer from weights
+                        if 'W_e.weight' in checkpoint:
+                            if variable == 'feature_dim' or variable == 'm':
+                                value = checkpoint['W_e.weight'].shape[0]
+                            elif variable == 'input_dim' or variable == 'n':
+                                value = checkpoint['W_e.weight'].shape[1]
+                    
+                    if value is not None:
+                        results.append({
+                            'model_type': model_type,
+                            'layer_idx': layer_idx,
+                            'function_type': model_subtype,
+                            variable: value,
+                            'avg_centroid_distance': 0,  # No metric available
+                            'model_file': model_file,
+                            'metric': 'unknown'
+                        })
+                
+                else:
+                    # State dictionary only format
+                    # Try to extract structural parameters from weights
+                    value = None
+                    
+                    # Common parameter name mappings
+                    param_mappings = {
+                        'lambda_l1': ['lambda_l1', 'l1_lambda'],
+                        'feature_dim': ['m', 'feature_dim', 'feature_dimension'],
+                        'input_dim': ['n', 'input_dim', 'input_dimension'],
+                        'attention_dim': ['a', 'attention_dim', 'attention_dimension']
+                    }
+                    
+                    # Try to find the variable in the checkpoint keys
+                    var_options = [variable]
+                    # Add alternate names if we know them
+                    for key, options in param_mappings.items():
+                        if variable in options:
+                            var_options = options
+                            break
+                    
+                    for var_name in var_options:
+                        if var_name in checkpoint:
+                            value = checkpoint[var_name]
+                            break
+                    
+                    # For SAE models, try to infer dimensions from weight matrices
+                    if value is None and model_type == 'sae':
+                        if ('W_e.weight' in checkpoint) and (variable in ['feature_dim', 'm']):
+                            value = checkpoint['W_e.weight'].shape[0]
+                        elif ('W_e.weight' in checkpoint) and (variable in ['input_dim', 'n']):
+                            value = checkpoint['W_e.weight'].shape[1]
+                    
+                    # For ST models, try to infer dimensions from weight matrices
+                    if value is None and model_type == 'st':
+                        if ('W_q.weight' in checkpoint) and (variable in ['attention_dim', 'a']):
+                            value = checkpoint['W_q.weight'].shape[0]
+                        elif ('W_q.weight' in checkpoint) and (variable in ['input_dim', 'n']):
+                            value = checkpoint['W_q.weight'].shape[1]
+                    
+                    if value is not None:
+                        results.append({
+                            'model_type': model_type,
+                            'layer_idx': layer_idx,
+                            'function_type': model_subtype,
+                            variable: value,
+                            'avg_centroid_distance': 0,  # No metric available
+                            'model_file': model_file,
+                            'metric': 'structure'  # Metric based on model structure
+                        })
+            
+            except Exception as e:
+                print(f"Error processing {model_file}: {e}")
+    
+    # Convert to DataFrame
+    if results:
+        df = pd.DataFrame(results)
+        print(f"Created results dataframe with {len(df)} rows and columns: {df.columns.tolist()}")
+        return df
+    else:
+        print("No results extracted from model files.")
+        return pd.DataFrame()
+
+def load_and_combine_results(results_csv: str, variable: str = None, model_dir: str = None) -> pd.DataFrame:
     """
     Load results from a CSV file or directory with multiple dataset CSVs.
+    If no CSV is found, try to extract info directly from model files.
     
     Args:
         results_csv: Path to CSV file or directory containing dataset CSVs
+        variable: Variable to extract if generating from model files
+        model_dir: Model directory to use if generating from model files
         
     Returns:
         Combined DataFrame with all results
     """
-    # Check if the path is a directory
-    if os.path.isdir(results_csv):
-        print(f"Loading results from directory: {results_csv}")
-        # Look for dataset-specific CSV files
-        dataset_csvs = glob.glob(os.path.join(results_csv, "dataset_*_results.csv"))
-        
-        if not dataset_csvs:
-            # If no dataset CSVs found, check for full_results.csv
-            if os.path.exists(os.path.join(results_csv, "full_results.csv")):
-                print(f"No dataset-specific CSVs found. Using full_results.csv")
-                return pd.read_csv(os.path.join(results_csv, "full_results.csv"))
+    # First try to load from CSV
+    csv_loaded = False
+    combined_df = None
+    
+    # Check if the path is a directory or file and try to load CSVs
+    if os.path.exists(results_csv):
+        if os.path.isdir(results_csv):
+            print(f"Looking for results CSVs in directory: {results_csv}")
+            # Look for dataset-specific CSV files
+            dataset_csvs = glob.glob(os.path.join(results_csv, "dataset_*_results.csv"))
+            
+            # If no dataset CSVs found, check for any CSV files
+            if not dataset_csvs:
+                # Check for full_results.csv or any other CSV
+                full_results = os.path.join(results_csv, "full_results.csv")
+                if os.path.exists(full_results):
+                    print(f"Loading full_results.csv")
+                    combined_df = pd.read_csv(full_results)
+                    csv_loaded = True
+                else:
+                    # Try to find any CSV file
+                    any_csvs = glob.glob(os.path.join(results_csv, "*.csv"))
+                    if any_csvs:
+                        print(f"Found CSV file: {any_csvs[0]}")
+                        combined_df = pd.read_csv(any_csvs[0])
+                        csv_loaded = True
             else:
-                raise ValueError(f"No results CSV files found in {results_csv}")
-        
-        # Load and combine all dataset CSVs
-        print(f"Found {len(dataset_csvs)} dataset-specific CSV files")
-        all_dfs = []
-        
-        for csv_path in dataset_csvs:
-            try:
-                dataset_name = os.path.basename(csv_path).replace("dataset_", "").replace("_results.csv", "")
-                print(f"Loading data for dataset: {dataset_name}")
-                df = pd.read_csv(csv_path)
+                # Load and combine all dataset CSVs
+                print(f"Found {len(dataset_csvs)} dataset-specific CSV files")
+                all_dfs = []
                 
-                # Ensure dataset column exists and is correctly set
-                if 'dataset' not in df.columns:
-                    df['dataset'] = dataset_name
+                for csv_path in dataset_csvs:
+                    try:
+                        dataset_name = os.path.basename(csv_path).replace("dataset_", "").replace("_results.csv", "")
+                        print(f"Loading data for dataset: {dataset_name}")
+                        df = pd.read_csv(csv_path)
+                        
+                        # Ensure dataset column exists and is correctly set
+                        if 'dataset' not in df.columns:
+                            df['dataset'] = dataset_name
+                        
+                        all_dfs.append(df)
+                    except Exception as e:
+                        print(f"Error loading {csv_path}: {e}")
                 
-                all_dfs.append(df)
-            except Exception as e:
-                print(f"Error loading {csv_path}: {e}")
-        
-        if not all_dfs:
-            raise ValueError("Failed to load any CSV files")
-        
-        # Combine all dataframes
-        combined_df = pd.concat(all_dfs, ignore_index=True)
-        print(f"Combined {len(combined_df)} rows from {len(all_dfs)} datasets")
-        return combined_df
+                if all_dfs:
+                    # Combine all dataframes
+                    combined_df = pd.concat(all_dfs, ignore_index=True)
+                    print(f"Combined {len(combined_df)} rows from {len(all_dfs)} datasets")
+                    csv_loaded = True
+                
+        elif os.path.isfile(results_csv) and results_csv.endswith('.csv'):
+            # Direct CSV file
+            print(f"Loading results from file: {results_csv}")
+            combined_df = pd.read_csv(results_csv)
+            csv_loaded = True
     
-    # If it's a file, just load it directly
-    elif os.path.isfile(results_csv):
-        print(f"Loading results from file: {results_csv}")
-        return pd.read_csv(results_csv)
+    # If we couldn't load from CSV and have a model directory, try to generate from models
+    if not csv_loaded and model_dir and variable:
+        print(f"No valid CSV found. Trying to extract information from model files in {model_dir}...")
+        combined_df = extract_model_info_from_files(model_dir, variable)
+        
+        # If we generated data, save it to a CSV for future use
+        if not combined_df.empty:
+            if os.path.isdir(results_csv):
+                save_path = os.path.join(results_csv, f"{variable}_generated_results.csv")
+            else:
+                # Create a directory for the CSV if specified path doesn't exist
+                os.makedirs(os.path.dirname(results_csv), exist_ok=True)
+                save_path = results_csv
+            
+            combined_df.to_csv(save_path, index=False)
+            print(f"Saved generated results to {save_path}")
     
-    else:
-        raise ValueError(f"Invalid path: {results_csv}")
+    # If we still don't have data, raise an error
+    if combined_df is None or combined_df.empty:
+        # Just return an empty DataFrame instead of raising an error
+        print("WARNING: No data could be loaded or generated. Creating empty DataFrame.")
+        return pd.DataFrame()
+    
+    return combined_df
+
 def create_variable_visualizations(results_csv: str, 
                                   variable: str, 
                                   output_dir: Optional[str] = None,
                                   secondary_variable: Optional[str] = None,
                                   metrics: Optional[List[str]] = None,
-                                  dataset_filter: Optional[str] = None) -> List[str]:
+                                  dataset_filter: Optional[str] = None,
+                                  model_dir: Optional[str] = None,
+                                  default_dataset: str = "gpt_neo") -> List[str]:
     """
     Create visualizations comparing model centroid distances in relation to a specified variable.
     
@@ -79,12 +304,18 @@ def create_variable_visualizations(results_csv: str,
         secondary_variable: Optional second variable for more complex comparisons
         metrics: Which distance metrics to visualize (default: all available)
         dataset_filter: Optional dataset to filter by
+        model_dir: Directory containing model files to extract info from if CSV not found
+        default_dataset: Default dataset name to use if none is in the data
         
     Returns:
         List of generated visualization paths
     """
-    # Load and combine results from CSV(s)
-    df = load_and_combine_results(results_csv)
+    # Load and combine results from CSV(s) or model files
+    df = load_and_combine_results(results_csv, variable, model_dir)
+    
+    if df.empty:
+        print("No data to visualize. Please check your inputs.")
+        return []
     
     # Validate that the variable exists
     if variable not in df.columns:
@@ -104,8 +335,13 @@ def create_variable_visualizations(results_csv: str,
         else:
             metrics = ['unknown']
     
-    # Check if dataset column exists
+    # Check if dataset column exists, otherwise add default
     has_dataset_column = 'dataset' in df.columns
+    if not has_dataset_column:
+        print(f"No dataset column found. Using default dataset name: {default_dataset}")
+        df['dataset'] = default_dataset
+        has_dataset_column = True
+    
     visualizations = []
     
     # Handle output directory structure based on dataset information
@@ -116,24 +352,13 @@ def create_variable_visualizations(results_csv: str,
             base_dir = output_dir
         os.makedirs(base_dir, exist_ok=True)
         
-        # Get unique datasets from CSV
+        # Get unique datasets from dataframe
         all_datasets = sorted([d for d in df['dataset'].unique() if d])
         
-        # ADDITION: Also check for dataset folders in the model_comparison directory
-        model_comp_dir = os.path.dirname(results_csv)
-        try:
-            import glob
-            dataset_dirs = glob.glob(os.path.join(model_comp_dir, "dataset_*"))
-            for dir_path in dataset_dirs:
-                dir_name = os.path.basename(dir_path)
-                if dir_name.startswith("dataset_"):
-                    dataset_name = dir_name[len("dataset_"):]
-                    if dataset_name not in all_datasets:
-                        all_datasets.append(dataset_name)
-                        print(f"Found additional dataset from directory structure: {dataset_name}")
-            all_datasets = sorted(all_datasets)
-        except Exception as e:
-            print(f"Error detecting dataset folders: {e}")
+        # Add default dataset if needed
+        if not all_datasets:
+            all_datasets = [default_dataset]
+            df['dataset'] = default_dataset
             
         print(f"All available datasets: {', '.join(all_datasets)}")
         
@@ -147,7 +372,7 @@ Variable Analysis for: {variable}
 The visualizations are organized in dataset-specific directories.
 Please navigate to each dataset directory to see the visualizations.
 
-Source data: {results_csv}
+Source data: {'Generated from model files' if model_dir else results_csv}
 Metrics included: {', '.join(metrics)}
 Secondary variable (if used): {secondary_variable or 'None'}
 Datasets available: {', '.join(all_datasets)}
@@ -162,39 +387,28 @@ Analysis date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
                 print(f"Filtering to single dataset: {dataset_filter}")
             else:
                 print(f"Dataset {dataset_filter} not found in the data. Available datasets: {all_datasets}")
-                return visualizations
+                datasets_to_analyze = all_datasets
         else:
             datasets_to_analyze = all_datasets
             
         # Process each dataset
         for dataset in datasets_to_analyze:
-            # MODIFICATION: For datasets found in directory but not in CSV, create placeholder
-            if dataset not in df['dataset'].unique():
-                print(f"Dataset {dataset} found in directory but not in CSV. Creating placeholder.")
+            # Extract dataset data
+            dataset_df = df[df['dataset'] == dataset].copy()
+            if dataset_df.empty:
+                print(f"No data for dataset: {dataset}. Creating placeholder.")
+                # Create dataset directory structure: visualization/dataset/variable
                 dataset_dir = os.path.join(base_dir, dataset)
                 os.makedirs(dataset_dir, exist_ok=True)
                 
                 variable_dir = os.path.join(dataset_dir, variable)
                 os.makedirs(variable_dir, exist_ok=True)
                 
-                # Create dataset-specific info file
-                dataset_info_path = os.path.join(variable_dir, 'dataset_info.txt')
-                with open(dataset_info_path, 'w') as f:
-                    f.write(f"""
-Dataset: {dataset} - Variable: {variable}
-=======================================
-
-No data available for this dataset in the CSV file.
-This directory has been created as a placeholder.
-
-Please run centroid_analysis.py with --dataset_filter={dataset} to generate data for this dataset.
-""")
-                visualizations.append(dataset_info_path)
-                print(f"No data available for dataset: {dataset}. Created placeholder directory.")
-                continue
-                
-            dataset_df = df[df['dataset'] == dataset].copy()
-            if dataset_df.empty:
+                # Create placeholder info file
+                placeholder_path = os.path.join(variable_dir, "no_data.txt")
+                with open(placeholder_path, 'w') as f:
+                    f.write(f"No data available for dataset: {dataset}")
+                visualizations.append(placeholder_path)
                 continue
                 
             # Create dataset directory structure: visualization/dataset/variable
@@ -215,7 +429,7 @@ This directory contains visualizations showing the relationship between
 {variable} and centroid distances for the {dataset} dataset.
 
 Number of models: {len(dataset_df)}
-Metrics included: {', '.join(dataset_df['metric'].unique().tolist())}
+Metrics included: {', '.join(dataset_df['metric'].unique().tolist()) if 'metric' in dataset_df.columns else 'N/A'}
 Analysis date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
 """)
             visualizations.append(dataset_info_path)
@@ -268,7 +482,7 @@ Variable Analysis for: {variable}
 This directory contains visualizations showing the relationship between 
 {variable} and centroid distances in your models.
 
-The visualizations were generated from: {results_csv}
+The visualizations were generated from: {'Model files' if model_dir else results_csv}
 
 Metrics included: {', '.join(metrics)}
 Secondary variable (if used): {secondary_variable or 'None'}
@@ -315,6 +529,7 @@ Analysis date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}
         )
     
     return visualizations
+
 def create_numeric_variable_plots(df: pd.DataFrame, 
                                  variable: str, 
                                  output_dir: str, 
@@ -837,9 +1052,12 @@ def main():
                       help='Distance metrics to use (default: all available)')
     parser.add_argument('--secondary', type=str, default=None,
                       help='Secondary variable for additional insight')
-    # Add dataset filter argument
     parser.add_argument('--dataset', type=str, default=None,
                       help='Filter to a specific dataset')
+    parser.add_argument('--model_dir', type=str, default='models',
+                      help='Directory containing trained models')
+    parser.add_argument('--default_dataset', type=str, default='gpt_neo',
+                      help='Default dataset name to use if none is provided')
     
     args = parser.parse_args()
     
@@ -854,7 +1072,9 @@ def main():
         args.output_dir,
         args.secondary,
         args.metrics,
-        args.dataset
+        args.dataset,
+        args.model_dir,
+        args.default_dataset
     )
     
     # Print results summary
@@ -862,17 +1082,7 @@ def main():
     if args.dataset:
         output_dir = f"{base_dir}/{args.dataset}/{args.variable}"
     else:
-        # If we have datasets in the result but no filter, mention them
-        try:
-            df = pd.read_csv(args.results_csv)
-            if 'dataset' in df.columns:
-                datasets = sorted([d for d in df['dataset'].unique() if d])
-                print(f"\nAnalyzed datasets: {', '.join(datasets)}")
-                output_dir = f"{base_dir} (with dataset-specific folders)"
-            else:
-                output_dir = f"{base_dir}/all_datasets/{args.variable}"
-        except:
-            output_dir = base_dir
+        output_dir = f"{base_dir}/gpt_neo/{args.variable}"
     
     print(f"\nGenerated {len(visualizations)} visualizations for {args.variable}.")
     print(f"Results saved to: {output_dir}")

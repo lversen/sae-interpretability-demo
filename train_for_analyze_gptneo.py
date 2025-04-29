@@ -48,7 +48,83 @@ from SAE import SparseAutoencoder
 from ST import SparseTransformer
 from deadfeatures import DeadFeatureTracker
 logger.info("Using enhanced SAE and ST implementations")
-
+def _train_worker_process(task_dict, model_name, device, local_model_path, using_local_model):
+    """
+    Worker function to train a model in a separate process.
+    Must be defined at module level for Windows compatibility.
+    
+    Args:
+        task_dict: Dictionary with task parameters
+        model_name: Name of the model
+        device: Device to use
+        local_model_path: Path to local model if available
+        using_local_model: Whether using a local model
+    
+    Returns:
+        Dictionary with result information
+    """
+    import torch
+    import numpy as np
+    import copy
+    import logging
+    
+    # Configure logging for this worker
+    logger = logging.getLogger(f"worker_{os.getpid()}")
+    logger.setLevel(logging.INFO)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+    
+    try:
+        # Create a new trainer instance for this process
+        logger.info(f"Creating trainer instance with model {model_name} on {device}")
+        from train_for_analyze_gptneo import ModelTrainer
+        local_trainer = ModelTrainer(
+            model_name=model_name,
+            device=device,
+            local_model_path=local_model_path if using_local_model else None
+        )
+        
+        # Extract task info
+        layer_idx = task_dict['layer_idx']
+        model_type = task_dict['model_type']
+        
+        # Convert numpy arrays to torch tensors
+        activations = task_dict['activations']
+        if isinstance(activations, np.ndarray):
+            logger.info(f"Converting numpy array to tensor for {model_type} model at layer {layer_idx}")
+            activations = torch.from_numpy(activations).to(device)
+        
+        # Update the task with the tensor
+        task_copy = copy.deepcopy(task_dict)
+        task_copy['activations'] = activations
+        
+        # Train the model
+        logger.info(f"Starting training for {model_type} model at layer {layer_idx}")
+        model_path = local_trainer.train_model_for_layer(**task_copy)
+        logger.info(f"Training completed successfully for {model_type} model at layer {layer_idx}")
+        
+        return {
+            'layer_idx': layer_idx,
+            'model_type': model_type,
+            'model_path': model_path,
+            'status': 'success'
+        }
+        
+    except Exception as e:
+        import traceback
+        logger.error(f"Error in worker process: {e}")
+        logger.error(traceback.format_exc())
+        
+        return {
+            'layer_idx': task_dict.get('layer_idx', -1),
+            'model_type': task_dict.get('model_type', 'unknown'),
+            'status': 'failed',
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }
 class ModelTrainer:
     """Class to handle loading a model and training SAE/ST models on its activations"""
     
@@ -176,7 +252,91 @@ class ModelTrainer:
             logger.error("   Then use: --local_model_path models/gpt-neo-125m")
             logger.error("2. Try a smaller model like 'gpt2' or 'distilgpt2'")
             raise
-    
+    # Add this function to the ModelTrainer class
+
+    def train_models_parallel(self, tasks, max_workers=None):
+        """
+        Train multiple models in parallel using ProcessPoolExecutor.
+        Windows-compatible implementation using top-level worker function.
+        
+        Args:
+            tasks: List of task dictionaries
+            max_workers: Maximum number of parallel workers (default: CPU count)
+            
+        Returns:
+            List of result dictionaries
+        """
+        import concurrent.futures
+        import torch.multiprocessing as mp
+        import copy
+        
+        # Determine number of workers
+        if max_workers is None:
+            max_workers = mp.cpu_count()
+        else:
+            max_workers = min(max_workers, mp.cpu_count())
+        
+        # Adjust for CUDA - only one process per GPU
+        if self.device == 'cuda':
+            num_gpus = torch.cuda.device_count()
+            if num_gpus > 0:
+                max_workers = min(max_workers, num_gpus)
+            logger.info(f"CUDA enabled, limiting to {max_workers} workers for {num_gpus} GPUs")
+        
+        # Prepare tasks - convert torch tensors to numpy for pickling
+        prepared_tasks = []
+        for task in tasks:
+            task_copy = copy.deepcopy(task)
+            # Ensure activations are numpy arrays
+            if isinstance(task_copy['activations'], torch.Tensor):
+                task_copy['activations'] = task_copy['activations'].cpu().numpy()
+            prepared_tasks.append(task_copy)
+        
+        # Use ProcessPoolExecutor for parallelism
+        results = []
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all tasks
+            future_to_task = {}
+            for task in prepared_tasks:
+                future = executor.submit(
+                    _train_worker_process,
+                    task,
+                    self.model_name,
+                    self.device,
+                    self.model_path,
+                    self.using_local_model
+                )
+                future_to_task[future] = task
+            
+            # Process results as they complete
+            for future in tqdm(concurrent.futures.as_completed(future_to_task), 
+                            total=len(prepared_tasks), desc="Training models"):
+                task = future_to_task[future]
+                try:
+                    result = future.result()
+                    results.append(result)
+                    
+                    if result['status'] == 'success':
+                        logger.info(f"Successfully trained {result['model_type']} model for layer {result['layer_idx']}")
+                    else:
+                        logger.error(f"Failed to train {result['model_type']} model for layer {result['layer_idx']}: {result.get('error', 'Unknown error')}")
+                        if 'traceback' in result:
+                            logger.debug(f"Traceback: {result['traceback']}")
+                
+                except Exception as e:
+                    logger.error(f"Exception processing result: {e}")
+                    results.append({
+                        'layer_idx': task['layer_idx'],
+                        'model_type': task['model_type'],
+                        'status': 'failed',
+                        'error': str(e)
+                    })
+        
+        # Sort results by layer index and model type for consistency
+        results.sort(key=lambda x: (x['layer_idx'], x['model_type']))
+        
+        return results
+
     def process_texts(self, texts, layer_indices=None):
         """
         Process multiple texts and extract hidden states.
@@ -973,25 +1133,32 @@ def main():
     # Train models
     results = []
     
-    # Sequential training (parallel is disabled for this version to simplify debugging)
-    logger.info("Training models sequentially")
-    for task in tqdm(tasks, desc="Training models"):
-        try:
-            model_path = trainer.train_model_for_layer(**task)
-            results.append({
-                'layer_idx': task['layer_idx'],
-                'model_type': task['model_type'],
-                'model_path': model_path,
-                'status': 'success'
-            })
-        except Exception as e:
-            results.append({
-                'layer_idx': task['layer_idx'],
-                'model_type': task['model_type'],
-                'status': 'failed',
-                'error': str(e)
-            })
-            logger.error(f"Error training {task['model_type']} model for layer {task['layer_idx']}: {e}")
+    # Replace the training section in main() with this code
+    if args.parallel:
+        # Parallel training
+        logger.info(f"Training models in parallel with max_workers={args.max_workers or 'CPU count'}")
+        results = trainer.train_models_parallel(tasks, max_workers=args.max_workers)
+    else:
+        # Sequential training
+        logger.info("Training models sequentially")
+        results = []
+        for task in tqdm(tasks, desc="Training models"):
+            try:
+                model_path = trainer.train_model_for_layer(**task)
+                results.append({
+                    'layer_idx': task['layer_idx'],
+                    'model_type': task['model_type'],
+                    'model_path': model_path,
+                    'status': 'success'
+                })
+            except Exception as e:
+                results.append({
+                    'layer_idx': task['layer_idx'],
+                    'model_type': task['model_type'],
+                    'status': 'failed',
+                    'error': str(e)
+                })
+                logger.error(f"Error training {task['model_type']} model for layer {task['layer_idx']}: {e}")
     
     # Calculate summary stats
     total_time = time.time() - start_time
