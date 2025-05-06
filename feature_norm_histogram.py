@@ -5,9 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-# Fix OpenMP error by setting environment variable
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-
 def find_model_paths(base_dir="models", model_pattern="*model*.pth"):
     """
     Automatically find SAE and ST model paths in the given directory
@@ -59,6 +56,51 @@ def find_model_paths(base_dir="models", model_pattern="*model*.pth"):
     
     return best_paths
 
+def load_sae_decoder_weights(model_path, device='cpu'):
+    """
+    Load decoder weights from an SAE model
+    
+    Args:
+        model_path: Path to the SAE model file
+        device: Device to use for computation
+        
+    Returns:
+        Tuple with decoder weights, corresponding norms, and model info
+    """
+    try:
+        print(f"Loading SAE model from {model_path}")
+        checkpoint = torch.load(model_path, map_location=device)
+        
+        # Extract state dict
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            state_dict = checkpoint['model_state_dict']
+            model_info = {
+                'step': checkpoint.get('step', 0),
+                'dead_ratio': checkpoint.get('dead_ratio', 0),
+                'lambda_l1': checkpoint.get('lambda_l1', 0),
+                'val_loss': checkpoint.get('val_loss', None)
+            }
+        else:
+            state_dict = checkpoint
+            model_info = {'step': 0, 'dead_ratio': 0, 'lambda_l1': 0, 'val_loss': None}
+        
+        # Extract decoder weights
+        if 'W_d.weight' in state_dict:
+            # Get decoder weight matrix - shape (n, m) for SAE
+            decoder_weights = state_dict['W_d.weight'].cpu().numpy()
+            
+            # Calculate L2 norms of each column (feature)
+            weight_norms = np.linalg.norm(decoder_weights, axis=0)
+            
+            print(f"Loaded decoder weights with shape {decoder_weights.shape}")
+            return decoder_weights, weight_norms, model_info
+        else:
+            raise ValueError("Could not find decoder weights (W_d.weight) in the model")
+            
+    except Exception as e:
+        print(f"Error loading SAE model: {e}")
+        return None, None, {}
+
 def find_dataset_paths(base_dir="data", dataset_pattern="*.csv"):
     """
     Automatically find dataset files in the given directory
@@ -68,12 +110,12 @@ def find_dataset_paths(base_dir="data", dataset_pattern="*.csv"):
         dataset_pattern: Glob pattern to match dataset files
         
     Returns:
-        List of dataset paths
+        Path to best dataset file
     """
     # Make sure base directory exists
     if not os.path.exists(base_dir):
         print(f"Warning: Directory {base_dir} does not exist")
-        return []
+        return None
     
     # Find all dataset files matching pattern
     dataset_files = glob.glob(os.path.join(base_dir, dataset_pattern))
@@ -160,55 +202,9 @@ def load_dataset(dataset_path, feature_columns=None, n_samples=1000, min_samples
         size_to_generate = max(n_samples, min_samples or 0)
         return torch.randn(size_to_generate, 784)  # Default to MNIST-like dimensions
 
-def load_sae_decoder_weights(model_path, device='cpu'):
-    """
-    Load decoder weights from an SAE model
-    
-    Args:
-        model_path: Path to the SAE model file
-        device: Device to use for computation
-        
-    Returns:
-        Tuple with decoder weights and corresponding norms
-    """
-    try:
-        print(f"Loading SAE model from {model_path}")
-        checkpoint = torch.load(model_path, map_location=device)
-        
-        # Extract state dict
-        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
-            state_dict = checkpoint['model_state_dict']
-            model_info = {
-                'step': checkpoint.get('step', 0),
-                'dead_ratio': checkpoint.get('dead_ratio', 0),
-                'lambda_l1': checkpoint.get('lambda_l1', 0),
-                'val_loss': checkpoint.get('val_loss', None)  # Extract validation loss
-            }
-        else:
-            state_dict = checkpoint
-            model_info = {'step': 0, 'dead_ratio': 0, 'lambda_l1': 0, 'val_loss': None}
-        
-        # Extract decoder weights
-        if 'W_d.weight' in state_dict:
-            # Get decoder weight matrix - shape (n, m) for SAE
-            # Each column is a feature vector of dimension n
-            decoder_weights = state_dict['W_d.weight'].cpu().numpy()
-            
-            # Calculate L2 norms of each column (feature)
-            weight_norms = np.linalg.norm(decoder_weights, axis=0)
-            
-            print(f"Loaded decoder weights with shape {decoder_weights.shape}")
-            return decoder_weights, weight_norms, model_info
-        else:
-            raise ValueError("Could not find decoder weights (W_d.weight) in the model")
-            
-    except Exception as e:
-        print(f"Error loading SAE model: {e}")
-        return None, None, {}
-
 def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu'):
     """
-    Load an ST model and compute its value vectors with support for direct K-V approach
+    Load an ST model and compute its value vectors
     
     Args:
         model_path: Path to the ST model file
@@ -216,7 +212,7 @@ def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu
         device: Device to use for computation
         
     Returns:
-        Tuple with value vectors and corresponding norms
+        Tuple with value vectors, corresponding norms, and model info
     """
     try:
         print(f"Loading ST model from {model_path}")
@@ -229,7 +225,7 @@ def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu
                 'step': checkpoint.get('step', 0),
                 'dead_ratio': checkpoint.get('dead_ratio', 0),
                 'lambda_l1': checkpoint.get('lambda_l1', 0),
-                'val_loss': checkpoint.get('val_loss', None)  # Extract validation loss
+                'val_loss': checkpoint.get('val_loss', None)
             }
         else:
             state_dict = checkpoint
@@ -359,164 +355,185 @@ def load_st_model_and_compute_value_vectors(model_path, data_tensor, device='cpu
         traceback.print_exc()
         return None, None, {}
 
-def plot_feature_vectors(vectors, vector_norms, model_info, 
-                      input_shape=(28, 28), num_vectors=100, 
-                      rows=10, cols=10, figsize=(20, 20),
-                      cmap='coolwarm', title_prefix="", save_path=None):
+# New functions for norm histogram visualization
+
+def plot_norm_histogram(vector_norms, model_info, bins=50, figsize=(14, 8), 
+                        model_type="SAE", log_scale=False, title=None, save_path=None):
     """
-    Plot feature vectors (SAE decoder weights or ST value vectors)
+    Plot histogram of feature vector L2 norms
     
     Args:
-        vectors: Feature vectors to visualize
-        vector_norms: Norms of the feature vectors
+        vector_norms: Array of L2 norms for each feature vector
         model_info: Dictionary with model information
-        input_shape: Shape to reshape vectors to (e.g., (28, 28) for MNIST)
-        num_vectors: Number of vectors to visualize
-        rows, cols: Number of rows and columns in the grid
+        bins: Number of bins for histogram
         figsize: Figure size (width, height) in inches
-        cmap: Colormap to use for visualization
-        title_prefix: Prefix for the plot title
+        model_type: Type of model ('SAE' or 'ST') for title
+        log_scale: Whether to use log scale for y-axis
+        title: Optional custom title
         save_path: Optional path to save the figure
     """
-    if vectors is None or vectors.size == 0:
-        print("No vectors provided.")
+    if vector_norms is None or len(vector_norms) == 0:
+        print("No norms to plot.")
         return
-
-    # Check vector shape and transpose if necessary
-    if vectors.shape[0] == np.prod(input_shape) and vectors.shape[1] != np.prod(input_shape):
-        # Shape is (n, m) where n is input dimension and m is feature count
-        # This is correct for SAE decoder weights
-        vector_dim = vectors.shape[0]
-        feature_count = vectors.shape[1]
-        print(f"Using columns of shape ({vector_dim},) as feature vectors")
-        vectors_are_columns = True
-    elif vectors.shape[1] == np.prod(input_shape) and vectors.shape[0] != np.prod(input_shape):
-        # Shape is (m, n) where m is feature count and n is input dimension
-        # This is correct for ST value vectors
-        vector_dim = vectors.shape[1]
-        feature_count = vectors.shape[0]
-        print(f"Using rows of shape ({vector_dim},) as feature vectors")
-        vectors_are_columns = False
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    # Plot histogram
+    counts, edges, patches = ax.hist(vector_norms, bins=bins, alpha=0.7, color='royalblue')
+    
+    # Add statistics as text
+    stats_text = (
+        f"Features: {len(vector_norms)}\n"
+        f"Mean: {np.mean(vector_norms):.4f}\n"
+        f"Median: {np.median(vector_norms):.4f}\n"
+        f"Min: {np.min(vector_norms):.4f}\n"
+        f"Max: {np.max(vector_norms):.4f}\n"
+        f"Std Dev: {np.std(vector_norms):.4f}"
+    )
+    
+    # Add dead ratio if available
+    if model_info and 'dead_ratio' in model_info and model_info['dead_ratio'] > 0:
+        stats_text += f"\nDead Ratio: {model_info['dead_ratio']*100:.2f}%"
+    
+    # Add stats text to plot
+    ax.text(0.95, 0.95, stats_text,
+            transform=ax.transAxes, fontsize=10,
+            verticalalignment='top', horizontalalignment='right',
+            bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    
+    # Set log scale if requested
+    if log_scale:
+        ax.set_yscale('log')
+        ax.set_ylabel('Log Count')
     else:
-        # Cannot determine orientation, try to guess based on the product
-        if vectors.shape[0] == np.prod(input_shape):
-            vector_dim = vectors.shape[0]
-            feature_count = vectors.shape[1]
-            print(f"Assuming columns of shape ({vector_dim},) as feature vectors")
-            vectors_are_columns = True
-        elif vectors.shape[1] == np.prod(input_shape):
-            vector_dim = vectors.shape[1]
-            feature_count = vectors.shape[0]
-            print(f"Assuming rows of shape ({vector_dim},) as feature vectors")
-            vectors_are_columns = False
-        else:
-            print(f"Warning: Vector shape {vectors.shape} doesn't match input shape {input_shape} with product {np.prod(input_shape)}")
-            print("Will try to reshape individual vectors, but this may fail.")
-            vector_dim = max(vectors.shape)
-            feature_count = min(vectors.shape)
-            # Try to guess based on which dimension is closer to the target
-            vectors_are_columns = abs(vectors.shape[0] - np.prod(input_shape)) < abs(vectors.shape[1] - np.prod(input_shape))
-            
-    # Sort vectors by norm
-    sorted_indices = np.argsort(-vector_norms)
+        ax.set_ylabel('Count')
     
-    # Determine how many vectors to plot
-    plot_vectors = min(num_vectors, feature_count)
-    if plot_vectors != num_vectors:
-        print(f"Warning: Requested {num_vectors} vectors but only {feature_count} available")
+    ax.set_xlabel('L2 Norm')
+    ax.set_title('Distribution of Feature Vector L2 Norms')
     
-    # Create figure for visualization
-    fig = plt.figure(figsize=figsize)
+    # Set main title
+    if title:
+        main_title = title
+    else:
+        step_str = f" (Step {model_info['step']})" if model_info.get('step', 0) > 0 else ""
+        val_loss_str = f" - Val Loss: {model_info.get('val_loss', 0):.4f}" if model_info.get('val_loss') is not None else ""
+        #main_title = f"{model_type} Model: Feature Vector Norm Distribution{step_str}{val_loss_str}"
     
-    # Create title with model info
-    #title = title_prefix
-    #if model_info:
-    #    step_str = f" (Step {model_info['step']})" if model_info.get('step', 0) > 0 else ""
-    #    val_loss_str = f" - Val Loss: {model_info.get('val_loss', 0):.4f}" if model_info.get('val_loss') is not None else ""
-    #    title += f"{step_str}{val_loss_str}\nTop {plot_vectors} by L2 norm"
-    #    if model_info.get('dead_ratio', 0) > 0:
-    #        title += f" - Dead Features: {model_info['dead_ratio']*100:.1f}%"
-    #
-    #fig.suptitle(title, fontsize=20)
-    
-    # Create grid for vectors
-    gs = GridSpec(rows, cols, figure=fig, wspace=0.1, hspace=0.1)
-    
-    # Plot each vector
-    for i in range(min(rows * cols, plot_vectors)):
-        # Get the index of the i-th highest norm vector
-        idx = sorted_indices[i]
-        
-        # Get the vector based on orientation
-        if vectors_are_columns:
-            vector = vectors[:, idx]
-        else:
-            vector = vectors[idx, :]
-        
-        # Calculate norm for title
-        norm = vector_norms[idx]
-        
-        # Create subplot
-        ax = fig.add_subplot(gs[i // cols, i % cols])
-        
-        try:
-            # Reshape to the input shape
-            vector_img = vector.reshape(input_shape)
-            
-            # Determine color range for better visualization
-            vmax = max(abs(vector_img.max()), abs(vector_img.min()))
-            if vmax == 0:
-                vmax = 1  # Avoid division by zero
-            
-            # Plot the vector image
-            im = ax.imshow(vector_img, cmap=cmap, vmin=-vmax, vmax=vmax)
-            
-            # Add title with feature index and norm
-            #ax.set_title(f"F{idx}\nNorm: {norm:.2f}", fontsize=8)
-            
-        except Exception as e:
-            print(f"Error reshaping vector to {input_shape}: {e}")
-            ax.text(0.5, 0.5, f"Reshape Error\nVector shape: {vector.shape}", 
-                   ha='center', va='center', transform=ax.transAxes)
-        
-        # Remove axis ticks for cleaner look
-        ax.set_xticks([])
-        ax.set_yticks([])
-    
-    # Add a colorbar to the last successful plot
-    if 'im' in locals():
-        plt.colorbar(im, ax=fig.axes, shrink=0.7)
+    #fig.suptitle(main_title, fontsize=14)
     
     # Adjust layout
-    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Make room for suptitle
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Make room for suptitle
     
     # Save figure if requested
     if save_path is not None:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"Figure saved to {save_path}")
     
+    # Explicitly show the plot
     plt.show()
     
     return fig
 
-def plot_decoder_weights(model_path=None, model_type=None, dataset_path=None, input_shape=(28, 28), 
-                         num_weights=100, rows=10, cols=10, figsize=(20, 20),
-                         cmap='coolwarm', save_path=None, device='cpu', n_samples=10000):
+def plot_cumulative_norm_distribution(vector_norms, figsize=(12, 6), 
+                                     percentiles_to_mark=[50, 80, 90, 95, 99],
+                                     title="Cumulative Norm Distribution", 
+                                     save_path=None):
     """
-    Plot decoder weights from a trained SAE or ST model
+    Plot cumulative distribution of feature norms showing what percentage
+    of total norm is contained in the top N features
+    
+    Args:
+        vector_norms: Array of L2 norms for each feature vector
+        figsize: Figure size (width, height) in inches
+        percentiles_to_mark: Percentiles to mark on the plot
+        title: Plot title
+        save_path: Optional path to save the figure
+    """
+    # Sort norms in descending order
+    sorted_norms = np.sort(vector_norms)[::-1]
+    
+    # Calculate cumulative sum and normalize
+    cum_sum = np.cumsum(sorted_norms)
+    cum_sum_normalized = cum_sum / cum_sum[-1] * 100
+    
+    # Create x-axis (feature rank)
+    x = np.arange(1, len(sorted_norms) + 1)
+    x_pct = x / len(sorted_norms) * 100
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    # Plot cumulative sum
+    ax.plot(x, cum_sum_normalized, 'b-', linewidth=2)
+    
+    # Add grid
+    ax.grid(True, linestyle='--', alpha=0.7)
+    
+    # Set labels and title
+    ax.set_xlabel('Number of Features (sorted by norm, descending)')
+    ax.set_ylabel('Cumulative % of Total Norm')
+    ax.set_title(title)
+    
+    # Add diagonal reference line representing uniform distribution
+    ax.plot([1, len(sorted_norms)], [0, 100], 'r--', alpha=0.5, 
+            label='Uniform distribution')
+    
+    # Mark interesting percentiles
+    for p in percentiles_to_mark:
+        idx = np.searchsorted(cum_sum_normalized, p)
+        if idx < len(x):
+            feature_count = x[idx]
+            feature_pct = x_pct[idx]
+            
+            # Draw horizontal and vertical lines
+            ax.axhline(y=p, color='g', linestyle=':', alpha=0.5)
+            ax.axvline(x=feature_count, color='g', linestyle=':', alpha=0.5)
+            
+            # Add annotation
+            ax.text(feature_count * 1.05, p * 0.98, 
+                   f"{p}% of norm in top {feature_count} features ({feature_pct:.1f}%)",
+                   verticalalignment='top', fontsize=9,
+                   bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+    
+    # Set axis limits
+    ax.set_xlim(0, len(sorted_norms))
+    ax.set_ylim(0, 101)
+    
+    # Add legend
+    ax.legend()
+    
+    # Adjust layout
+    plt.tight_layout()
+    
+    # Save figure if requested
+    if save_path is not None:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Figure saved to {save_path}")
+    
+    # Explicitly show the plot
+    plt.show()
+    
+    return fig
+
+def analyze_feature_norms(model_path=None, model_type=None, dataset_path=None,
+                        bins=50, figsize=(14, 8), log_scale=False, 
+                        save_dir=None, device='cpu', 
+                        n_samples=10000, show_cumulative=True):
+    """
+    Analyze and visualize feature vector norms from a trained SAE or ST model
     
     Args:
         model_path: Path to the model file (if None, will try to auto-detect)
         model_type: Type of model ('sae' or 'st', if None, will try to auto-detect)
         dataset_path: Path to the dataset (needed for ST models, auto-detected if None)
-        input_shape: Shape to reshape weights to (e.g., (28, 28) for MNIST)
-        num_weights: Number of weights to visualize
-        rows, cols: Number of rows and columns in the grid
+        bins: Number of bins for histogram
         figsize: Figure size (width, height) in inches
-        cmap: Colormap to use for visualization
-        save_path: Optional path to save the figure
+        log_scale: Whether to use log scale for y-axis
+        save_dir: Optional directory to save figures
         device: Device to use for computation
-        n_samples: Number of data samples to load for ST models (default: 10000)
+        n_samples: Number of data samples to load for ST models
+        show_cumulative: Whether to also show cumulative distribution plot
     """
     # Auto-detect model path and type if not provided
     if model_path is None:
@@ -557,13 +574,23 @@ def plot_decoder_weights(model_path=None, model_type=None, dataset_path=None, in
     
     print(f"Using {model_type.upper()} model from {model_path}")
     
+    # Prepare save paths if directory is provided
+    if save_dir is not None:
+        os.makedirs(save_dir, exist_ok=True)
+        model_name = os.path.splitext(os.path.basename(model_path))[0]
+        histogram_save_path = os.path.join(save_dir, f"{model_name}_norm_histogram.png")
+        cumulative_save_path = os.path.join(save_dir, f"{model_name}_cumulative_norm.png")
+    else:
+        histogram_save_path = None
+        cumulative_save_path = None
+    
     # For ST models, we need a dataset to compute value vectors
     if model_type.lower() == 'st':
         # Auto-detect dataset if not provided
         if dataset_path is None:
             dataset_path = find_dataset_paths()
             if dataset_path is None:
-                print("No dataset found. Please provide --dataset_path.")
+                print("No dataset found. Please provide dataset_path.")
                 return
         
         # Check if we need to get memory indices first to determine minimum samples required
@@ -587,28 +614,36 @@ def plot_decoder_weights(model_path=None, model_type=None, dataset_path=None, in
         vectors, vector_norms, model_info = load_st_model_and_compute_value_vectors(
             model_path, data_tensor, device=device)
         
-        title_prefix = "ST Model: Value Vectors"
+        model_type_name = "ST"
     else:  # SAE model
         # Load SAE decoder weights
         vectors, vector_norms, model_info = load_sae_decoder_weights(model_path, device=device)
         
-        title_prefix = "SAE Model: Decoder Weights"
+        model_type_name = "SAE"
     
     # Plot vectors
-    if vectors is not None:
-        plot_feature_vectors(
-            vectors,
+    if vector_norms is not None:
+        print(f"\nCreating norm histogram plot...")
+        # Plot histogram
+        fig1 = plot_norm_histogram(
             vector_norms,
             model_info,
-            input_shape=input_shape,
-            num_vectors=num_weights,
-            rows=rows,
-            cols=cols,
+            bins=bins,
             figsize=figsize,
-            cmap=cmap,
-            title_prefix=title_prefix,
-            save_path=save_path
+            model_type=model_type_name,
+            log_scale=log_scale,
+            save_path=histogram_save_path
         )
+        
+        # Plot cumulative distribution if requested
+        if show_cumulative:
+            print(f"\nCreating cumulative distribution plot...")
+            step_str = f" (Step {model_info['step']})" if model_info.get('step', 0) > 0 else ""
+            fig2 = plot_cumulative_norm_distribution(
+                vector_norms,
+                title=f"{model_type_name} Model: Cumulative Norm Distribution{step_str}",
+                save_path=cumulative_save_path
+            )
     else:
         print("Failed to load feature vectors.")
 
@@ -616,23 +651,21 @@ def main():
     """Main function handling command line arguments"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Plot decoder weights or value vectors from trained models")
+    parser = argparse.ArgumentParser(description="Analyze and visualize feature vector norms")
     parser.add_argument("--model_path", type=str, default=None, 
                        help="Path to the trained model file (if not specified, will try to auto-detect)")
     parser.add_argument("--model_type", type=str, choices=["sae", "st"], default=None,
                        help="Type of model (sae or st, if not specified, will try to auto-detect)")
     parser.add_argument("--dataset_path", type=str, default=None,
                        help="Path to the dataset CSV file (needed for ST models, auto-detected if None)")
-    parser.add_argument("--num_weights", type=int, default=100,
-                       help="Number of weights to visualize")
-    parser.add_argument("--rows", type=int, default=10,
-                       help="Number of rows in the grid")
-    parser.add_argument("--cols", type=int, default=10, 
-                       help="Number of columns in the grid")
-    parser.add_argument("--save_path", type=str, default=None,
-                       help="Path to save the figure (optional)")
-    parser.add_argument("--cmap", type=str, default="coolwarm",
-                       help="Colormap to use (default: coolwarm)")
+    parser.add_argument("--bins", type=int, default=50,
+                       help="Number of bins for histogram")
+    parser.add_argument("--log_scale", action="store_true",
+                       help="Use log scale for y-axis")
+    parser.add_argument("--no_cumulative", action="store_true",
+                       help="Don't show cumulative distribution plot")
+    parser.add_argument("--save_dir", type=str, default=None,
+                       help="Directory to save figures (optional)")
     parser.add_argument("--device", type=str, default="cpu",
                        help="Device to use for computation (default: cpu)")
     parser.add_argument("--n_samples", type=int, default=10000,
@@ -640,17 +673,16 @@ def main():
     
     args = parser.parse_args()
     
-    plot_decoder_weights(
+    analyze_feature_norms(
         model_path=args.model_path,
         model_type=args.model_type,
         dataset_path=args.dataset_path,
-        num_weights=args.num_weights,
-        rows=args.rows,
-        cols=args.cols,
-        cmap=args.cmap,
-        save_path=args.save_path,
+        bins=args.bins,
+        log_scale=args.log_scale,
+        save_dir=args.save_dir,
         device=args.device,
-        n_samples=args.n_samples
+        n_samples=args.n_samples,
+        show_cumulative=not args.no_cumulative
     )
 
 if __name__ == "__main__":
