@@ -124,7 +124,102 @@ class SparseTransformer(nn.Module):
             logger.addHandler(handler)
             
         return logger
-    
+    def plot_training_history(self, save_path=None, figsize=(16, 12)):
+        """
+        Plot the training history metrics.
+        
+        Args:
+            save_path: Optional path to save the plot to
+            figsize: Figure size
+            
+        Returns:
+            matplotlib.figure.Figure: The created figure
+        """
+        import matplotlib.pyplot as plt
+        
+        if len(self.training_history["steps"]) == 0:
+            raise ValueError("No training history available to plot")
+            
+        fig, axs = plt.subplots(3, 2, figsize=figsize)
+        
+        # Plot loss curves
+        ax = axs[0, 0]
+        ax.plot(self.training_history["steps"], self.training_history["train_loss"], label="Train Loss")
+        ax.plot(self.training_history["steps"], self.training_history["val_loss"], label="Val Loss")
+        ax.set_xlabel("Steps")
+        ax.set_ylabel("Loss")
+        ax.set_title("Loss Curves")
+        ax.legend()
+        ax.grid(alpha=0.3)
+        
+        # Plot L1 and L2 components
+        ax = axs[0, 1]
+        ax.plot(self.training_history["steps"], self.training_history["l1_loss"], label="L1 Loss")
+        ax.plot(self.training_history["steps"], self.training_history["l2_loss"], label="L2 Loss")
+        ax.set_xlabel("Steps")
+        ax.set_ylabel("Loss Component")
+        ax.set_title("Loss Components")
+        ax.legend()
+        ax.grid(alpha=0.3)
+        
+        # Plot lambda
+        ax = axs[1, 0]
+        ax.plot(self.training_history["steps"], self.training_history["lambda"])
+        ax.set_xlabel("Steps")
+        ax.set_ylabel("Lambda (λ)")
+        ax.set_title("L1 Regularization Strength")
+        ax.grid(alpha=0.3)
+        
+        # Plot sparsity and dead ratio
+        ax = axs[1, 1]
+        ax.plot(self.training_history["steps"], [s*100 for s in self.training_history["sparsity"]], 
+                label="Sparsity %")
+        ax.plot(self.training_history["steps"], [d*100 for d in self.training_history["dead_ratio"]], 
+                label="Dead Features %")
+        ax.set_xlabel("Steps")
+        ax.set_ylabel("Percentage")
+        ax.set_title("Sparsity Metrics")
+        ax.legend()
+        ax.grid(alpha=0.3)
+        
+        # Plot feature norms if available
+        ax = axs[2, 0]
+        if "avg_feature_norm" in self.training_history and self.training_history["avg_feature_norm"]:
+            ax.plot(self.training_history["steps"], self.training_history["avg_feature_norm"])
+            ax.set_xlabel("Steps")
+            ax.set_ylabel("Average Feature Norm")
+            ax.set_title("Feature Magnitude")
+            ax.grid(alpha=0.3)
+        else:
+            ax.set_visible(False)
+            
+        # Add a training settings summary
+        ax = axs[2, 1]
+        ax.axis('off')
+        settings_text = (
+            f"MODEL SETTINGS\n"
+            f"Dimensions: n={self.n}, m={self.m}, a={self.a}\n"
+            f"Final λ: {self.lambda_l1:.2f}\n"
+            f"Activation: {self.activation_name}\n"
+            f"Attention: {self.attention_fn_name}\n"
+            f"Training steps: {self.training_history['steps'][-1] if self.training_history['steps'] else 0}\n"
+            f"Mixed precision: {self.use_mixed_precision}\n"
+            f"Memory approach: {'direct K-V' if self.use_direct_kv else 'memory bank'}\n"
+            f"Dead features: {self.feature_tracker.get_dead_features().sum().item()} / {self.m}"
+        )
+        ax.text(0.5, 0.5, settings_text, 
+                ha='center', va='center', 
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+        
+        plt.tight_layout()
+        fig.suptitle(f"Training History - Sparse Transformer", fontsize=16)
+        plt.subplots_adjust(top=0.93)
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
+            self.logger.info(f"Training history plot saved to {save_path}")
+            
+        return fig
     def _get_activation_function(self, activation_name: str) -> Callable:
         """
         Returns the activation function based on the name.
@@ -672,5 +767,11 @@ class SparseTransformer(nn.Module):
             
             torch.save(checkpoint, self.st_model_path)
             self.logger.info(f"Model saved to {self.st_model_path}")
-            
+            if len(self.training_history["steps"]) > 5:  # Only if we have enough data points
+                try:
+                    history_path = f"{os.path.splitext(self.st_model_path)[0]}_history.png"
+                    self.plot_training_history(save_path=history_path)
+                    self.logger.info(f"Training history plot saved to {history_path}")
+                except Exception as e:
+                    self.logger.error(f"Could not generate training history plots: {e}")
             return self

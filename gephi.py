@@ -125,7 +125,7 @@ def create_gephi_graph(feature_extract: np.ndarray,
                       file_path: str,
                       selected_labels: Optional[List[str]] = None,
                       category_column: Optional[str] = None,
-                      n_neighbors: int = 4,
+                      n_neighbors: int =15,
                       min_edge_weight: float = 1e-10,
                       distance_mode: str = "l1"):  # Add minimum edge weight threshold
     """

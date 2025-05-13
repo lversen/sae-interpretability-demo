@@ -836,7 +836,7 @@ class ModelAnalyzer:
                 n_neighbors=15,
                 min_dist=0.1,
                 n_components=2,
-                metric='euclidean',
+                metric='cosine',
                 random_state=42
             )
             
