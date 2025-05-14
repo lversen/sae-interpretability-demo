@@ -449,7 +449,7 @@ class SparseTransformer(nn.Module):
             torch.cuda.empty_cache()
 
     def train_and_validate(self, X_train, X_val, learning_rate=5e-5, batch_size=4096, 
-                            target_steps=200_000, grad_accum_steps=32, 
+                            target_steps=200_000, grad_accum_steps=1, 
                             eval_freq=None, use_mixed_precision=None):
             """
             Train the Sparse Transformer targeting a specific number of steps using tqdm for progress tracking.
