@@ -11,7 +11,7 @@ import argparse
 from collections import defaultdict
 import re
 import logging
-
+plt.yscale("log")
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

@@ -563,7 +563,7 @@ def create_numeric_variable_plots(df: pd.DataFrame,
                 
             # 1. Scatter plot of variable vs centroid distance
             plt.figure(figsize=(12, 8))
-            
+            plt.yscale("log")
             if secondary_variable and secondary_variable in metric_df.columns:
                 # Use secondary variable for coloring
                 scatter = plt.scatter(
@@ -599,6 +599,7 @@ def create_numeric_variable_plots(df: pd.DataFrame,
             plt.title(f'Average Centroid Distance vs {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
             plt.xlabel(variable.replace('_', ' ').title())
             plt.ylabel('Average Centroid Distance')
+
             plt.grid(alpha=0.3)
             
             scatter_path = os.path.join(output_dir, f'{file_prefix}scatter_{variable}{metric_suffix}.png')
@@ -608,7 +609,7 @@ def create_numeric_variable_plots(df: pd.DataFrame,
             
             # 2. Line plot showing trends by model/function type
             plt.figure(figsize=(14, 8))
-            
+            plt.yscale("log")
             if 'model_type' in metric_df.columns and 'function_type' in metric_df.columns:
                 # Group by model_type, function_type, and the variable
                 grouped = metric_df.groupby(['model_type', 'function_type', variable])['avg_centroid_distance'].mean().reset_index()
@@ -651,7 +652,7 @@ def create_numeric_variable_plots(df: pd.DataFrame,
             
             # 3. Box plot showing distribution by variable
             plt.figure(figsize=(14, 8))
-            
+            plt.yscale("log")
             # Check if the variable has too many unique values for a good boxplot
             unique_values = metric_df[variable].nunique()
             
@@ -689,7 +690,7 @@ def create_numeric_variable_plots(df: pd.DataFrame,
             # 4. Regression plot if seaborn's regplot is available
             try:
                 plt.figure(figsize=(12, 8))
-                
+                plt.yscale("log")
                 if 'model_type' in metric_df.columns:
                     # Create separate regression lines for each model type
                     model_types = metric_df['model_type'].unique()
@@ -766,7 +767,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
                 
             # 1. Bar plot of average centroid distance by variable categories
             plt.figure(figsize=(14, 8))
-            
+            plt.yscale("log")
             if 'model_type' in metric_df.columns:
                 # Group by model_type and the variable
                 grouped = metric_df.groupby(['model_type', variable])['avg_centroid_distance'].mean().reset_index()
@@ -807,7 +808,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
             
             # 2. Box plot showing distribution by variable
             plt.figure(figsize=(14, 8))
-            
+            plt.yscale("log")
             if secondary_variable and secondary_variable in metric_df.columns:
                 # Include secondary variable in the visualization
                 sns.boxplot(
@@ -843,7 +844,7 @@ def create_categorical_variable_plots(df: pd.DataFrame,
             # 3. Violin plot for more detailed distribution visualization
             try:
                 plt.figure(figsize=(14, 8))
-                
+                plt.yscale("log")
                 if 'model_type' in metric_df.columns:
                     # Split by model type
                     sns.violinplot(
@@ -920,7 +921,7 @@ def create_general_analysis_plots(df: pd.DataFrame,
             # 1. Heatmap of variable and function_type/model_type if available
             if 'function_type' in metric_df.columns:
                 plt.figure(figsize=(12, 10))
-                
+                plt.yscale("log")
                 # Create pivot table for heatmap
                 try:
                     pivot_table = metric_df.pivot_table(
@@ -945,7 +946,7 @@ def create_general_analysis_plots(df: pd.DataFrame,
             # 2. Top and bottom models by variable value
             if 'model_type' in metric_df.columns and 'function_type' in metric_df.columns:
                 plt.figure(figsize=(14, 10))
-                
+                plt.yscale("log")
                 # Get top 5 and bottom 5 models by centroid distance
                 top_models = metric_df.sort_values('avg_centroid_distance', ascending=False).head(5)
                 bottom_models = metric_df.sort_values('avg_centroid_distance').head(5)
@@ -1003,7 +1004,7 @@ def create_general_analysis_plots(df: pd.DataFrame,
             if len(metric_df) >= 5:  # Only create if we have enough data
                 try:
                     plt.figure(figsize=(10, 8))
-                    
+                    plt.yscale("log")
                     # Group by the variable and calculate average centroid distance
                     if metric_df[variable].dtype.name != 'category':
                         impact_df = metric_df.groupby(variable)['avg_centroid_distance'].mean().reset_index()

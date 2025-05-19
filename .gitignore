@@ -17,3 +17,4 @@
 *.pyc
 *.pyc
 *.html
+/models_gptneo
