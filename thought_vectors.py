@@ -41,7 +41,7 @@ except ImportError:
     print("Warning: Original SAE module not found. Will use simplified version.")
 
 try:
-    from ST import SparseTransformer
+    from ST_old import SparseTransformer
     ST_AVAILABLE = True
 except ImportError:
     ST_AVAILABLE = False
@@ -322,6 +322,7 @@ def load_model(model_path, model_type='sae', device='cuda'):
                 model = SparseTransformer(
                     X=dummy_data,
                     n=n, m=m, a=a,
+                    st_model_path=model_path,  # Add this line
                     device=device
                 )
                 model.load_state_dict(state_dict)
@@ -1034,7 +1035,7 @@ def create_grid_of_samples(samples, titles=None, input_shape=(28, 28), n_cols=5,
     return fig
 
 
-def analyze_latent_feature_importance(latent_reps, labels, n_features=10):
+def analyze_latent_feature_importance(latent_reps, labels, n_features=5):
     """
     Analyze which latent features are most important for distinguishing classes
     
@@ -1281,7 +1282,7 @@ def create_sample_grid_from_features(model, latent_reps, top_feature_indices, mo
 def create_thought_vectors_dashboard(model, data, labels, model_type='sae', 
                                    input_shape=(28, 28), device='cuda',
                                    reduction_method='tsne', n_components=2,
-                                   label_names=None, output_dir='thought_vectors_output'):
+                                   label_names=None, output_dir='thought_vectors_output', n_features=5):
     """
     Create a complete dashboard for thought vectors visualization
     
@@ -1330,7 +1331,7 @@ def create_thought_vectors_dashboard(model, data, labels, model_type='sae',
     
     # 5. Analyze feature importance
     print("Analyzing feature importance...")
-    feature_importance, top_feature_indices = analyze_latent_feature_importance(latent_reps, labels.numpy())
+    feature_importance, top_feature_indices = analyze_latent_feature_importance(latent_reps, labels.numpy(), n_features=n_features)
     
     # Save feature importance plot
     plt.figure(figsize=(10, 6))
@@ -1345,15 +1346,17 @@ def create_thought_vectors_dashboard(model, data, labels, model_type='sae',
     # 6. Generate samples by modifying features
     print("Generating samples by modifying features...")
     modified_samples = generate_samples_by_modifying_features(
-        model, latent_reps, top_feature_indices[:5], model_type, input_shape, device=device)
+        model, latent_reps, top_feature_indices[:n_features], model_type, input_shape, device=device)
     
     # Create a grid of samples for each top feature
+    # When creating feature variation images
     for feature_idx, samples in modified_samples.items():
+        importance_score = feature_importance[feature_idx]
         titles = [f"Value: {val:.2f}" for val in np.linspace(-3, 3, len(samples))]
         fig = create_grid_of_samples(samples, titles, input_shape, n_cols=len(samples), 
-                                     main_title=f"Feature {feature_idx} Variation")
-        # Don't call suptitle again since it's handled in create_grid_of_samples
-        fig.savefig(os.path.join(output_dir, f'feature_{feature_idx}_variation.png'), dpi=300)
+                                    main_title=f"Feature {feature_idx} Variation (Importance: {importance_score:.4f})")
+        # Save with importance score in filename for easier sorting
+        fig.savefig(os.path.join(output_dir, f'feature_{feature_idx}_imp_{importance_score:.4f}_variation.png'), dpi=300)
     
     # 7. Create feature grid visualization
     print("Creating feature grid visualization...")
@@ -1412,7 +1415,8 @@ def parse_args():
                       help='Number of samples to use (default: 1000)')
     parser.add_argument('--input_shape', type=str, default='28,28',
                       help='Input shape (default: 28,28 for MNIST)')
-    
+    parser.add_argument('--n_features', type=str, default=5,
+                    help='Number of top features to analyze (default: 5)')
     # Visualization parameters
     parser.add_argument('--reduction_method', type=str, default='tsne',
                       choices=['tsne', 'pca', 'umap'],
@@ -1428,7 +1432,6 @@ def parse_args():
     
     # Parse arguments
     args = parser.parse_args()
-    
     # Process input_shape
     args.input_shape = tuple(map(int, args.input_shape.split(',')))
     
@@ -1461,13 +1464,12 @@ def main():
     
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)
-    
+    args.n_features = int(args.n_features)
     # Load model
     model = load_model(args.model_path, args.model_type, args.device)
     if model is None:
         print("Failed to load model. Exiting.")
         return
-    
     # Load dataset
     if args.dataset.lower() == 'mnist':
         data, labels, label_names = load_mnist_dataset(args.dataset_path, args.n_samples, args.input_shape)
@@ -1477,7 +1479,7 @@ def main():
     # Create the thought vectors dashboard
     create_thought_vectors_dashboard(
         model, data, labels, args.model_type, args.input_shape, args.device,
-        args.reduction_method, args.n_components, label_names, args.output_dir
+        args.reduction_method, args.n_components, label_names, args.output_dir, args.n_features
     )
 
 

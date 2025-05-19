@@ -689,7 +689,7 @@ def parse_args():
                       help='Type of decomposition models to train')
     parser.add_argument('--feature_dim', type=int, default=None,
                       help='Feature dimension for decomposition (default: input_dim/4)')
-    parser.add_argument('--attention_dim', type=int, default=None,
+    parser.add_argument( '--attention_dim', type=int, default=None,
                       help='Attention dimension for ST models')
     parser.add_argument('--auto_attention_dim', action='store_true',
                       help='Automatically calculate attention dimension to match SAE parameter count')
