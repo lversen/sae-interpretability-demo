@@ -1073,7 +1073,8 @@ def analyze_latent_feature_importance(latent_reps, labels, n_features=5):
 
 def generate_samples_by_modifying_features(model, latent_reps, top_feature_indices, 
                                          model_type='sae', input_shape=(28, 28), 
-                                         min_val=-3, max_val=3, n_steps=5, device='cuda'):
+                                         min_val=-3, max_val=3, n_steps=5, device='cuda',
+                                         zero_baseline=True):
     """
     Generate samples by modifying top features in latent space
     
@@ -1087,12 +1088,16 @@ def generate_samples_by_modifying_features(model, latent_reps, top_feature_indic
         max_val: Maximum value for feature modification
         n_steps: Number of steps between min and max
         device: Device to use for computation
+        zero_baseline: Whether to use zero vector (True) or mean vector (False) as baseline
         
     Returns:
         Dictionary mapping feature index to list of modified samples
     """
-    # Get mean latent representation to modify
-    mean_latent = np.mean(latent_reps, axis=0)
+    # Get baseline latent representation to modify
+    if zero_baseline:
+        base_latent = np.zeros(latent_reps.shape[1])
+    else:
+        base_latent = np.mean(latent_reps, axis=0)
     
     # Create dictionary to store results
     modified_samples = {}
@@ -1106,8 +1111,8 @@ def generate_samples_by_modifying_features(model, latent_reps, top_feature_indic
         feature_samples = []
         
         for value in feature_values:
-            # Copy the mean latent representation
-            modified_latent = mean_latent.copy()
+            # Copy the baseline latent representation
+            modified_latent = base_latent.copy()
             
             # Set the feature to the current value
             modified_latent[feature_idx] = value
@@ -1126,7 +1131,6 @@ def generate_samples_by_modifying_features(model, latent_reps, top_feature_indic
         modified_samples[feature_idx] = feature_samples
     
     return modified_samples
-
 
 def compare_samples_to_centroids(latent_reps, labels, input_shape=(28, 28)):
     """
@@ -1199,7 +1203,7 @@ def generate_samples_along_principal_component(model, latent_reps, labels, compo
     principal_component = pca.components_[component_index]
     
     # Get mean latent representation
-    mean_latent = np.mean(latent_reps, axis=0)
+    mean_latent = np.zeros(latent_reps.shape[1])
     
     # Generate samples along the principal component
     samples = []
@@ -1222,7 +1226,8 @@ def generate_samples_along_principal_component(model, latent_reps, labels, compo
 
 
 def create_sample_grid_from_features(model, latent_reps, top_feature_indices, model_type='sae',
-                                    input_shape=(28, 28), device='cuda'):
+                                    input_shape=(28, 28), device='cuda', 
+                                    min_val=-3, max_val=3, n_steps=5, zero_baseline=True):
     """
     Create a grid of samples by varying two top features
     
@@ -1233,6 +1238,10 @@ def create_sample_grid_from_features(model, latent_reps, top_feature_indices, mo
         model_type: Type of model ('sae' or 'st')
         input_shape: Shape of input images
         device: Device to use for computation
+        min_val: Minimum value for feature modification
+        max_val: Maximum value for feature modification
+        n_steps: Number of steps between min and max
+        zero_baseline: Whether to use zero vector (True) or mean vector (False) as baseline
         
     Returns:
         Grid of samples (2D array)
@@ -1244,20 +1253,23 @@ def create_sample_grid_from_features(model, latent_reps, top_feature_indices, mo
     feature1 = top_feature_indices[0]
     feature2 = top_feature_indices[1]
     
-    # Get mean latent representation
-    mean_latent = np.mean(latent_reps, axis=0)
+    # Get baseline latent representation
+    if zero_baseline:
+        base_latent = np.zeros(latent_reps.shape[1])
+    else:
+        base_latent = np.mean(latent_reps, axis=0)
     
     # Get range of values for the two features
-    feature1_values = np.linspace(-3, 3, 5)
-    feature2_values = np.linspace(-3, 3, 5)
+    feature1_values = np.linspace(min_val, max_val, n_steps)
+    feature2_values = np.linspace(min_val, max_val, n_steps)
     
     # Create grid
     grid = np.zeros((len(feature1_values) * input_shape[0], len(feature2_values) * input_shape[1]))
     
     for i, val1 in enumerate(feature1_values):
         for j, val2 in enumerate(feature2_values):
-            # Copy the mean latent representation
-            modified_latent = mean_latent.copy()
+            # Copy the baseline latent representation
+            modified_latent = base_latent.copy()
             
             # Set the two features
             modified_latent[feature1] = val1
@@ -1282,7 +1294,9 @@ def create_sample_grid_from_features(model, latent_reps, top_feature_indices, mo
 def create_thought_vectors_dashboard(model, data, labels, model_type='sae', 
                                    input_shape=(28, 28), device='cuda',
                                    reduction_method='tsne', n_components=2,
-                                   label_names=None, output_dir='thought_vectors_output', n_features=5):
+                                   label_names=None, output_dir='thought_vectors_output', 
+                                   n_features=5, min_val=-3, max_val=3, n_steps=5, 
+                                   zero_baseline=True):
     """
     Create a complete dashboard for thought vectors visualization
     
@@ -1297,6 +1311,11 @@ def create_thought_vectors_dashboard(model, data, labels, model_type='sae',
         n_components: Number of components for reduction
         label_names: Names of the labels
         output_dir: Directory to save output
+        n_features: Number of top features to analyze
+        min_val: Minimum value for feature variation
+        max_val: Maximum value for feature variation
+        n_steps: Number of steps for feature variation
+        zero_baseline: Whether to use zero vector for baseline
         
     Returns:
         None (saves files to output_dir)
@@ -1346,13 +1365,14 @@ def create_thought_vectors_dashboard(model, data, labels, model_type='sae',
     # 6. Generate samples by modifying features
     print("Generating samples by modifying features...")
     modified_samples = generate_samples_by_modifying_features(
-        model, latent_reps, top_feature_indices[:n_features], model_type, input_shape, device=device)
+        model, latent_reps, top_feature_indices[:n_features], model_type, input_shape, 
+        min_val=min_val, max_val=max_val, n_steps=n_steps, device=device, 
+        zero_baseline=zero_baseline)
     
     # Create a grid of samples for each top feature
-    # When creating feature variation images
     for feature_idx, samples in modified_samples.items():
         importance_score = feature_importance[feature_idx]
-        titles = [f"Value: {val:.2f}" for val in np.linspace(-3, 3, len(samples))]
+        titles = [f"Value: {val:.2f}" for val in np.linspace(min_val, max_val, len(samples))]
         fig = create_grid_of_samples(samples, titles, input_shape, n_cols=len(samples), 
                                     main_title=f"Feature {feature_idx} Variation (Importance: {importance_score:.4f})")
         # Save with importance score in filename for easier sorting
@@ -1362,7 +1382,8 @@ def create_thought_vectors_dashboard(model, data, labels, model_type='sae',
     print("Creating feature grid visualization...")
     try:
         feature_grid = create_sample_grid_from_features(
-            model, latent_reps, top_feature_indices[:2], model_type, input_shape, device)
+            model, latent_reps, top_feature_indices[:2], model_type, input_shape, device,
+            min_val=min_val, max_val=max_val, n_steps=n_steps, zero_baseline=zero_baseline)
         
         plt.figure(figsize=(10, 10))
         plt.imshow(feature_grid, cmap='gray')
@@ -1415,8 +1436,19 @@ def parse_args():
                       help='Number of samples to use (default: 1000)')
     parser.add_argument('--input_shape', type=str, default='28,28',
                       help='Input shape (default: 28,28 for MNIST)')
-    parser.add_argument('--n_features', type=str, default=5,
-                    help='Number of top features to analyze (default: 5)')
+    parser.add_argument('--n_features', type=int, default=5,
+                      help='Number of top features to analyze (default: 5)')
+    
+    # Feature variation parameters
+    parser.add_argument('--min_val', type=float, default=-3.0,
+                      help='Minimum value for feature variation (default: -3.0)')
+    parser.add_argument('--max_val', type=float, default=3.0,
+                      help='Maximum value for feature variation (default: 3.0)')
+    parser.add_argument('--n_steps', type=int, default=5,
+                      help='Number of steps for feature variation (default: 5)')
+    parser.add_argument('--use_mean_baseline', action='store_true',
+                      help='Use mean vector as baseline instead of zero vector')
+    
     # Visualization parameters
     parser.add_argument('--reduction_method', type=str, default='tsne',
                       choices=['tsne', 'pca', 'umap'],
@@ -1432,6 +1464,7 @@ def parse_args():
     
     # Parse arguments
     args = parser.parse_args()
+    
     # Process input_shape
     args.input_shape = tuple(map(int, args.input_shape.split(',')))
     
@@ -1461,15 +1494,18 @@ def main():
     print(f"Dataset: {args.dataset}")
     print(f"Dataset path: {args.dataset_path}")
     print(f"Output directory: {args.output_dir}")
+    print(f"Feature variation: min={args.min_val}, max={args.max_val}, steps={args.n_steps}")
+    print(f"Using {'mean' if args.use_mean_baseline else 'zero'} vector as baseline")
     
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)
-    args.n_features = int(args.n_features)
+    
     # Load model
     model = load_model(args.model_path, args.model_type, args.device)
     if model is None:
         print("Failed to load model. Exiting.")
         return
+    
     # Load dataset
     if args.dataset.lower() == 'mnist':
         data, labels, label_names = load_mnist_dataset(args.dataset_path, args.n_samples, args.input_shape)
@@ -1479,7 +1515,9 @@ def main():
     # Create the thought vectors dashboard
     create_thought_vectors_dashboard(
         model, data, labels, args.model_type, args.input_shape, args.device,
-        args.reduction_method, args.n_components, label_names, args.output_dir, args.n_features
+        args.reduction_method, args.n_components, label_names, args.output_dir, 
+        args.n_features, args.min_val, args.max_val, args.n_steps, 
+        not args.use_mean_baseline  # zero_baseline is True when use_mean_baseline is False
     )
 
 
