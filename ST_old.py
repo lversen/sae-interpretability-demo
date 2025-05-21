@@ -25,7 +25,7 @@ class SparseTransformer(nn.Module):
                  lambda_l1: float = 5.0, num_heads: int = 1, device: str = 'cuda',
                  window_size: int = 10_000_000, update_interval: int = 1_000,
                  activation_threshold: float = 1e-3, use_direct_kv: bool = True,
-                 activation: str = 'relu', attention_fn: str = 'softmax',
+                 activation: str = 'none', attention_fn: str = 'softmax',
                  use_mixed_precision: bool = False, log_level: str = 'INFO'):
         super().__init__()
         

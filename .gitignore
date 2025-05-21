@@ -18,3 +18,4 @@
 *.pyc
 *.html
 /models_gptneo
+*.txt

@@ -29,7 +29,7 @@ class SparseTransformer(nn.Module):
                  activation_threshold: float = 1e-3, use_mixed_precision: bool = True,
                  use_compile: bool = True, memory_strategy: str = 'diversity',
                  log_level: str = 'INFO', use_direct_kv: bool = True,
-                 activation: str = 'relu', attention_fn: str = 'softmax'):
+                 activation: str = 'none', attention_fn: str = 'softmax'):
         """
         Initialize the Optimized Sparse Transformer model.
         

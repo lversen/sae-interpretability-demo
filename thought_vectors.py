@@ -41,7 +41,7 @@ except ImportError:
     print("Warning: Original SAE module not found. Will use simplified version.")
 
 try:
-    from ST_old import SparseTransformer
+    from ST import SparseTransformer
     ST_AVAILABLE = True
 except ImportError:
     ST_AVAILABLE = False
@@ -292,7 +292,7 @@ def load_model(model_path, model_type='sae', device='cuda'):
             else:
                 model = SimplifiedSAE(n=n, m=m, device=device)
                 
-            model.load_state_dict(state_dict)
+            model.load_state_dict(state_dict, strict=False)
             
         elif model_type.lower() == 'st':
             # For ST, get dimensions from weights
@@ -325,7 +325,7 @@ def load_model(model_path, model_type='sae', device='cuda'):
                     st_model_path=model_path,  # Add this line
                     device=device
                 )
-                model.load_state_dict(state_dict)
+                model.load_state_dict(state_dict, strict=False)
             else:
                 raise ValueError("ST module not available and no simplified version implemented")
         else:

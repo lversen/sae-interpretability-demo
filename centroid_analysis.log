@@ -11690,3 +11690,1060 @@
 2025-05-19 15:35:13,880 - INFO - Dataset-specific results saved to: model_comparison\dataset_mnist_results.csv
 2025-05-19 15:35:13,882 - INFO - Analysis complete. Generated 16 visualizations and reports.
 2025-05-19 15:35:13,882 - INFO - Results saved to: model_comparison
+2025-05-21 11:19:23,828 - INFO - Loading labeled data from data\fashion_mnist_test.csv...
+2025-05-21 11:19:24,091 - INFO - Evaluation dataset: 10000 samples with 784 feature columns
+2025-05-21 11:19:24,091 - INFO - Number of unique classes/labels: 10
+2025-05-21 11:19:24,093 - INFO - Searching for models in models...
+2025-05-21 11:19:24,094 - INFO - Searching for models in standard hierarchical format in models
+2025-05-21 11:19:24,105 - INFO - Found a total of 278 model files.
+2025-05-21 11:19:24,106 - INFO - Filtered from 278 to 125 models matching dataset: fashion_mnist
+2025-05-21 11:19:24,106 - INFO - Analyzing models using metrics: ['cosine', 'euclidean'] on device: cpu
+2025-05-21 11:19:24,106 - INFO - Using dimension normalization: True
+2025-05-21 11:19:24,107 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\100\bs4096_lr0p001_steps8969_l110p0.pth
+2025-05-21 11:19:24,130 - INFO - SAE model architecture: 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,135 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=100
+2025-05-21 11:19:24,175 - INFO - Model weights initialized
+2025-05-21 11:19:24,177 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,179 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,202 - INFO - Computed SAE feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:24,203 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,209 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,213 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\100\bs4096_lr0p001_steps8969_l12p5.pth
+2025-05-21 11:19:24,224 - INFO - SAE model architecture: 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,224 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=100
+2025-05-21 11:19:24,226 - INFO - Model weights initialized
+2025-05-21 11:19:24,226 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,226 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,236 - INFO - Computed SAE feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:24,236 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,239 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,242 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\100\bs4096_lr0p001_steps8969_l15p0.pth
+2025-05-21 11:19:24,252 - INFO - SAE model architecture: 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,252 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=100
+2025-05-21 11:19:24,253 - INFO - Model weights initialized
+2025-05-21 11:19:24,253 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,253 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,262 - INFO - Computed SAE feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:24,263 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,266 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,268 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l110p0.pth
+2025-05-21 11:19:24,279 - INFO - SAE model architecture: 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,279 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=100
+2025-05-21 11:19:24,281 - INFO - Model weights initialized
+2025-05-21 11:19:24,281 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,282 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,288 - INFO - Computed SAE feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:24,291 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,294 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,295 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l12p5.pth
+2025-05-21 11:19:24,303 - INFO - SAE model architecture: 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,307 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=100
+2025-05-21 11:19:24,307 - INFO - Model weights initialized
+2025-05-21 11:19:24,307 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,309 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,316 - INFO - Computed SAE feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:24,317 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,320 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,321 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\100\bs4096_lr5e-05_steps8969_l15p0.pth
+2025-05-21 11:19:24,332 - INFO - SAE model architecture: 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,332 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=100
+2025-05-21 11:19:24,333 - INFO - Model weights initialized
+2025-05-21 11:19:24,333 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,334 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,342 - INFO - Computed SAE feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:24,342 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,346 - INFO - Model has 100 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,349 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\1600\bs4096_lr0p001_steps71789_l110p0.pth
+2025-05-21 11:19:24,363 - INFO - SAE model architecture: 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,363 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=1600
+2025-05-21 11:19:24,374 - INFO - Model weights initialized
+2025-05-21 11:19:24,374 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,377 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,423 - INFO - Computed SAE feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:24,424 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,465 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,513 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\1600\bs4096_lr0p001_steps71789_l12p5.pth
+2025-05-21 11:19:24,529 - INFO - SAE model architecture: 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,529 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=1600
+2025-05-21 11:19:24,539 - INFO - Model weights initialized
+2025-05-21 11:19:24,539 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,539 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,588 - INFO - Computed SAE feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:24,590 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,630 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,680 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\1600\bs4096_lr0p001_steps71789_l15p0.pth
+2025-05-21 11:19:24,695 - INFO - SAE model architecture: 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,695 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=1600
+2025-05-21 11:19:24,705 - INFO - Model weights initialized
+2025-05-21 11:19:24,706 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,706 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,759 - INFO - Computed SAE feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:24,761 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,798 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,848 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\1600\bs4096_lr5e-05_steps71789_l110p0.pth
+2025-05-21 11:19:24,864 - INFO - SAE model architecture: 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,864 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=1600
+2025-05-21 11:19:24,875 - INFO - Model weights initialized
+2025-05-21 11:19:24,877 - INFO - Model initialized on cpu
+2025-05-21 11:19:24,877 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:24,926 - INFO - Computed SAE feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:24,928 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:24,969 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,018 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\1600\bs4096_lr5e-05_steps71789_l12p5.pth
+2025-05-21 11:19:25,031 - INFO - SAE model architecture: 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,031 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=1600
+2025-05-21 11:19:25,042 - INFO - Model weights initialized
+2025-05-21 11:19:25,043 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,043 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,091 - INFO - Computed SAE feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:25,094 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,136 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,184 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\1600\bs4096_lr5e-05_steps71789_l15p0.pth
+2025-05-21 11:19:25,202 - INFO - SAE model architecture: 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,202 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=1600
+2025-05-21 11:19:25,209 - INFO - Model weights initialized
+2025-05-21 11:19:25,209 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,212 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,262 - INFO - Computed SAE feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:25,264 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,303 - INFO - Model has 1600 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,353 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\20\bs4096_lr0p001_steps4994_l110p0.pth
+2025-05-21 11:19:25,363 - INFO - SAE model architecture: 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,363 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=20
+2025-05-21 11:19:25,364 - INFO - Model weights initialized
+2025-05-21 11:19:25,364 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,365 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,372 - INFO - Computed SAE feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:25,373 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,375 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,378 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\20\bs4096_lr0p001_steps4994_l12p5.pth
+2025-05-21 11:19:25,390 - INFO - SAE model architecture: 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,390 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=20
+2025-05-21 11:19:25,391 - INFO - Model weights initialized
+2025-05-21 11:19:25,391 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,392 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,399 - INFO - Computed SAE feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:25,401 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,403 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,405 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\20\bs4096_lr0p001_steps4994_l15p0.pth
+2025-05-21 11:19:25,415 - INFO - SAE model architecture: 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,415 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=20
+2025-05-21 11:19:25,416 - INFO - Model weights initialized
+2025-05-21 11:19:25,416 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,416 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,421 - INFO - Computed SAE feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:25,424 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,426 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,427 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l110p0.pth
+2025-05-21 11:19:25,437 - INFO - SAE model architecture: 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,437 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=20
+2025-05-21 11:19:25,438 - INFO - Model weights initialized
+2025-05-21 11:19:25,438 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,438 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,443 - INFO - Computed SAE feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:25,443 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,449 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,450 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l12p5.pth
+2025-05-21 11:19:25,458 - INFO - SAE model architecture: 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,459 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=20
+2025-05-21 11:19:25,459 - INFO - Model weights initialized
+2025-05-21 11:19:25,459 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,460 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,465 - INFO - Computed SAE feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:25,468 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,469 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,472 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\20\bs4096_lr5e-05_steps4994_l15p0.pth
+2025-05-21 11:19:25,481 - INFO - SAE model architecture: 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,481 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=20
+2025-05-21 11:19:25,482 - INFO - Model weights initialized
+2025-05-21 11:19:25,482 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,483 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,488 - INFO - Computed SAE feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:25,488 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,492 - INFO - Model has 20 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,493 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\200\bs4096_lr0p001_steps15089_l110p0.pth
+2025-05-21 11:19:25,504 - INFO - SAE model architecture: 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,505 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=200
+2025-05-21 11:19:25,507 - INFO - Model weights initialized
+2025-05-21 11:19:25,508 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,508 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,519 - INFO - Computed SAE feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:25,520 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,523 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,525 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\200\bs4096_lr0p001_steps15089_l12p5.pth
+2025-05-21 11:19:25,537 - INFO - SAE model architecture: 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,537 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=200
+2025-05-21 11:19:25,538 - INFO - Model weights initialized
+2025-05-21 11:19:25,538 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,538 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,549 - INFO - Computed SAE feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:25,550 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,553 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,556 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\200\bs4096_lr0p001_steps15089_l15p0.pth
+2025-05-21 11:19:25,568 - INFO - SAE model architecture: 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,568 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=200
+2025-05-21 11:19:25,570 - INFO - Model weights initialized
+2025-05-21 11:19:25,570 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,570 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,580 - INFO - Computed SAE feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:25,582 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,584 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,587 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l110p0.pth
+2025-05-21 11:19:25,598 - INFO - SAE model architecture: 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,598 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=200
+2025-05-21 11:19:25,600 - INFO - Model weights initialized
+2025-05-21 11:19:25,600 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,600 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,610 - INFO - Computed SAE feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:25,611 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,614 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,617 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l12p5.pth
+2025-05-21 11:19:25,629 - INFO - SAE model architecture: 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,629 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=200
+2025-05-21 11:19:25,632 - INFO - Model weights initialized
+2025-05-21 11:19:25,632 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,633 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,643 - INFO - Computed SAE feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:25,643 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,646 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,650 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\200\bs4096_lr5e-05_steps15089_l15p0.pth
+2025-05-21 11:19:25,664 - INFO - SAE model architecture: 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,664 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=200
+2025-05-21 11:19:25,666 - INFO - Model weights initialized
+2025-05-21 11:19:25,666 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,666 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,677 - INFO - Computed SAE feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:25,678 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,681 - INFO - Model has 200 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,685 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\400\bs4096_lr0p001_steps25379_l110p0.pth
+2025-05-21 11:19:25,697 - INFO - SAE model architecture: 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,698 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=400
+2025-05-21 11:19:25,701 - INFO - Model weights initialized
+2025-05-21 11:19:25,701 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,702 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,717 - INFO - Computed SAE feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:25,719 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,725 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,732 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\400\bs4096_lr0p001_steps25379_l12p5.pth
+2025-05-21 11:19:25,744 - INFO - SAE model architecture: 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,745 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=400
+2025-05-21 11:19:25,748 - INFO - Model weights initialized
+2025-05-21 11:19:25,748 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,748 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,763 - INFO - Computed SAE feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:25,765 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,770 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,781 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\400\bs4096_lr0p001_steps25379_l15p0.pth
+2025-05-21 11:19:25,792 - INFO - SAE model architecture: 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,792 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=400
+2025-05-21 11:19:25,797 - INFO - Model weights initialized
+2025-05-21 11:19:25,798 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,799 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,815 - INFO - Computed SAE feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:25,816 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,822 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,829 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\400\bs4096_lr5e-05_steps25379_l110p0.pth
+2025-05-21 11:19:25,840 - INFO - SAE model architecture: 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,841 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=400
+2025-05-21 11:19:25,844 - INFO - Model weights initialized
+2025-05-21 11:19:25,844 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,844 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,860 - INFO - Computed SAE feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:25,863 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,871 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,878 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\400\bs4096_lr5e-05_steps25379_l12p5.pth
+2025-05-21 11:19:25,889 - INFO - SAE model architecture: 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,891 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=400
+2025-05-21 11:19:25,894 - INFO - Model weights initialized
+2025-05-21 11:19:25,894 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,895 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,910 - INFO - Computed SAE feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:25,912 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,920 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,928 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\400\bs4096_lr5e-05_steps25379_l15p0.pth
+2025-05-21 11:19:25,941 - INFO - SAE model architecture: 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,942 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=400
+2025-05-21 11:19:25,945 - INFO - Model weights initialized
+2025-05-21 11:19:25,945 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,945 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,961 - INFO - Computed SAE feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:25,962 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,968 - INFO - Model has 400 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,978 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\50\bs4096_lr0p001_steps5324_l110p0.pth
+2025-05-21 11:19:25,988 - INFO - SAE model architecture: 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:25,988 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=50
+2025-05-21 11:19:25,990 - INFO - Model weights initialized
+2025-05-21 11:19:25,990 - INFO - Model initialized on cpu
+2025-05-21 11:19:25,990 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:25,998 - INFO - Computed SAE feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:25,999 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,001 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,004 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\50\bs4096_lr0p001_steps5324_l12p5.pth
+2025-05-21 11:19:26,014 - INFO - SAE model architecture: 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,014 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=50
+2025-05-21 11:19:26,014 - INFO - Model weights initialized
+2025-05-21 11:19:26,014 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,014 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,022 - INFO - Computed SAE feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:26,023 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,025 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,027 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\50\bs4096_lr0p001_steps5324_l15p0.pth
+2025-05-21 11:19:26,037 - INFO - SAE model architecture: 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,038 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=50
+2025-05-21 11:19:26,038 - INFO - Model weights initialized
+2025-05-21 11:19:26,038 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,039 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,046 - INFO - Computed SAE feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:26,048 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,049 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,049 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l110p0.pth
+2025-05-21 11:19:26,059 - INFO - SAE model architecture: 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,059 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=50
+2025-05-21 11:19:26,062 - INFO - Model weights initialized
+2025-05-21 11:19:26,062 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,062 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,070 - INFO - Computed SAE feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:26,071 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,072 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,074 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l12p5.pth
+2025-05-21 11:19:26,084 - INFO - SAE model architecture: 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,086 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=50
+2025-05-21 11:19:26,086 - INFO - Model weights initialized
+2025-05-21 11:19:26,087 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,087 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,092 - INFO - Computed SAE feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:26,095 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,097 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,099 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\50\bs4096_lr5e-05_steps5324_l15p0.pth
+2025-05-21 11:19:26,109 - INFO - SAE model architecture: 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,109 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=50
+2025-05-21 11:19:26,111 - INFO - Model weights initialized
+2025-05-21 11:19:26,111 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,112 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,118 - INFO - Computed SAE feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:26,118 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,121 - INFO - Model has 50 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,121 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\800\bs4096_lr0p001_steps42674_l110p0.pth
+2025-05-21 11:19:26,138 - INFO - SAE model architecture: 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,139 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=800
+2025-05-21 11:19:26,145 - INFO - Model weights initialized
+2025-05-21 11:19:26,145 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,146 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,173 - INFO - Computed SAE feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:26,174 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,189 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,206 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\800\bs4096_lr0p001_steps42674_l12p5.pth
+2025-05-21 11:19:26,221 - INFO - SAE model architecture: 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,221 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=800
+2025-05-21 11:19:26,227 - INFO - Model weights initialized
+2025-05-21 11:19:26,227 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,228 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,254 - INFO - Computed SAE feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:26,256 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,270 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,285 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\800\bs4096_lr0p001_steps42674_l15p0.pth
+2025-05-21 11:19:26,298 - INFO - SAE model architecture: 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,298 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=800
+2025-05-21 11:19:26,305 - INFO - Model weights initialized
+2025-05-21 11:19:26,305 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,305 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,332 - INFO - Computed SAE feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:26,334 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,349 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,366 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\800\bs4096_lr5e-05_steps42674_l110p0.pth
+2025-05-21 11:19:26,378 - INFO - SAE model architecture: 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,380 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=800
+2025-05-21 11:19:26,385 - INFO - Model weights initialized
+2025-05-21 11:19:26,385 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,386 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,408 - INFO - Computed SAE feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:26,411 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,426 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,442 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\800\bs4096_lr5e-05_steps42674_l12p5.pth
+2025-05-21 11:19:26,456 - INFO - SAE model architecture: 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,456 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=800
+2025-05-21 11:19:26,464 - INFO - Model weights initialized
+2025-05-21 11:19:26,464 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,465 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,492 - INFO - Computed SAE feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:26,493 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,509 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,526 - INFO - Loading SAE model from models\fashion_mnist\sae\relu\800\bs4096_lr5e-05_steps42674_l15p0.pth
+2025-05-21 11:19:26,540 - INFO - SAE model architecture: 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,540 - INFO - Initializing EnhancedSparseAutoencoder with n=784, m=800
+2025-05-21 11:19:26,548 - INFO - Model weights initialized
+2025-05-21 11:19:26,548 - INFO - Model initialized on cpu
+2025-05-21 11:19:26,548 - INFO - Successfully loaded SAE model (will be used for feature extraction)
+2025-05-21 11:19:26,576 - INFO - Computed SAE feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:26,577 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,592 - INFO - Model has 800 features (m) with input dimension 784 (n)
+2025-05-21 11:19:26,609 - INFO - Loading ST model from models\fashion_mnist\st\softmax\100\bs4096_lr0p001_steps10755_l110p0.pth
+2025-05-21 11:19:26,625 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:26,626 - INFO - Using direct KV approach: True
+2025-05-21 11:19:26,627 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:26,628 - INFO - Using activation function: relu
+2025-05-21 11:19:26,628 - INFO - Using attention function: softmax
+2025-05-21 11:19:26,631 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:26,647 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:26,657 - INFO - Loading ST model from models\fashion_mnist\st\softmax\100\bs4096_lr0p001_steps10755_l12p5.pth
+2025-05-21 11:19:26,670 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:26,670 - INFO - Using direct KV approach: True
+2025-05-21 11:19:26,670 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:26,670 - INFO - Using activation function: relu
+2025-05-21 11:19:26,673 - INFO - Using attention function: softmax
+2025-05-21 11:19:26,674 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:26,683 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:26,693 - INFO - Loading ST model from models\fashion_mnist\st\softmax\100\bs4096_lr0p001_steps10755_l15p0.pth
+2025-05-21 11:19:26,709 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:26,709 - INFO - Using direct KV approach: True
+2025-05-21 11:19:26,709 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:26,709 - INFO - Using activation function: relu
+2025-05-21 11:19:26,709 - INFO - Using attention function: softmax
+2025-05-21 11:19:26,709 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:26,721 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:26,733 - INFO - Loading ST model from models\fashion_mnist\st\softmax\100\bs4096_lr5e-05_steps10755_l110p0.pth
+2025-05-21 11:19:26,749 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:26,750 - INFO - Using direct KV approach: True
+2025-05-21 11:19:26,750 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:26,750 - INFO - Using activation function: relu
+2025-05-21 11:19:26,750 - INFO - Using attention function: softmax
+2025-05-21 11:19:26,751 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:26,760 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:26,770 - INFO - Loading ST model from models\fashion_mnist\st\softmax\100\bs4096_lr5e-05_steps10755_l12p5.pth
+2025-05-21 11:19:26,786 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:26,786 - INFO - Using direct KV approach: True
+2025-05-21 11:19:26,786 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:26,786 - INFO - Using activation function: relu
+2025-05-21 11:19:26,786 - INFO - Using attention function: softmax
+2025-05-21 11:19:26,787 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:26,796 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:26,803 - INFO - Loading ST model from models\fashion_mnist\st\softmax\100\bs4096_lr5e-05_steps10755_l15p0.pth
+2025-05-21 11:19:26,818 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:26,819 - INFO - Using direct KV approach: True
+2025-05-21 11:19:26,819 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:26,819 - INFO - Using activation function: relu
+2025-05-21 11:19:26,819 - INFO - Using attention function: softmax
+2025-05-21 11:19:26,820 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:26,829 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:26,840 - INFO - Loading ST model from models\fashion_mnist\st\softmax\1600\bs4096_lr0p001_steps86145_l110p0.pth
+2025-05-21 11:19:26,882 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:26,883 - INFO - Using direct KV approach: True
+2025-05-21 11:19:26,883 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:26,883 - INFO - Using activation function: relu
+2025-05-21 11:19:26,883 - INFO - Using attention function: softmax
+2025-05-21 11:19:26,892 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:26,953 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:27,081 - INFO - Loading ST model from models\fashion_mnist\st\softmax\1600\bs4096_lr0p001_steps86145_l12p5.pth
+2025-05-21 11:19:27,129 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:27,130 - INFO - Using direct KV approach: True
+2025-05-21 11:19:27,130 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:27,130 - INFO - Using activation function: relu
+2025-05-21 11:19:27,130 - INFO - Using attention function: softmax
+2025-05-21 11:19:27,136 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:27,198 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:27,332 - INFO - Loading ST model from models\fashion_mnist\st\softmax\1600\bs4096_lr0p001_steps86145_l15p0.pth
+2025-05-21 11:19:27,376 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:27,376 - INFO - Using direct KV approach: True
+2025-05-21 11:19:27,376 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:27,377 - INFO - Using activation function: relu
+2025-05-21 11:19:27,377 - INFO - Using attention function: softmax
+2025-05-21 11:19:27,384 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:27,442 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:27,574 - INFO - Loading ST model from models\fashion_mnist\st\softmax\1600\bs4096_lr5e-05_steps86145_l110p0.pth
+2025-05-21 11:19:27,625 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:27,626 - INFO - Using direct KV approach: True
+2025-05-21 11:19:27,626 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:27,626 - INFO - Using activation function: relu
+2025-05-21 11:19:27,626 - INFO - Using attention function: softmax
+2025-05-21 11:19:27,636 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:27,694 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:27,825 - INFO - Loading ST model from models\fashion_mnist\st\softmax\1600\bs4096_lr5e-05_steps86145_l12p5.pth
+2025-05-21 11:19:27,869 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:27,869 - INFO - Using direct KV approach: True
+2025-05-21 11:19:27,869 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:27,869 - INFO - Using activation function: relu
+2025-05-21 11:19:27,869 - INFO - Using attention function: softmax
+2025-05-21 11:19:27,878 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:27,934 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:28,063 - INFO - Loading ST model from models\fashion_mnist\st\softmax\1600\bs4096_lr5e-05_steps86145_l15p0.pth
+2025-05-21 11:19:28,104 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:28,104 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,104 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,104 - INFO - Using activation function: relu
+2025-05-21 11:19:28,104 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,111 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,170 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:28,303 - INFO - Loading ST model from models\fashion_mnist\st\softmax\20\bs4096_lr0p001_steps6000_l110p0.pth
+2025-05-21 11:19:28,316 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:28,316 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,317 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,317 - INFO - Using activation function: relu
+2025-05-21 11:19:28,317 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,318 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,325 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:28,331 - INFO - Loading ST model from models\fashion_mnist\st\softmax\20\bs4096_lr0p001_steps6000_l12p5.pth
+2025-05-21 11:19:28,346 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:28,346 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,346 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,346 - INFO - Using activation function: relu
+2025-05-21 11:19:28,347 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,348 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,354 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:28,361 - INFO - Loading ST model from models\fashion_mnist\st\softmax\20\bs4096_lr0p001_steps6000_l15p0.pth
+2025-05-21 11:19:28,374 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:28,374 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,375 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,375 - INFO - Using activation function: relu
+2025-05-21 11:19:28,375 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,376 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,381 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:28,388 - INFO - Loading ST model from models\fashion_mnist\st\softmax\20\bs4096_lr5e-05_steps6000_l110p0.pth
+2025-05-21 11:19:28,401 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:28,401 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,401 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,402 - INFO - Using activation function: relu
+2025-05-21 11:19:28,402 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,402 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,409 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:28,416 - INFO - Loading ST model from models\fashion_mnist\st\softmax\20\bs4096_lr5e-05_steps6000_l12p5.pth
+2025-05-21 11:19:28,427 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:28,428 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,428 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,428 - INFO - Using activation function: relu
+2025-05-21 11:19:28,428 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,429 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,436 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:28,442 - INFO - Loading ST model from models\fashion_mnist\st\softmax\20\bs4096_lr5e-05_steps6000_l15p0.pth
+2025-05-21 11:19:28,455 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:28,455 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,455 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,456 - INFO - Using activation function: relu
+2025-05-21 11:19:28,456 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,456 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,464 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:28,470 - INFO - Loading ST model from models\fashion_mnist\st\softmax\200\bs4096_lr0p001_steps18105_l110p0.pth
+2025-05-21 11:19:28,489 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:28,489 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,489 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,489 - INFO - Using activation function: relu
+2025-05-21 11:19:28,489 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,491 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,504 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:28,520 - INFO - Loading ST model from models\fashion_mnist\st\softmax\200\bs4096_lr0p001_steps18105_l12p5.pth
+2025-05-21 11:19:28,542 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:28,542 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,542 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,542 - INFO - Using activation function: relu
+2025-05-21 11:19:28,542 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,543 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,555 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:28,571 - INFO - Loading ST model from models\fashion_mnist\st\softmax\200\bs4096_lr0p001_steps18105_l15p0.pth
+2025-05-21 11:19:28,588 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:28,588 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,588 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,589 - INFO - Using activation function: relu
+2025-05-21 11:19:28,589 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,590 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,602 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:28,618 - INFO - Loading ST model from models\fashion_mnist\st\softmax\200\bs4096_lr5e-05_steps18105_l110p0.pth
+2025-05-21 11:19:28,636 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:28,636 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,637 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,637 - INFO - Using activation function: relu
+2025-05-21 11:19:28,637 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,639 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,649 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:28,664 - INFO - Loading ST model from models\fashion_mnist\st\softmax\200\bs4096_lr5e-05_steps18105_l12p5.pth
+2025-05-21 11:19:28,684 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:28,684 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,684 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,684 - INFO - Using activation function: relu
+2025-05-21 11:19:28,684 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,686 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,698 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:28,714 - INFO - Loading ST model from models\fashion_mnist\st\softmax\200\bs4096_lr5e-05_steps18105_l15p0.pth
+2025-05-21 11:19:28,731 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:28,731 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,731 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,731 - INFO - Using activation function: relu
+2025-05-21 11:19:28,731 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,733 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,744 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:28,758 - INFO - Loading ST model from models\fashion_mnist\st\softmax\400\bs4096_lr0p001_steps30450_l110p0.pth
+2025-05-21 11:19:28,780 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:28,780 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,784 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,784 - INFO - Using activation function: relu
+2025-05-21 11:19:28,784 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,787 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,807 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:28,836 - INFO - Loading ST model from models\fashion_mnist\st\softmax\400\bs4096_lr0p001_steps30450_l12p5.pth
+2025-05-21 11:19:28,860 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:28,861 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,861 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,861 - INFO - Using activation function: relu
+2025-05-21 11:19:28,861 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,863 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,883 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:28,919 - INFO - Loading ST model from models\fashion_mnist\st\softmax\400\bs4096_lr0p001_steps30450_l15p0.pth
+2025-05-21 11:19:28,948 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:28,948 - INFO - Using direct KV approach: True
+2025-05-21 11:19:28,948 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:28,951 - INFO - Using activation function: relu
+2025-05-21 11:19:28,951 - INFO - Using attention function: softmax
+2025-05-21 11:19:28,953 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:28,972 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:28,999 - INFO - Loading ST model from models\fashion_mnist\st\softmax\400\bs4096_lr5e-05_steps30450_l110p0.pth
+2025-05-21 11:19:29,022 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:29,022 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,022 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,023 - INFO - Using activation function: relu
+2025-05-21 11:19:29,023 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,025 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,046 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:29,075 - INFO - Loading ST model from models\fashion_mnist\st\softmax\400\bs4096_lr5e-05_steps30450_l12p5.pth
+2025-05-21 11:19:29,098 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:29,098 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,098 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,099 - INFO - Using activation function: relu
+2025-05-21 11:19:29,099 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,101 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,121 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:29,154 - INFO - Loading ST model from models\fashion_mnist\st\softmax\400\bs4096_lr5e-05_steps30450_l15p0.pth
+2025-05-21 11:19:29,177 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:29,178 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,178 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,178 - INFO - Using activation function: relu
+2025-05-21 11:19:29,178 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,180 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,198 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:29,228 - INFO - Loading ST model from models\fashion_mnist\st\softmax\50\bs4096_lr0p001_steps6390_l110p0.pth
+2025-05-21 11:19:29,242 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:29,242 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,242 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,242 - INFO - Using activation function: relu
+2025-05-21 11:19:29,242 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,242 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,251 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:29,258 - INFO - Loading ST model from models\fashion_mnist\st\softmax\50\bs4096_lr0p001_steps6390_l12p5.pth
+2025-05-21 11:19:29,273 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:29,274 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,274 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,275 - INFO - Using activation function: relu
+2025-05-21 11:19:29,275 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,276 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,281 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:29,289 - INFO - Loading ST model from models\fashion_mnist\st\softmax\50\bs4096_lr0p001_steps6390_l15p0.pth
+2025-05-21 11:19:29,304 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:29,304 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,304 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,305 - INFO - Using activation function: relu
+2025-05-21 11:19:29,305 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,305 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,313 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:29,319 - INFO - Loading ST model from models\fashion_mnist\st\softmax\50\bs4096_lr5e-05_steps6390_l110p0.pth
+2025-05-21 11:19:29,334 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:29,334 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,334 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,334 - INFO - Using activation function: relu
+2025-05-21 11:19:29,334 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,335 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,341 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:29,348 - INFO - Loading ST model from models\fashion_mnist\st\softmax\50\bs4096_lr5e-05_steps6390_l12p5.pth
+2025-05-21 11:19:29,362 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:29,362 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,363 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,364 - INFO - Using activation function: relu
+2025-05-21 11:19:29,364 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,365 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,371 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:29,378 - INFO - Loading ST model from models\fashion_mnist\st\softmax\50\bs4096_lr5e-05_steps6390_l15p0.pth
+2025-05-21 11:19:29,392 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:29,392 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,392 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,392 - INFO - Using activation function: relu
+2025-05-21 11:19:29,393 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,393 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,400 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:29,409 - INFO - Loading ST model from models\fashion_mnist\st\softmax\800\bs4096_lr0p001_steps51210_l110p0.pth
+2025-05-21 11:19:29,440 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:29,441 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,441 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,441 - INFO - Using activation function: relu
+2025-05-21 11:19:29,441 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,445 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,478 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:29,541 - INFO - Loading ST model from models\fashion_mnist\st\softmax\800\bs4096_lr0p001_steps51210_l12p5.pth
+2025-05-21 11:19:29,572 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:29,573 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,573 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,573 - INFO - Using activation function: relu
+2025-05-21 11:19:29,573 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,579 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,609 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:29,672 - INFO - Loading ST model from models\fashion_mnist\st\softmax\800\bs4096_lr0p001_steps51210_l15p0.pth
+2025-05-21 11:19:29,703 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:29,703 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,703 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,703 - INFO - Using activation function: relu
+2025-05-21 11:19:29,703 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,707 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,740 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:29,798 - INFO - Loading ST model from models\fashion_mnist\st\softmax\800\bs4096_lr5e-05_steps51210_l110p0.pth
+2025-05-21 11:19:29,828 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:29,828 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,829 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,829 - INFO - Using activation function: relu
+2025-05-21 11:19:29,829 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,831 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,865 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:29,918 - INFO - Loading ST model from models\fashion_mnist\st\softmax\800\bs4096_lr5e-05_steps51210_l12p5.pth
+2025-05-21 11:19:29,948 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:29,948 - INFO - Using direct KV approach: True
+2025-05-21 11:19:29,948 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:29,948 - INFO - Using activation function: relu
+2025-05-21 11:19:29,948 - INFO - Using attention function: softmax
+2025-05-21 11:19:29,953 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:29,985 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:30,047 - INFO - Loading ST model from models\fashion_mnist\st\softmax\800\bs4096_lr5e-05_steps51210_l15p0.pth
+2025-05-21 11:19:30,078 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:30,078 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,078 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,078 - INFO - Using activation function: relu
+2025-05-21 11:19:30,078 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,081 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,113 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:30,168 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\100\bs4096_lr0p001_steps10755_l110p0.pth
+2025-05-21 11:19:30,181 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:30,181 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,181 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,185 - INFO - Using activation function: relu
+2025-05-21 11:19:30,185 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,186 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,195 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:30,203 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\100\bs4096_lr0p001_steps10755_l12p5.pth
+2025-05-21 11:19:30,220 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:30,220 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,220 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,220 - INFO - Using activation function: relu
+2025-05-21 11:19:30,220 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,220 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,232 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:30,242 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\100\bs4096_lr0p001_steps10755_l15p0.pth
+2025-05-21 11:19:30,261 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:30,261 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,261 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,262 - INFO - Using activation function: relu
+2025-05-21 11:19:30,262 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,262 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,270 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:30,281 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\100\bs4096_lr5e-05_steps10755_l110p0.pth
+2025-05-21 11:19:30,297 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:30,297 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,298 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,298 - INFO - Using activation function: relu
+2025-05-21 11:19:30,298 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,299 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,308 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:30,320 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\100\bs4096_lr5e-05_steps10755_l12p5.pth
+2025-05-21 11:19:30,336 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:30,337 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,337 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,337 - INFO - Using activation function: relu
+2025-05-21 11:19:30,337 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,338 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,347 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:30,358 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\100\bs4096_lr5e-05_steps10755_l15p0.pth
+2025-05-21 11:19:30,374 - INFO - ST model architecture: 100 features (m) with input dimension 784 (n) and attention dimension 87 (a)
+2025-05-21 11:19:30,374 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,374 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,375 - INFO - Using activation function: relu
+2025-05-21 11:19:30,375 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,376 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,382 - INFO - Computed ST feature activations with shape (10000, 100) for 10000 input samples
+2025-05-21 11:19:30,399 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\1600\bs4096_lr0p001_steps86145_l110p0.pth
+2025-05-21 11:19:30,442 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:30,442 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,442 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,442 - INFO - Using activation function: relu
+2025-05-21 11:19:30,442 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,448 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,505 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:30,640 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\1600\bs4096_lr0p001_steps86145_l12p5.pth
+2025-05-21 11:19:30,681 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:30,681 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,681 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,681 - INFO - Using activation function: relu
+2025-05-21 11:19:30,681 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,689 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:30,748 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:30,888 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\1600\bs4096_lr0p001_steps86145_l15p0.pth
+2025-05-21 11:19:30,934 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:30,934 - INFO - Using direct KV approach: True
+2025-05-21 11:19:30,934 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:30,934 - INFO - Using activation function: relu
+2025-05-21 11:19:30,934 - INFO - Using attention function: softmax
+2025-05-21 11:19:30,938 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,001 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:31,128 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\1600\bs4096_lr5e-05_steps86145_l12p5.pth
+2025-05-21 11:19:31,179 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:31,179 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,179 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,180 - INFO - Using activation function: relu
+2025-05-21 11:19:31,180 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,189 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,249 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:31,374 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\1600\bs4096_lr5e-05_steps86145_l15p0.pth
+2025-05-21 11:19:31,420 - INFO - ST model architecture: 1600 features (m) with input dimension 784 (n) and attention dimension 526 (a)
+2025-05-21 11:19:31,420 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,420 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,420 - INFO - Using activation function: relu
+2025-05-21 11:19:31,420 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,429 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,486 - INFO - Computed ST feature activations with shape (10000, 1600) for 10000 input samples
+2025-05-21 11:19:31,620 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\20\bs4096_lr0p001_steps6000_l110p0.pth
+2025-05-21 11:19:31,636 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:31,636 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,636 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,636 - INFO - Using activation function: relu
+2025-05-21 11:19:31,636 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,637 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,645 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:31,652 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\20\bs4096_lr0p001_steps6000_l12p5.pth
+2025-05-21 11:19:31,665 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:31,665 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,665 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,666 - INFO - Using activation function: relu
+2025-05-21 11:19:31,666 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,666 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,675 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:31,681 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\20\bs4096_lr0p001_steps6000_l15p0.pth
+2025-05-21 11:19:31,692 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:31,692 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,692 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,692 - INFO - Using activation function: relu
+2025-05-21 11:19:31,695 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,695 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,701 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:31,709 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\20\bs4096_lr5e-05_steps6000_l110p0.pth
+2025-05-21 11:19:31,720 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:31,720 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,720 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,720 - INFO - Using activation function: relu
+2025-05-21 11:19:31,720 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,720 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,730 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:31,739 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\20\bs4096_lr5e-05_steps6000_l12p5.pth
+2025-05-21 11:19:31,751 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:31,751 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,751 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,752 - INFO - Using activation function: relu
+2025-05-21 11:19:31,752 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,753 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,758 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:31,769 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\20\bs4096_lr5e-05_steps6000_l15p0.pth
+2025-05-21 11:19:31,782 - INFO - ST model architecture: 20 features (m) with input dimension 784 (n) and attention dimension 18 (a)
+2025-05-21 11:19:31,782 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,782 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,782 - INFO - Using activation function: relu
+2025-05-21 11:19:31,782 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,783 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,788 - INFO - Computed ST feature activations with shape (10000, 20) for 10000 input samples
+2025-05-21 11:19:31,799 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\200\bs4096_lr0p001_steps18105_l110p0.pth
+2025-05-21 11:19:31,816 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:31,816 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,816 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,816 - INFO - Using activation function: relu
+2025-05-21 11:19:31,817 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,818 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,830 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:31,843 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\200\bs4096_lr0p001_steps18105_l12p5.pth
+2025-05-21 11:19:31,864 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:31,864 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,865 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,865 - INFO - Using activation function: relu
+2025-05-21 11:19:31,865 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,866 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,878 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:31,893 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\200\bs4096_lr0p001_steps18105_l15p0.pth
+2025-05-21 11:19:31,911 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:31,911 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,911 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,912 - INFO - Using activation function: relu
+2025-05-21 11:19:31,912 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,913 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,925 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:31,941 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\200\bs4096_lr5e-05_steps18105_l110p0.pth
+2025-05-21 11:19:31,959 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:31,959 - INFO - Using direct KV approach: True
+2025-05-21 11:19:31,959 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:31,960 - INFO - Using activation function: relu
+2025-05-21 11:19:31,960 - INFO - Using attention function: softmax
+2025-05-21 11:19:31,961 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:31,972 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:31,989 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\200\bs4096_lr5e-05_steps18105_l12p5.pth
+2025-05-21 11:19:32,007 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:32,008 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,008 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,008 - INFO - Using activation function: relu
+2025-05-21 11:19:32,009 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,009 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,022 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:32,043 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\200\bs4096_lr5e-05_steps18105_l15p0.pth
+2025-05-21 11:19:32,059 - INFO - ST model architecture: 200 features (m) with input dimension 784 (n) and attention dimension 158 (a)
+2025-05-21 11:19:32,059 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,059 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,059 - INFO - Using activation function: relu
+2025-05-21 11:19:32,059 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,063 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,074 - INFO - Computed ST feature activations with shape (10000, 200) for 10000 input samples
+2025-05-21 11:19:32,096 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\400\bs4096_lr0p001_steps30450_l110p0.pth
+2025-05-21 11:19:32,120 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:32,120 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,120 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,120 - INFO - Using activation function: relu
+2025-05-21 11:19:32,121 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,123 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,143 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:32,172 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\400\bs4096_lr0p001_steps30450_l12p5.pth
+2025-05-21 11:19:32,196 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:32,196 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,196 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,196 - INFO - Using activation function: relu
+2025-05-21 11:19:32,196 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,198 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,219 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:32,244 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\400\bs4096_lr0p001_steps30450_l15p0.pth
+2025-05-21 11:19:32,267 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:32,267 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,267 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,268 - INFO - Using activation function: relu
+2025-05-21 11:19:32,268 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,270 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,289 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:32,325 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\400\bs4096_lr5e-05_steps30450_l110p0.pth
+2025-05-21 11:19:32,348 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:32,348 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,348 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,349 - INFO - Using activation function: relu
+2025-05-21 11:19:32,349 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,351 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,370 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:32,397 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\400\bs4096_lr5e-05_steps30450_l12p5.pth
+2025-05-21 11:19:32,421 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:32,421 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,421 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,422 - INFO - Using activation function: relu
+2025-05-21 11:19:32,422 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,424 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,443 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:32,473 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\400\bs4096_lr5e-05_steps30450_l15p0.pth
+2025-05-21 11:19:32,493 - INFO - ST model architecture: 400 features (m) with input dimension 784 (n) and attention dimension 264 (a)
+2025-05-21 11:19:32,496 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,496 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,496 - INFO - Using activation function: relu
+2025-05-21 11:19:32,496 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,499 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,518 - INFO - Computed ST feature activations with shape (10000, 400) for 10000 input samples
+2025-05-21 11:19:32,548 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\50\bs4096_lr0p001_steps6390_l110p0.pth
+2025-05-21 11:19:32,564 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:32,564 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,564 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,564 - INFO - Using activation function: relu
+2025-05-21 11:19:32,564 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,565 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,570 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:32,579 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\50\bs4096_lr0p001_steps6390_l12p5.pth
+2025-05-21 11:19:32,593 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:32,594 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,594 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,594 - INFO - Using activation function: relu
+2025-05-21 11:19:32,595 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,595 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,602 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:32,610 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\50\bs4096_lr0p001_steps6390_l15p0.pth
+2025-05-21 11:19:32,622 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:32,622 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,622 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,623 - INFO - Using activation function: relu
+2025-05-21 11:19:32,623 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,624 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,628 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:32,638 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\50\bs4096_lr5e-05_steps6390_l110p0.pth
+2025-05-21 11:19:32,652 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:32,652 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,653 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,653 - INFO - Using activation function: relu
+2025-05-21 11:19:32,653 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,654 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,660 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:32,668 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\50\bs4096_lr5e-05_steps6390_l12p5.pth
+2025-05-21 11:19:32,682 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:32,682 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,683 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,683 - INFO - Using activation function: relu
+2025-05-21 11:19:32,683 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,684 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,691 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:32,697 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\50\bs4096_lr5e-05_steps6390_l15p0.pth
+2025-05-21 11:19:32,710 - INFO - ST model architecture: 50 features (m) with input dimension 784 (n) and attention dimension 46 (a)
+2025-05-21 11:19:32,710 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,710 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,710 - INFO - Using activation function: relu
+2025-05-21 11:19:32,711 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,712 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,719 - INFO - Computed ST feature activations with shape (10000, 50) for 10000 input samples
+2025-05-21 11:19:32,726 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\800\bs4096_lr0p001_steps51210_l110p0.pth
+2025-05-21 11:19:32,757 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:32,757 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,757 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,758 - INFO - Using activation function: relu
+2025-05-21 11:19:32,758 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,763 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,794 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:32,858 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\800\bs4096_lr0p001_steps51210_l12p5.pth
+2025-05-21 11:19:32,890 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:32,890 - INFO - Using direct KV approach: True
+2025-05-21 11:19:32,890 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:32,891 - INFO - Using activation function: relu
+2025-05-21 11:19:32,891 - INFO - Using attention function: softmax
+2025-05-21 11:19:32,895 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:32,928 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:32,989 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\800\bs4096_lr0p001_steps51210_l15p0.pth
+2025-05-21 11:19:33,021 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:33,021 - INFO - Using direct KV approach: True
+2025-05-21 11:19:33,021 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:33,021 - INFO - Using activation function: relu
+2025-05-21 11:19:33,021 - INFO - Using attention function: softmax
+2025-05-21 11:19:33,025 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:33,060 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:33,114 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\800\bs4096_lr5e-05_steps51210_l110p0.pth
+2025-05-21 11:19:33,146 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:33,146 - INFO - Using direct KV approach: True
+2025-05-21 11:19:33,146 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:33,146 - INFO - Using activation function: relu
+2025-05-21 11:19:33,147 - INFO - Using attention function: softmax
+2025-05-21 11:19:33,150 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:33,182 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:33,238 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\800\bs4096_lr5e-05_steps51210_l12p5.pth
+2025-05-21 11:19:33,269 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:33,269 - INFO - Using direct KV approach: True
+2025-05-21 11:19:33,269 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:33,270 - INFO - Using activation function: relu
+2025-05-21 11:19:33,270 - INFO - Using attention function: softmax
+2025-05-21 11:19:33,271 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:33,308 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:33,365 - INFO - Loading ST model from models\fashion_mnist\st\tanh_scale_shift\800\bs4096_lr5e-05_steps51210_l15p0.pth
+2025-05-21 11:19:33,400 - INFO - ST model architecture: 800 features (m) with input dimension 784 (n) and attention dimension 395 (a)
+2025-05-21 11:19:33,400 - INFO - Using direct KV approach: True
+2025-05-21 11:19:33,400 - INFO - Using ST_old implementation for ST model
+2025-05-21 11:19:33,400 - INFO - Using activation function: relu
+2025-05-21 11:19:33,400 - INFO - Using attention function: softmax
+2025-05-21 11:19:33,404 - INFO - Successfully loaded ST model (will be used for feature extraction)
+2025-05-21 11:19:33,441 - INFO - Computed ST feature activations with shape (10000, 800) for 10000 input samples
+2025-05-21 11:19:33,506 - INFO - Creating comparison visualizations in model_comparison...
+2025-05-21 11:19:33,835 - INFO - Creating visualizations for dataset: fashion_mnist
+2025-05-21 11:19:36,379 - WARNING - Could not save Excel file: No module named 'openpyxl'
+2025-05-21 11:19:36,381 - INFO - Dataset-specific results saved to: model_comparison\dataset_fashion_mnist_results.csv
+2025-05-21 11:19:36,385 - INFO - Analysis complete. Generated 16 visualizations and reports.
+2025-05-21 11:19:36,385 - INFO - Results saved to: model_comparison
