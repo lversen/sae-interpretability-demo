@@ -41,7 +41,7 @@ except ImportError:
     print("Warning: Original SAE module not found. Will use simplified version.")
 
 try:
-    from ST import SparseTransformer
+    from ST_old import SparseTransformer
     ST_AVAILABLE = True
 except ImportError:
     ST_AVAILABLE = False

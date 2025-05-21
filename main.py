@@ -704,10 +704,14 @@ def get_hierarchical_model_path(args, model_type):
             str(args.feature_dimension)
         )
     else:  # ST model
+        # Determine which ST directory to use
+        st_dir = 'st_old' if args.use_old_st else 'st'
+        
         # ST: models/[dataset]/st/[attention_fn]/[feature_dimension]/
+        # or ST_old: models/[dataset]/st_old/[attention_fn]/[feature_dimension]/
         hierarchy_path = os.path.join(
             base_dir,
-            'st',
+            st_dir,
             args.attention_fn,
             str(args.feature_dimension)
         )
