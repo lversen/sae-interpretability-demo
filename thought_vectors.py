@@ -210,8 +210,8 @@ def load_image_dataset(path, n_samples=None, input_shape=None):
             labels_int = labels_int[indices]
         
         # Normalize features to [0, 1]
-        if features.max() > 1.0:
-            features = features / 255.0
+       # if features.max() > 1.0:
+         #   features = features / 255.0
         
         # Infer input shape if not provided
         if input_shape is None:
@@ -446,7 +446,7 @@ def reconstruct_from_feature_activations(model, features, model_type='sae', devi
                 # Direct K-V approach
                 v = model.W_v_direct  # Shape: [m, n]
                 # Use matmul to get weighted sum of value vectors
-                reconstructions = torch.matmul(features_tensor, v)
+                reconstructions = torch.log10(torch.matmul(features_tensor, v))
             else:
                 # Memory bank approach - this is approximate
                 raise NotImplementedError("ST reconstruction from features not implemented for memory bank approach")

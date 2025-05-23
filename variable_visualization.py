@@ -690,7 +690,6 @@ def create_numeric_variable_plots(df: pd.DataFrame,
             # 4. Regression plot if seaborn's regplot is available
             try:
                 plt.figure(figsize=(12, 8))
-                plt.yscale("log")
                 if 'model_type' in metric_df.columns:
                     # Create separate regression lines for each model type
                     model_types = metric_df['model_type'].unique()
@@ -700,6 +699,7 @@ def create_numeric_variable_plots(df: pd.DataFrame,
                             x=variable,
                             y='avg_centroid_distance',
                             data=model_data,
+                            logx=True,
                             scatter=True,
                             label=model_type,
                             scatter_kws={'s': 80, 'alpha': 0.6},
@@ -711,17 +711,17 @@ def create_numeric_variable_plots(df: pd.DataFrame,
                     sns.regplot(
                         x=variable,
                         y='avg_centroid_distance',
+                        logx=True,
                         data=metric_df,
                         scatter=True,
                         scatter_kws={'s': 80, 'alpha': 0.6},
                         line_kws={'linewidth': 3}
                     )
-                
                 plt.title(f'Regression: Centroid Distance vs {variable.replace("_", " ").title()}{metric_suffix}{dataset_suffix}')
                 plt.xlabel(variable.replace('_', ' ').title())
                 plt.ylabel('Average Centroid Distance')
                 plt.grid(alpha=0.3)
-                
+                plt.yscale("log")
                 reg_path = os.path.join(output_dir, f'{file_prefix}regression_{variable}{metric_suffix}.png')
                 plt.savefig(reg_path, dpi=300)
                 visualizations.append(reg_path)
