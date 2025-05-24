@@ -3,8 +3,11 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from typing import Dict, List, Tuple, Optional
 from thought_vectors import *
+
 def analyze_latent_feature_importance_per_class(latent_reps, labels, n_features=5):
     """
     Analyze which latent features are most important for distinguishing each class
@@ -60,6 +63,214 @@ def analyze_latent_feature_importance_per_class(latent_reps, labels, n_features=
             importance_per_class[label] = (feature_variance, top_feature_indices)
         
         return importance_per_class
+
+def generate_feature_importance_markdown_tables(
+    importance_per_class: Dict[int, Tuple[np.ndarray, np.ndarray]], 
+    label_names: Optional[List[str]] = None,
+    n_top_features: int = 10,
+    output_file: Optional[str] = None
+) -> str:
+    """
+    Generate markdown tables summarizing feature importance per class
+    
+    Args:
+        importance_per_class: Dictionary from analyze_latent_feature_importance_per_class
+        label_names: Names of the classes (optional)
+        n_top_features: Number of top features to include in detailed tables
+        output_file: Optional file path to save the markdown output
+        
+    Returns:
+        String containing markdown formatted tables
+    """
+    markdown_content = []
+    
+    # Header
+    markdown_content.append("# Feature Importance Analysis Per Class\n")
+    markdown_content.append("This analysis shows which latent features are most important for distinguishing each class.\n")
+    
+    # Get all unique classes
+    classes = sorted(importance_per_class.keys())
+    
+    # 1. Summary table of all classes
+    markdown_content.append("## Summary Table - Top 5 Features Per Class\n")
+    
+    summary_table = []
+    summary_headers = ["Class", "Top Feature", "Importance", "2nd Feature", "Importance", 
+                      "3rd Feature", "Importance", "4th Feature", "Importance", "5th Feature", "Importance"]
+    
+    for class_label in classes:
+        feature_importance, top_feature_indices = importance_per_class[class_label]
+        class_name = label_names[class_label] if label_names else f"Class {class_label}"
+        
+        row = [class_name]
+        for i in range(min(5, len(top_feature_indices))):
+            feature_idx = top_feature_indices[i]
+            importance = feature_importance[feature_idx]
+            row.extend([f"F{feature_idx}", f"{importance:.4f}"])
+        
+        # Pad row if fewer than 5 features
+        while len(row) < len(summary_headers):
+            row.extend(["-", "-"])
+            
+        summary_table.append(row)
+    
+    # Create summary table markdown
+    summary_df = pd.DataFrame(summary_table, columns=summary_headers)
+    markdown_content.append(summary_df.to_markdown(index=False))
+    markdown_content.append("\n")
+    
+    # 2. Feature overlap analysis
+    markdown_content.append("## Feature Overlap Analysis\n")
+    
+    # Find which features appear in top N for multiple classes
+    feature_class_mapping = {}
+    for class_label in classes:
+        _, top_feature_indices = importance_per_class[class_label]
+        class_name = label_names[class_label] if label_names else f"Class {class_label}"
+        
+        for i, feature_idx in enumerate(top_feature_indices[:5]):  # Top 5 features
+            if feature_idx not in feature_class_mapping:
+                feature_class_mapping[feature_idx] = []
+            feature_class_mapping[feature_idx].append((class_name, i+1))  # rank starting from 1
+    
+    # Create overlap table
+    overlap_data = []
+    for feature_idx, class_info in feature_class_mapping.items():
+        if len(class_info) > 1:  # Feature appears in multiple classes
+            classes_str = ", ".join([f"{cls}({rank})" for cls, rank in class_info])
+            overlap_data.append([f"F{feature_idx}", len(class_info), classes_str])
+    
+    if overlap_data:
+        overlap_df = pd.DataFrame(overlap_data, columns=["Feature", "Num Classes", "Classes (Rank)"])
+        overlap_df = overlap_df.sort_values("Num Classes", ascending=False)
+        markdown_content.append("Features that appear in top 5 for multiple classes:\n")
+        markdown_content.append(overlap_df.to_markdown(index=False))
+        markdown_content.append("\n")
+    else:
+        markdown_content.append("No features appear in the top 5 for multiple classes.\n")
+    
+    # 3. Detailed tables for each class
+    markdown_content.append("## Detailed Feature Rankings Per Class\n")
+    
+    for class_label in classes:
+        feature_importance, top_feature_indices = importance_per_class[class_label]
+        class_name = label_names[class_label] if label_names else f"Class {class_label}"
+        
+        markdown_content.append(f"### {class_name}\n")
+        
+        # Create detailed table for this class
+        detailed_data = []
+        for i, feature_idx in enumerate(top_feature_indices[:n_top_features]):
+            importance = feature_importance[feature_idx]
+            detailed_data.append([i+1, f"F{feature_idx}", f"{importance:.6f}", f"{importance/feature_importance[top_feature_indices[0]]*100:.1f}%"])
+        
+        detailed_df = pd.DataFrame(detailed_data, columns=["Rank", "Feature", "Importance", "% of Top"])
+        markdown_content.append(detailed_df.to_markdown(index=False))
+        markdown_content.append("\n")
+    
+    # 4. Statistical summary
+    markdown_content.append("## Statistical Summary\n")
+    
+    stats_data = []
+    for class_label in classes:
+        feature_importance, top_feature_indices = importance_per_class[class_label]
+        class_name = label_names[class_label] if label_names else f"Class {class_label}"
+        
+        top_5_importance = feature_importance[top_feature_indices[:5]]
+        stats_data.append([
+            class_name,
+            f"{np.max(feature_importance):.4f}",
+            f"{np.mean(top_5_importance):.4f}",
+            f"{np.std(top_5_importance):.4f}",
+            f"{np.sum(top_5_importance):.4f}",
+            len(top_feature_indices)
+        ])
+    
+    stats_df = pd.DataFrame(stats_data, columns=[
+        "Class", "Max Importance", "Mean Top 5", "Std Top 5", "Sum Top 5", "Total Features"
+    ])
+    markdown_content.append(stats_df.to_markdown(index=False))
+    markdown_content.append("\n")
+    
+    # Join all content
+    full_markdown = "\n".join(markdown_content)
+    
+    # Save to file if specified
+    if output_file:
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(full_markdown)
+        print(f"Detailed feature importance tables saved to {output_file}")
+    
+    return full_markdown
+
+def generate_feature_comparison_heatmap_table(
+    importance_per_class: Dict[int, Tuple[np.ndarray, np.ndarray]], 
+    label_names: Optional[List[str]] = None,
+    top_n_features: int = 20
+) -> str:
+    """
+    Generate a markdown table showing feature importance as a heatmap-style table
+    
+    Args:
+        importance_per_class: Dictionary from analyze_latent_feature_importance_per_class
+        label_names: Names of the classes (optional)
+        top_n_features: Number of top features to include across all classes
+        
+    Returns:
+        String containing markdown formatted heatmap table
+    """
+    classes = sorted(importance_per_class.keys())
+    
+    # Collect all top features across classes
+    all_top_features = set()
+    for class_label in classes:
+        _, top_feature_indices = importance_per_class[class_label]
+        all_top_features.update(top_feature_indices[:top_n_features])
+    
+    # Sort features by their maximum importance across all classes
+    feature_max_importance = {}
+    for feature_idx in all_top_features:
+        max_imp = 0
+        for class_label in classes:
+            feature_importance, _ = importance_per_class[class_label]
+            if feature_idx < len(feature_importance):
+                max_imp = max(max_imp, feature_importance[feature_idx])
+        feature_max_importance[feature_idx] = max_imp
+    
+    sorted_features = sorted(feature_max_importance.keys(), 
+                           key=lambda x: feature_max_importance[x], reverse=True)[:top_n_features]
+    
+    # Create heatmap data
+    heatmap_data = []
+    headers = ["Feature"] + [label_names[c] if label_names else f"Class {c}" for c in classes]
+    
+    for feature_idx in sorted_features:
+        row = [f"F{feature_idx}"]
+        for class_label in classes:
+            feature_importance, _ = importance_per_class[class_label]
+            if feature_idx < len(feature_importance):
+                importance = feature_importance[feature_idx]
+                # Create visual indicator based on importance level
+                if importance > 0.1:
+                    row.append(f"HIGH {importance:.3f}")
+                elif importance > 0.05:
+                    row.append(f"MED {importance:.3f}")
+                elif importance > 0.01:
+                    row.append(f"LOW {importance:.3f}")
+                else:
+                    row.append(f"- {importance:.3f}")
+            else:
+                row.append("- 0.000")
+        heatmap_data.append(row)
+    
+    heatmap_df = pd.DataFrame(heatmap_data, columns=headers)
+    
+    markdown_content = []
+    markdown_content.append("# Feature Importance Heatmap\n")
+    markdown_content.append("HIGH = High importance (>0.1), MED = Medium importance (>0.05), LOW = Low importance (>0.01), - = Very low\n")
+    markdown_content.append(heatmap_df.to_markdown(index=False))
+    
+    return "\n".join(markdown_content)
 
 def generate_samples_by_modifying_features_per_class(model, latent_reps, labels, importance_per_class, 
                                                    model_type='sae', input_shape=(28, 28), 
@@ -260,7 +471,7 @@ def create_feature_importance_grid(model, latent_reps, labels, label_names, impo
             plt.close()
             
             # Create a summary file
-            with open(os.path.join(class_dir, 'feature_importance_summary.txt'), 'w') as f:
+            with open(os.path.join(class_dir, 'feature_importance_summary.txt'), 'w', encoding='utf-8') as f:
                 f.write(f"Feature Importance Summary for {class_name}\n")
                 f.write("="*50 + "\n\n")
                 f.write("Features in descending order of importance:\n")
@@ -349,6 +560,35 @@ def create_thought_vectors_dashboard_with_class_features(
     importance_per_class = analyze_latent_feature_importance_per_class(
         latent_reps, labels.numpy(), n_features=n_features_per_class)
     
+    # 6.5. Generate markdown tables for feature importance analysis
+    print("Generating feature importance markdown tables...")
+    
+    # Generate detailed tables
+    detailed_report = generate_feature_importance_markdown_tables(
+        importance_per_class, 
+        label_names=label_names, 
+        n_top_features=n_features_per_class,
+        output_file=os.path.join(output_dir, "feature_importance_detailed.md")
+    )
+    
+    # Generate heatmap table
+    heatmap_report = generate_feature_comparison_heatmap_table(
+        importance_per_class, 
+        label_names=label_names, 
+        top_n_features=15
+    )
+    
+    # Save heatmap report
+    with open(os.path.join(output_dir, "feature_importance_heatmap.md"), 'w', encoding='utf-8') as f:
+        f.write(heatmap_report)
+    print(f"Feature importance heatmap table saved to {os.path.join(output_dir, 'feature_importance_heatmap.md')}")
+    
+    # Save combined report
+    combined_report = detailed_report + "\n\n---\n\n" + heatmap_report
+    with open(os.path.join(output_dir, "feature_importance_complete.md"), 'w', encoding='utf-8') as f:
+        f.write(combined_report)
+    print(f"Complete feature importance report saved to {os.path.join(output_dir, 'feature_importance_complete.md')}")
+    
     # 7. Create class-specific feature visualizations
     print("Creating class-specific feature visualizations...")
     class_features_dir = os.path.join(output_dir, 'class_features')
@@ -401,6 +641,10 @@ def create_thought_vectors_dashboard_with_class_features(
         interpolation_fig.write_html(os.path.join(output_dir, 'interpolation_animation.html'))
     
     print(f"Thought Vectors dashboard created in {output_dir}")
+    print("Markdown reports generated:")
+    print(f"  • Detailed analysis: {os.path.join(output_dir, 'feature_importance_detailed.md')}")
+    print(f"  • Heatmap table: {os.path.join(output_dir, 'feature_importance_heatmap.md')}")
+    print(f"  • Complete report: {os.path.join(output_dir, 'feature_importance_complete.md')}")
 
 def parse_args():
     """Parse command line arguments"""
