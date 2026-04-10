@@ -1,22 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
 
-/embeddings
-/models
-.spyproject/config/backups/workspace.ini.bak
-/.spyproject
-/__pycache__
-/data
-*.gexf
-/graphs
-/__pycache__
-/enhanced_visualizations
-/model_comparison
-/visualization
-/best_models
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# PyTorch
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+
+# Model directories
+models/
+embeddings/
+models_gptneo/
+checkpoints/
+best_models/
+model_comparison/
+
+# Data directories (keep structure, ignore large CSV files)
+data/*.csv
+!data/README.md
+
+# Logs and outputs
+*.log
+logs/
+runs/
+outputs/
+
+# Visualizations and results (generated files)
 *.png
+*.jpg
+*.jpeg
 *.gif
-*.pyc
-*.pyc
+*.svg
 *.html
-/models_gptneo
-*.txt
-*.md
+*.gephi
+*.gexf
+graphs/
+visualization/
+enhanced_visualizations/
+figures/
+results/
+
+# Large data files
+*.parquet
+*.arrow
+*.hdf5
+*.h5
+
+# IDE
+.vscode/
+.idea/
+.spyproject/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+temp/
+tmp/
+
+# Config backups
+.spyproject/config/backups/
