@@ -8,7 +8,7 @@ UiT – The Arctic University of Norway, 2025
 
 ---
 
-## 📖 Overview
+## Overview
 
 This repository contains the complete implementation and experiments for my master's thesis investigating interpretability in large language models (LLMs) through sparse representation learning. The thesis compares two fundamental approaches to understanding internal representations in neural networks:
 
@@ -19,7 +19,7 @@ Both methods aim to decompose neural network activations into interpretable, spa
 
 ---
 
-## 🧠 Key Concepts
+## Key Concepts
 
 ### Sparse Autoencoders (SAE)
 - Learn overcomplete sparse representations of neural activations
@@ -35,7 +35,7 @@ Both methods aim to decompose neural network activations into interpretable, spa
 
 ---
 
-## 🔬 Research Questions
+## Research Questions
 
 - Can attention-based methods outperform autoencoders for interpretability?
 - How do sparse features learned by SAE vs ST differ qualitatively?
@@ -44,7 +44,7 @@ Both methods aim to decompose neural network activations into interpretable, spa
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Python 3.11+**
 - **PyTorch** — Deep learning framework
@@ -57,10 +57,10 @@ Both methods aim to decompose neural network activations into interpretable, spa
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
-Internship/
+Master-thesis/
 │
 ├── src/                          # Source code
 │   ├── models/                   # Core model implementations
@@ -129,7 +129,7 @@ Internship/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -141,8 +141,8 @@ Internship/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/Internship.git
-   cd Internship
+   git clone https://github.com/lversen/Master-thesis.git
+   cd Master-thesis
    ```
 
 2. **Install dependencies:**
@@ -164,7 +164,7 @@ Internship/
 
 ---
 
-## 🏃 Running Experiments
+## Running Experiments
 
 ### Training a Single Model
 
@@ -201,7 +201,7 @@ plot_decoder_matrix_columns(model, X, num_cols=10)
 
 ---
 
-## 📊 Key Results
+## Key Results
 
 The thesis trained **252 model configurations** across:
 - **Datasets:** MNIST, GPT-Neo layer activations (layers 8-14)
@@ -213,7 +213,7 @@ Results are summarized in [`docs/training_summary.md`](docs/training_summary.md)
 
 ---
 
-## 📚 References
+## References
 
 Key papers explored in this thesis:
 - Scaling Laws for Neural Language Models ([`docs/references/scaling_laws.pdf`](docs/references/scaling_laws.pdf))
@@ -221,30 +221,30 @@ Key papers explored in this thesis:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 This is a thesis project and not actively maintained for external contributions. However, if you find bugs or have suggestions, feel free to open an issue or contact me directly.
 
 ---
 
-## 📧 Contact
+## Contact
 
 **Sebastian Iversen**
-📧 sebive98@gmail.com
-🎓 MSc Applied Physics and Mathematics (Machine Learning & Statistics)
-🏛️ UiT – The Arctic University of Norway
+sebive98@gmail.com
+MSc Applied Physics and Mathematics (Machine Learning & Statistics)
+UiT – The Arctic University of Norway
 
 ---
 
-## 📄 License
+## License
 
-This project is provided as-is for academic and educational purposes. If you use this code in your research, please cite appropriately.
+This repository is made available for academic and educational purposes. No license is currently specified. If you use this code in your research, please cite the thesis.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-Thanks to my supervisors and the UiT Machine Learning research group for guidance throughout this thesis project.
+Thanks to my supervisors at UiT – The Arctic University of Norway for their guidance throughout this project.
 
 ---
 
