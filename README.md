@@ -5,6 +5,7 @@ UiT – The Arctic University of Norway, 2025
 
 **Author:** Sebastian Iversen
 **Contact:** sebive98@gmail.com
+**Thesis:** [Read the full thesis (PDF)](thesis.pdf)
 
 ---
 
