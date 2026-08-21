@@ -58,6 +58,10 @@ results/
 *.hdf5
 *.h5
 
+# Virtual environments
+.venv/
+venv/
+
 # IDE
 .vscode/
 .idea/

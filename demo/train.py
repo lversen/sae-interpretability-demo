@@ -10,11 +10,13 @@ import os
 
 import numpy as np
 import torch
+from huggingface_hub import HfApi
 from transformers import GPT2Model, GPT2Tokenizer
 
 from corpus import SENTENCES
 from sae import SparseAutoencoder
 
+HF_REPO_ID = "Sebastian-T-Iversen/sae-interpretability-demo"  # must match app.py's HF_REPO_ID
 MODEL_NAME = "gpt2"
 LAYER = 6           # middle layer of gpt2-small's 12 transformer blocks
 N_IN = 768           # gpt2-small hidden size
@@ -83,7 +85,17 @@ def main():
     np.save(os.path.join(ARTIFACT_DIR, "corpus_features.npy"), corpus_features.cpu().numpy())
 
     print(f"\nSaved artifacts to {ARTIFACT_DIR}")
-    print("Now run: streamlit run demo/app.py")
+
+    print(f"Pushing artifacts to https://huggingface.co/{HF_REPO_ID} ...")
+    api = HfApi()
+    api.create_repo(repo_id=HF_REPO_ID, repo_type="model", exist_ok=True)
+    for filename in ("sae.pt", "corpus_features.npy"):
+        api.upload_file(
+            path_or_fileobj=os.path.join(ARTIFACT_DIR, filename),
+            path_in_repo=filename,
+            repo_id=HF_REPO_ID,
+        )
+    print("Pushed. Now run: streamlit run demo/app.py")
 
 
 if __name__ == "__main__":

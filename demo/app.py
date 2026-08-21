@@ -1,39 +1,59 @@
-"""Interactive sparse-feature explorer.
+"""Interactive dense-vs-sparse feature explorer.
 
-Type a sentence, see which sparse features fire, and see which other
-sentences in the corpus fire the same top feature most strongly -
-a concrete, clickable version of what the thesis measures in prose.
+Type a sentence and see two things side by side: the raw GPT-2 activation
+(dense, every dimension has some value, none of them individually mean
+anything) versus the SAE's sparse features (a handful fire, and each one
+can be named by the other corpus sentences that fire it too) - a concrete,
+clickable version of what the thesis measures in prose.
 
 Run with: streamlit run demo/app.py
-(requires demo/artifacts/sae.pt from demo/train.py first)
+The dense side works immediately. The sparse side needs
+demo/artifacts/sae.pt from demo/train.py.
 """
 import os
 
 import numpy as np
 import streamlit as st
 import torch
+from huggingface_hub import hf_hub_download
 from transformers import GPT2Model, GPT2Tokenizer
 
 from corpus import SENTENCES
 from sae import SparseAutoencoder
 
 ARTIFACT_DIR = os.path.join(os.path.dirname(__file__), "artifacts")
+MODEL_NAME = "gpt2"
+DEFAULT_LAYER = 6  # matches train.py; overridden by the checkpoint's own layer once trained
+HF_REPO_ID = "Sebastian-T-Iversen/sae-interpretability-demo"  # must match train.py's HF_REPO_ID
+
+
+def resolve_artifact(filename):
+    """Local copy first (e.g. right after training), else pull from the HF Hub registry."""
+    local_path = os.path.join(ARTIFACT_DIR, filename)
+    if os.path.exists(local_path):
+        return local_path
+    try:
+        return hf_hub_download(repo_id=HF_REPO_ID, filename=filename)
+    except Exception:
+        return None
 
 
 @st.cache_resource
-def load_everything():
-    checkpoint = torch.load(os.path.join(ARTIFACT_DIR, "sae.pt"), map_location="cpu", weights_only=True)
+def load_gpt2():
+    tokenizer = GPT2Tokenizer.from_pretrained(MODEL_NAME)
+    gpt2 = GPT2Model.from_pretrained(MODEL_NAME)
+    gpt2.eval()
+    return tokenizer, gpt2
+
+
+@st.cache_resource
+def load_sae(sae_path, features_path):
+    checkpoint = torch.load(sae_path, map_location="cpu", weights_only=True)
     sae = SparseAutoencoder(checkpoint["n_in"], checkpoint["n_features"])
     sae.load_state_dict(checkpoint["state_dict"])
     sae.eval()
-
-    tokenizer = GPT2Tokenizer.from_pretrained(checkpoint["model_name"])
-    gpt2 = GPT2Model.from_pretrained(checkpoint["model_name"])
-    gpt2.eval()
-
-    corpus_features = np.load(os.path.join(ARTIFACT_DIR, "corpus_features.npy"))
-
-    return sae, tokenizer, gpt2, corpus_features, checkpoint["layer"]
+    corpus_features = np.load(features_path)
+    return sae, corpus_features, checkpoint["layer"]
 
 
 def get_activation(sentence, tokenizer, gpt2, layer):
@@ -45,41 +65,57 @@ def get_activation(sentence, tokenizer, gpt2, layer):
 
 
 st.set_page_config(page_title="Sparse Feature Explorer", layout="centered")
-st.title("Sparse Autoencoder Feature Explorer")
+st.title("Dense vs. Sparse: Why Interpretability Needs Sparsity")
 st.caption(
     "Companion demo to my master's thesis on sparse neural network interpretability. "
-    "Type a sentence, and see which sparse features in a small GPT-2 sparse autoencoder "
-    "fire in response."
+    "Type a sentence and compare GPT-2's raw activation to the sparse features "
+    "a small autoencoder extracts from it."
 )
 
-if not os.path.exists(os.path.join(ARTIFACT_DIR, "sae.pt")):
-    st.error("No trained model found. Run `python demo/train.py` first.")
-    st.stop()
-
-sae, tokenizer, gpt2, corpus_features, layer = load_everything()
+tokenizer, gpt2 = load_gpt2()
+sae_path = resolve_artifact("sae.pt")
+features_path = resolve_artifact("corpus_features.npy")
+sae_available = sae_path is not None and features_path is not None
 
 text = st.text_input("Enter a sentence", value="The team celebrated after winning the game.")
 
 if text:
-    x = get_activation(text, tokenizer, gpt2, layer)
-    with torch.no_grad():
-        _, f = sae(x.unsqueeze(0))
-    f = f.squeeze(0).numpy()
+    dense_col, sparse_col = st.columns(2)
 
-    top_idx = np.argsort(-f)[:10]
-    top_vals = f[top_idx]
+    with dense_col:
+        st.subheader("Dense (raw GPT-2 activation)")
+        st.caption("Every one of 768 dimensions has some value. None of them, alone, means anything.")
+        x = get_activation(text, tokenizer, gpt2, DEFAULT_LAYER)
+        x = x.numpy()
+        st.bar_chart({"activation": x}, x_label=None, height=250)
+        st.metric("Nonzero dimensions", f"{int((np.abs(x) > 1e-6).sum())} / {len(x)}")
 
-    st.subheader("Top 10 activated features")
-    st.bar_chart({"activation": top_vals}, x_label=None)
-    st.write({f"feature {i}": round(float(v), 3) for i, v in zip(top_idx, top_vals)})
+    with sparse_col:
+        st.subheader("Sparse (SAE features)")
+        if not sae_available:
+            st.info("Train the SAE first: `python demo/train.py`")
+        else:
+            sae, corpus_features, layer = load_sae(sae_path, features_path)
+            x_sae = get_activation(text, tokenizer, gpt2, layer)
+            with torch.no_grad():
+                _, f = sae(x_sae.unsqueeze(0))
+            f = f.squeeze(0).numpy()
 
-    best_feature = int(top_idx[0])
-    st.subheader(f"Other sentences that activate feature {best_feature} most strongly")
-    st.caption(
-        "If this feature is monosemantic, these should share a common theme with "
-        "your input sentence - that's the interpretability payoff sparsity buys you."
-    )
-    feature_col = corpus_features[:, best_feature]
-    top_corpus_idx = np.argsort(-feature_col)[:5]
-    for idx in top_corpus_idx:
-        st.write(f"- {SENTENCES[idx]}  (activation: {feature_col[idx]:.3f})")
+            top_idx = np.argsort(-f)[:10]
+            top_vals = f[top_idx]
+
+            st.caption("Only a handful of features turn on. Each one you can point to and name.")
+            st.bar_chart({"activation": top_vals}, x_label=None, height=250)
+            st.metric("Active features", f"{int((f > 0).sum())} / {len(f)}")
+
+    if sae_available:
+        best_feature = int(top_idx[0])
+        st.subheader(f"Other sentences that activate feature {best_feature} most strongly")
+        st.caption(
+            "If this feature is monosemantic, these should share a common theme with "
+            "your input sentence - that's the interpretability payoff sparsity buys you."
+        )
+        feature_col = corpus_features[:, best_feature]
+        top_corpus_idx = np.argsort(-feature_col)[:5]
+        for idx in top_corpus_idx:
+            st.write(f"- {SENTENCES[idx]}  (activation: {feature_col[idx]:.3f})")
