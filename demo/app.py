@@ -86,12 +86,16 @@ if text:
         st.subheader("Dense (raw GPT-2 activation)")
         x = get_activation(text, tokenizer, gpt2, DEFAULT_LAYER)
         x = x.numpy()
-        outlier_idx = int(np.argmax(np.abs(x)))
+        # "Rogue dimensions": a few dims run 10-100x+ the typical magnitude on every
+        # input, regardless of content - a documented transformer artifact, not signal.
+        # Threshold, not a fixed index/count, so it holds up if the layer/model changes.
+        median_abs = np.median(np.abs(x))
+        outlier_idx = np.where(np.abs(x) > 50 * median_abs)[0]
         st.caption(
             f"Every one of 768 dimensions has some value. None of them, alone, means anything. "
-            f"(Dimension {outlier_idx} is excluded from the chart below - it's a 'rogue dimension', "
-            f"a known artifact that dwarfs every other value regardless of input and would blow "
-            f"out the scale.)"
+            f"({len(outlier_idx)} 'rogue dimension(s)' excluded from the chart below - a known "
+            f"artifact that dwarfs every other value regardless of input and would blow out the "
+            f"scale.)"
         )
         x_display = np.delete(x, outlier_idx)
         st.bar_chart({"activation": x_display}, x_label=None, height=250)
