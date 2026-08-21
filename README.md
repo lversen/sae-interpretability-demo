@@ -9,6 +9,28 @@ UiT – The Arctic University of Norway, 2025
 
 ---
 
+## Interactive demo
+
+The thesis itself is dense reading. [`demo/`](demo/) is a small, self-contained
+companion: a from-scratch sparse autoencoder trained on GPT-2 activations, with
+a Streamlit app that lets you type any sentence and see which sparse features
+fire — and which other sentences fire the same feature most strongly, as a
+concrete, clickable illustration of the monosemanticity idea the thesis argues
+for in prose.
+
+```bash
+cd demo
+pip install -r requirements.txt
+python train.py          # trains a small SAE on GPT-2 activations (~a few minutes on CPU)
+streamlit run app.py     # opens the interactive explorer
+```
+
+It is intentionally not the full thesis pipeline (no DeadFeatureTracker, mixed
+precision, or 252-configuration sweep — see `src/` for that) — it is scoped to
+be readable end to end in one sitting and to run on a laptop without a GPU.
+
+---
+
 ## Overview
 
 This repository contains the complete implementation and experiments for my master's thesis investigating interpretability in large language models (LLMs) through sparse representation learning. The thesis compares two fundamental approaches to understanding internal representations in neural networks:
