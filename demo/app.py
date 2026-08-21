@@ -64,23 +64,25 @@ def get_activation(sentence, tokenizer, gpt2, layer):
     return hidden.mean(dim=0)
 
 
-def to_heatmap(values, height=40, clip_percentile=99):
-    """Diverging blue/white/red strip, one column per value.
+def to_heatmap(values, rows=24, cols=32, cell_size=18, clip_percentile=99):
+    """Grid of colored squares, one per dimension, diverging blue/white/red.
 
-    Color is clipped at a percentile of |values| rather than the true max, so a
-    couple of huge outlier values (see "rogue dimensions" below) saturate to
-    solid color instead of washing out every other column's contrast.
+    A rows x cols grid (768 = 24 x 32, exact) reads better than a thin 1D strip -
+    each dimension gets an actual visible square. Color is clipped at a
+    percentile of |values| rather than the true max, so a couple of huge
+    outlier values (see "rogue dimensions" below) saturate to solid color
+    instead of washing out every other square's contrast.
     """
     vmax = max(np.percentile(np.abs(values), clip_percentile), 1e-6)
-    n = np.clip(values / vmax, -1, 1)
-    rgb = np.full((len(values), 3), 255, dtype=np.uint8)
+    n = np.clip(values / vmax, -1, 1).reshape(rows, cols)
+    rgb = np.full((rows, cols, 3), 255, dtype=np.uint8)
     pos = n > 0
     rgb[pos, 1] = ((1 - n[pos]) * 255).astype(np.uint8)
     rgb[pos, 2] = ((1 - n[pos]) * 255).astype(np.uint8)
     neg = ~pos
     rgb[neg, 0] = ((1 + n[neg]) * 255).astype(np.uint8)
     rgb[neg, 1] = ((1 + n[neg]) * 255).astype(np.uint8)
-    return np.tile(rgb, (height, 1, 1))
+    return np.repeat(np.repeat(rgb, cell_size, axis=0), cell_size, axis=1)
 
 
 st.set_page_config(page_title="Sparse Feature Explorer", layout="centered")
