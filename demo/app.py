@@ -64,6 +64,25 @@ def get_activation(sentence, tokenizer, gpt2, layer):
     return hidden.mean(dim=0)
 
 
+def to_heatmap(values, height=40, clip_percentile=99):
+    """Diverging blue/white/red strip, one column per value.
+
+    Color is clipped at a percentile of |values| rather than the true max, so a
+    couple of huge outlier values (see "rogue dimensions" below) saturate to
+    solid color instead of washing out every other column's contrast.
+    """
+    vmax = max(np.percentile(np.abs(values), clip_percentile), 1e-6)
+    n = np.clip(values / vmax, -1, 1)
+    rgb = np.full((len(values), 3), 255, dtype=np.uint8)
+    pos = n > 0
+    rgb[pos, 1] = ((1 - n[pos]) * 255).astype(np.uint8)
+    rgb[pos, 2] = ((1 - n[pos]) * 255).astype(np.uint8)
+    neg = ~pos
+    rgb[neg, 0] = ((1 + n[neg]) * 255).astype(np.uint8)
+    rgb[neg, 1] = ((1 + n[neg]) * 255).astype(np.uint8)
+    return np.tile(rgb, (height, 1, 1))
+
+
 st.set_page_config(page_title="Sparse Feature Explorer", layout="centered")
 st.title("Dense vs. Sparse: Why Interpretability Needs Sparsity")
 st.caption(
@@ -86,19 +105,13 @@ if text:
         st.subheader("Dense (raw GPT-2 activation)")
         x = get_activation(text, tokenizer, gpt2, DEFAULT_LAYER)
         x = x.numpy()
-        # "Rogue dimensions": a few dims run 10-100x+ the typical magnitude on every
-        # input, regardless of content - a documented transformer artifact, not signal.
-        # Threshold, not a fixed index/count, so it holds up if the layer/model changes.
-        median_abs = np.median(np.abs(x))
-        outlier_idx = np.where(np.abs(x) > 50 * median_abs)[0]
         st.caption(
-            f"Every one of 768 dimensions has some value. None of them, alone, means anything. "
-            f"({len(outlier_idx)} 'rogue dimension(s)' excluded from the chart below - a known "
-            f"artifact that dwarfs every other value regardless of input and would blow out the "
-            f"scale.)"
+            "Every one of 768 dimensions has some value. None of them, alone, means anything - "
+            "just noise, dimension to dimension. (A couple of 'rogue dimensions' run far larger "
+            "than the rest on every input regardless of content, a known transformer artifact - "
+            "color here is capped at the 99th percentile so they don't wash out everything else.)"
         )
-        x_display = np.delete(x, outlier_idx)
-        st.bar_chart({"activation": x_display}, x_label=None, height=250)
+        st.image(to_heatmap(x), width="stretch")
         st.metric("Nonzero dimensions", f"{int((np.abs(x) > 1e-6).sum())} / {len(x)}")
 
     with sparse_col:
