@@ -64,17 +64,21 @@ def get_activation(sentence, tokenizer, gpt2, layer):
     return hidden.mean(dim=0)
 
 
-def to_heatmap(values, rows=24, cols=32, cell_size=18, clip_percentile=99):
+def to_heatmap(values, rows=24, cols=32, cell_size=18):
     """Grid of colored squares, one per dimension, diverging blue/white/red.
 
     A rows x cols grid (768 = 24 x 32, exact) reads better than a thin 1D strip -
-    each dimension gets an actual visible square. Color is clipped at a
-    percentile of |values| rather than the true max, so a couple of huge
-    outlier values (see "rogue dimensions" below) saturate to solid color
-    instead of washing out every other square's contrast.
+    each dimension gets an actual visible square. Colored on a signed log scale
+    (sign(x) * log1p(|x|)) rather than linear: a couple of "rogue dimensions"
+    run 100-600x the typical magnitude on every input regardless of content (a
+    known transformer artifact, not signal) - on a linear scale they'd swamp
+    the color range and flatten every other square toward white. Log
+    compresses that gap so the genuine dimension-to-dimension variance stays
+    visible instead of being overpowered by the artifact.
     """
-    vmax = max(np.percentile(np.abs(values), clip_percentile), 1e-6)
-    n = np.clip(values / vmax, -1, 1).reshape(rows, cols)
+    signed_log = np.sign(values) * np.log1p(np.abs(values))
+    vmax = max(np.abs(signed_log).max(), 1e-6)
+    n = np.clip(signed_log / vmax, -1, 1).reshape(rows, cols)
     rgb = np.full((rows, cols, 3), 255, dtype=np.uint8)
     pos = n > 0
     rgb[pos, 1] = ((1 - n[pos]) * 255).astype(np.uint8)
@@ -109,9 +113,9 @@ if text:
         x = x.numpy()
         st.caption(
             "Every one of 768 dimensions has some value. None of them, alone, means anything - "
-            "just noise, dimension to dimension. (A couple of 'rogue dimensions' run far larger "
-            "than the rest on every input regardless of content, a known transformer artifact - "
-            "color here is capped at the 99th percentile so they don't wash out everything else.)"
+            "just noise, dimension to dimension. (Colored on a log scale: a couple of 'rogue "
+            "dimensions' run far larger than the rest on every input regardless of content, a "
+            "known transformer artifact, and a linear scale would let them wash out everything else.)"
         )
         st.image(to_heatmap(x), width="stretch")
         st.metric("Nonzero dimensions", f"{int((np.abs(x) > 1e-6).sum())} / {len(x)}")
