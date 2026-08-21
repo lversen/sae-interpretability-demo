@@ -84,10 +84,17 @@ if text:
 
     with dense_col:
         st.subheader("Dense (raw GPT-2 activation)")
-        st.caption("Every one of 768 dimensions has some value. None of them, alone, means anything.")
         x = get_activation(text, tokenizer, gpt2, DEFAULT_LAYER)
         x = x.numpy()
-        st.bar_chart({"activation": x}, x_label=None, height=250)
+        outlier_idx = int(np.argmax(np.abs(x)))
+        st.caption(
+            f"Every one of 768 dimensions has some value. None of them, alone, means anything. "
+            f"(Dimension {outlier_idx} is excluded from the chart below - it's a 'rogue dimension', "
+            f"a known artifact that dwarfs every other value regardless of input and would blow "
+            f"out the scale.)"
+        )
+        x_display = np.delete(x, outlier_idx)
+        st.bar_chart({"activation": x_display}, x_label=None, height=250)
         st.metric("Nonzero dimensions", f"{int((np.abs(x) > 1e-6).sum())} / {len(x)}")
 
     with sparse_col:
